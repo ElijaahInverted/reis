@@ -13,8 +13,20 @@ function injectDmSansFont() {
 }
 
 async function firstLoad() {
+  //LOGIN CHECK
+  const contains = document.body.innerHTML.includes("/system/login.pl");
+  if(contains){
+    console.log("[INFO] Login detected.");
+    return;
+  }
+  //HIDDEN CHECK
+  const storage = window.localStorage;
+  if(storage.getItem("hidden") == "true"){
+    console.log("[INFO] Hidden detected.");
+    return;
+  };
+  //
   console.log("Content loaded");
-
   // Remove all existing content
   document.body.innerHTML = '';
   document.head.innerHTML = ''; // The head is cleared here...

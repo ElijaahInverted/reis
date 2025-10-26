@@ -10,7 +10,7 @@ import { testConnection } from "./components/connection_tester";
 import { fetchDayScheduele } from "./components/subject_fetcher";
 import { hideUI } from "./components/ui_hider";
 
-export function App(){
+export function HomePage(){
   const [loading,setLoading] = useState<boolean>(true);
   const [error,setError] = useState<string>("");
   const [scheduele,setScheduele] = useState<BlockLesson[]|null>(null);
