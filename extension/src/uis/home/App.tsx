@@ -6,9 +6,7 @@ import { Divider } from "./components/devider/devider";
 import { Ellipsis } from "lucide-react";
 import { SchedueleScreenComponent, type ScreenType } from "./components/screens/screens";
 import SchoolCalendar, { type BlockLesson } from "./components/scheduele/scheduele";
-import { testConnection } from "./components/connection_tester";
 import { fetchDayScheduele } from "./components/subject_fetcher";
-import { hideUI } from "./components/ui_hider";
 import { GenericFooter } from "./components/footer/footer";
 
 export function HomePage(){
