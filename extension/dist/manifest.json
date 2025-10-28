@@ -6,7 +6,12 @@
   "permissions": ["activeTab","scripting"],
   "content_scripts": [
     {
-      "matches": ["https://is.mendelu.cz/auth", "https://is.mendelu.cz/auth/"],
+      "matches": [
+        "https://is.mendelu.cz/auth/",
+        "https://is.mendelu.cz/auth/?*",
+        "https://is.mendelu.cz/auth/osobni_rozvrh",
+        "https://is.mendelu.cz/auth/osobni_rozvrh?*"
+      ],
       "js": ["content.js"],
       "css": ["content.css"]
     }
