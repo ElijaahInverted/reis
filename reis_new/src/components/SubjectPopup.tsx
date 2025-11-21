@@ -44,6 +44,7 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
     const [subject_data, setSubjectData] = useState<StoredSubject | null>(null);
     const [files, setFiles] = useState<FileObject[] | null>(null);
     const [loadingfile, setLoadingFile] = useState<boolean>(false);
+    const [loadingSubject, setLoadingSubject] = useState<boolean>(true); // NEW: Track subject loading
     const [loadingFiles, setLoadingFiles] = useState<boolean>(true);
     const [subfolderFilter, setSubfolderFilter] = useState<string>("all");
     //
@@ -59,34 +60,45 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
     //
     useEffect(() => {
         (async () => {
-            const STORED_SUBJECT = await getStoredSubject(props.code.courseCode);
-            setSubjectData(STORED_SUBJECT);
-            if (STORED_SUBJECT == null) {
-                setFiles([]);
-                setLoadingFiles(false);
-                return;
-            }
+            try {
+                setLoadingSubject(true);
+                setLoadingFiles(true);
 
-            // Try to load cached files first
-            const cachedKey = `files_${props.code.courseCode}`;
-            const cachedFiles = localStorage.getItem(cachedKey);
-            if (cachedFiles) {
-                try {
-                    setFiles(JSON.parse(cachedFiles));
-                } catch (e) {
-                    console.error("Failed to parse cached files", e);
+                const STORED_SUBJECT = await getStoredSubject(props.code.courseCode);
+                setSubjectData(STORED_SUBJECT);
+                setLoadingSubject(false); // Subject fetch complete
+
+                if (STORED_SUBJECT == null) {
+                    setFiles([]);
+                    setLoadingFiles(false);
+                    return;
                 }
-            }
 
-            // Fetch fresh files in background
-            console.log(GetIdFromLink(STORED_SUBJECT.folderUrl), STORED_SUBJECT.folderUrl);
-            const files = await getFilesFromId(GetIdFromLink(STORED_SUBJECT.folderUrl));
-            setFiles(files);
-            setLoadingFiles(false);
+                // Try to load cached files first
+                const cachedKey = `files_${props.code.courseCode}`;
+                const cachedFiles = localStorage.getItem(cachedKey);
+                if (cachedFiles) {
+                    try {
+                        setFiles(JSON.parse(cachedFiles));
+                    } catch (e) {
+                        console.error("Failed to parse cached files", e);
+                    }
+                }
 
-            // Cache for next time
-            if (files && files.length > 0) {
-                localStorage.setItem(cachedKey, JSON.stringify(files));
+                // Fetch fresh files in background
+                console.log(GetIdFromLink(STORED_SUBJECT.folderUrl), STORED_SUBJECT.folderUrl);
+                const files = await getFilesFromId(GetIdFromLink(STORED_SUBJECT.folderUrl));
+                setFiles(files);
+                setLoadingFiles(false);
+
+                // Cache for next time
+                if (files && files.length > 0) {
+                    localStorage.setItem(cachedKey, JSON.stringify(files));
+                }
+            } catch (error) {
+                console.error("Error loading popup data:", error);
+                setLoadingSubject(false);
+                setLoadingFiles(false);
             }
         })();
     }, [])
@@ -110,19 +122,115 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
     async function loadFile(link: string) {
         setLoadingFile(true);
         try {
-            const response = await fetch(`https://is.mendelu.cz/auth/dok_server/${link}`, {
+            // Construct the full URL
+            let fullUrl = '';
+            if (link.startsWith('http')) {
+                fullUrl = link;
+            } else {
+                fullUrl = `https://is.mendelu.cz/auth/dok_server/${link}`;
+            }
+
+            console.log('Initial link:', fullUrl);
+
+            // Step 1: Check if we need to find the download link (if it's an intermediate page)
+            if (!fullUrl.includes('download=')) {
+                console.log('Intermediate page detected, fetching to find download link...');
+                const pageResponse = await fetch(fullUrl, { credentials: 'include' });
+                const pageText = await pageResponse.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(pageText, 'text/html');
+
+                // Look for the download link: <a> containing <img sysid> and href with 'download='
+                // The user provided example: <a href="...download=..."><img ... sysid="mime-pdf"></a>
+                const downloadLink = Array.from(doc.querySelectorAll('a')).find(a =>
+                    a.href.includes('download=') && a.querySelector('img[sysid]')
+                );
+
+                if (downloadLink) {
+                    let newLink = downloadLink.getAttribute('href');
+                    if (newLink) {
+                        // Handle relative paths
+                        if (!newLink.startsWith('http')) {
+                            // It's usually relative to /auth/dok_server/
+                            if (newLink.startsWith('/')) {
+                                fullUrl = `https://is.mendelu.cz${newLink}`;
+                            } else {
+                                fullUrl = `https://is.mendelu.cz/auth/dok_server/${newLink}`;
+                            }
+                        } else {
+                            fullUrl = newLink;
+                        }
+                        console.log('Found direct download link:', fullUrl);
+                    }
+                } else {
+                    console.warn('Could not find direct download link on page. Using original.');
+                }
+            }
+
+            // Step 2: Fetch the actual file
+            console.log('Fetching file content:', fullUrl);
+            const response = await fetch(fullUrl, {
                 method: 'GET',
-                credentials: 'include' // important if authentication cookies are needed
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/pdf,application/octet-stream,*/*'
+                }
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const contentType = response.headers.get('content-type');
+            console.log('Content-Type:', contentType);
+
+            // Safety check: if we still got HTML, something is wrong (or it's not a file)
+            if (contentType?.includes('text/html')) {
+                console.warn('Received HTML. Opening in new tab.');
+                window.open(fullUrl, '_blank');
+                setLoadingFile(false);
+                return;
+            }
+
+            // Step 3: Handle Blob
             const blob = await response.blob();
             const blobUrl = URL.createObjectURL(blob);
-            // open in a new tab (browser PDF viewer)
+
+            if (contentType?.includes('application/pdf')) {
+                // Open PDF in new tab
+                window.open(blobUrl, '_blank');
+            } else {
+                // Download other files
+                const a = document.createElement('a');
+                a.href = blobUrl;
+
+                // Try to get filename
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'download';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                    if (filenameMatch && filenameMatch[1]) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            // Cleanup
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+            }, 1000);
+
             setLoadingFile(false);
-            window.open(blobUrl, '_blank');
         } catch (error) {
+            console.error('Error loading file:', error);
             setLoadingFile(false);
+            alert('Nepodařilo se otevřít soubor. Zkuste to prosím znovu.');
         }
-        //
     };
     //
     function groupFilesByFolder(files: FileObject[]) {
@@ -186,8 +294,20 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
         }
     };
     //
-    // Show empty state if no subject data
-    if (subject_data === null && !loadingFiles) {
+    // Show loading state while fetching subject
+    if (loadingSubject) {
+        return (
+            <div className="fixed z-[999] top-0 left-0 w-screen h-screen flex justify-center items-center bg-black/50 backdrop-grayscale font-dm p-8" onClick={handleBackdropClick}>
+                <div className="p-8 relative h-fit w-100 xl:w-180 rounded-xl bg-white shadow-xl flex flex-col items-center justify-center font-dm">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#8DC843] mb-4"></div>
+                    <span className="text-base xl:text-lg text-gray-600">Načítání předmětu...</span>
+                </div>
+            </div>
+        );
+    }
+
+    // Show empty state if no subject data (ONLY after loading is complete)
+    if (subject_data === null && !loadingSubject) {
         return (
             <div className="fixed z-[999] top-0 left-0 w-screen h-screen flex justify-center items-center bg-black/50 backdrop-grayscale font-dm p-8" onClick={handleBackdropClick}>
                 <div className="p-4 relative h-fit w-100 xl:w-180 rounded-xl bg-gray-50 shadow-xl flex flex-col items-center justify-center font-dm">
@@ -241,7 +361,7 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
                                 <select
                                     value={subfolderFilter}
                                     onChange={(e) => setSubfolderFilter(e.target.value)}
-                                    className="text-gray-900 text-sm px-2 py-1 border border-primary rounded bg-white cursor-pointer"
+                                    className="text-gray-900 text-sm px-3 py-1.5 border-2 border-gray-300 rounded-md bg-white cursor-pointer hover:border-primary focus:border-primary focus:outline-none transition-colors"
                                 >
                                     <option value="all">Vše</option>
                                     {getUniqueSubfolders(files).map((subfolder) => (
@@ -255,7 +375,7 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
                         <div className='w-full flex flex-1 flex-col overflow-y-auto'>
                             {loadingFiles && (!files || files.length === 0) ? (
                                 <div className="w-full h-32 flex justify-center items-center">
-                                    <span className="text-sm text-gray-500">Načítání souborů...</span>
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8DC843]"></div>
                                 </div>
                             ) : files === null || files.length === 0 ? (
                                 <div className="w-full h-32 flex justify-center items-center">
@@ -263,7 +383,8 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
                                 </div>
                             ) : loadingfile ? (
                                 <div className="w-full h-32 flex justify-center items-center">
-                                    <span className="text-sm text-gray-500">Otevírání souboru...</span>
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8DC843]"></div>
+                                    <span className="ml-3 text-sm text-gray-500">Otevírání souboru...</span>
                                 </div>
                             ) : (
                                 groupFilesByFolder(files).map((data, i) =>

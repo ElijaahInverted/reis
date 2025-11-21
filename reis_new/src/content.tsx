@@ -2,6 +2,9 @@ import { createRoot } from 'react-dom/client';
 import css from './index.css?inline';
 import App from './App';
 
+// ⚡ IMMEDIATELY hide the original page to prevent flash
+document.documentElement.style.visibility = 'hidden';
+
 // ✨ 1. Create a function to inject the font into the main document's head.
 function injectDmSansFont() {
     const fontLink = document.createElement('link');
@@ -18,6 +21,13 @@ async function firstLoad() {
     if (contains) {
         console.log("[INFO] Login detected.");
         document.documentElement.style.visibility = 'visible'; // Show original login page
+        return;
+    }
+
+    // 404 CHECK
+    if (document.title.includes("Page not found") || document.body.textContent?.includes("Page not found")) {
+        console.log("[INFO] 404 Page not found detected. Redirecting to dashboard.");
+        window.location.href = "https://is.mendelu.cz/auth/";
         return;
     }
 
@@ -53,6 +63,9 @@ async function firstLoad() {
     // Render React app into shadow DOM
     const reactRoot = createRoot(app);
     reactRoot.render(<App />);
+
+    // ⚡ Show the page after React is rendered
+    document.documentElement.style.visibility = 'visible';
 }
 
 // Run when DOM is ready
@@ -61,3 +74,4 @@ if (document.readyState === 'loading') {
 } else {
     firstLoad();
 }
+
