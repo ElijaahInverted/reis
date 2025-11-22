@@ -1,5 +1,6 @@
-import { Search, X, ChevronUp, ChevronDown, Clock, User, FileText } from 'lucide-react';
+import { Search, X, ChevronUp, ChevronDown, Clock, FileText, GraduationCap, Briefcase } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { searchPeople } from '../api/search';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -11,48 +12,105 @@ interface SearchResult {
   title: string;
   type: 'person' | 'page';
   detail?: string;
+  link?: string;
+  personType?: 'student' | 'teacher' | 'staff' | 'unknown';
 }
 
-const mockSearchData: SearchResult[] = [
-  { id: '1', title: 'Jiří Rybička', type: 'person', detail: 'Učitel • Katedra informatiky' },
-  { id: '2', title: 'Jana Nováková', type: 'person', detail: 'Učitel • Katedra ekonomie' },
-  { id: '3', title: 'Studijní plány', type: 'page', detail: 'Sekce O studiu' },
-  { id: '4', title: 'Rozvrh hodin', type: 'page', detail: 'Osobní rozvrh' },
-  { id: '5', title: 'Martin Svoboda', type: 'person', detail: 'Student • 3. ročník' },
-  { id: '6', title: 'Přihlášky ke zkouškám', type: 'page', detail: 'Zkouškové období' },
-];
-
-const recentSearches: SearchResult[] = [
-  { id: 'r1', title: 'Studijní plány', type: 'page', detail: 'Hledáno před 10 min' },
-  { id: 'r2', title: 'Jiří Rybička', type: 'person', detail: 'Hledáno včera' },
-  { id: 'r3', title: 'Rozvrh hodin', type: 'page', detail: 'Hledáno minulý týden' },
-];
+// Removed mock data
+const MAX_RECENT_SEARCHES = 5;
+const STORAGE_KEY = 'reis_recent_searches';
 
 export function SearchBar({ placeholder = "Prohledej reIS", onSearch }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [recentSearches, setRecentSearches] = useState<SearchResult[]>([]);
+
+  // Load recent searches on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setRecentSearches(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Failed to load recent searches', e);
+    }
+  }, []);
+
+  const saveToHistory = (result: SearchResult) => {
+    const newItem = { ...result, detail: 'Nedávno hledáno' };
+    setRecentSearches(prev => {
+      const filtered = prev.filter(item => item.title !== result.title);
+      const updated = [newItem, ...filtered].slice(0, MAX_RECENT_SEARCHES);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const displayResults = query.trim() === '' ? recentSearches : filteredResults;
 
-  // Filter results based on query
+  // Debounced search
   useEffect(() => {
-    if (query.trim() === '') {
+    if (query.trim().length < 3) {
       setFilteredResults([]);
       setSelectedIndex(-1);
+      setIsLoading(false);
       return;
     }
 
-    const filtered = mockSearchData.filter(item =>
-      item.title.toLowerCase().includes(query.toLowerCase()) ||
-      item.detail?.toLowerCase().includes(query.toLowerCase())
-    );
+    setIsLoading(true);
 
-    setFilteredResults(filtered);
-    setSelectedIndex(-1);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    debounceTimeout.current = setTimeout(async () => {
+      try {
+        const people = await searchPeople(query);
+        const results: SearchResult[] = people.map((p, index) => ({
+          id: p.id || `unknown-${index}`,
+          title: p.name,
+          type: 'person' as const,
+          detail: p.type === 'student' ? 'Student' : p.type === 'teacher' ? 'Vyučující' : 'Zaměstnanec',
+          link: p.link,
+          personType: p.type
+        }));
+
+        // Sort results: Staff first, then Students, then others
+        // Sort results: Teachers first, then Staff, then Students, then others?
+        // Or maybe: Teachers -> Staff -> Students
+        results.sort((a, b) => {
+          // Define priority: teacher = 0, student = 1, staff = 2, others = 3
+          const getPriority = (type?: string) => {
+            if (type === 'teacher') return 0;
+            if (type === 'student') return 1;
+            if (type === 'staff') return 2;
+            return 3;
+          };
+          return getPriority(a.personType) - getPriority(b.personType);
+        });
+
+        setFilteredResults(results);
+      } catch (error) {
+        console.error("Search failed", error);
+        setFilteredResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
   }, [query]);
 
   // Click outside handler
@@ -83,7 +141,12 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch }: SearchBa
 
   const handleSelect = (result: SearchResult) => {
     console.log('Selected:', result);
-    // TODO: Navigate to result or trigger onSearch callback
+    saveToHistory(result);
+
+    // For keyboard navigation, open the link programmatically
+    if (result.link) {
+      window.open(result.link, '_blank');
+    }
     if (onSearch) {
       onSearch(result.title);
     }
@@ -150,14 +213,17 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch }: SearchBa
           `}>
 
             {/* Input Area */}
-            <div className="flex-1 flex items-center h-10 px-3 border border-gray-300 rounded-md">
+            <div className="flex-1 flex items-center h-10 px-3 border border-gray-300 border-solid rounded-md">
               <Search className={`w-4 h-4 mr-3 transition-colors ${isOpen ? 'text-gray-800' : 'text-gray-500'}`} />
 
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setIsOpen(true);
+                }}
                 onFocus={handleFocus}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
@@ -201,19 +267,31 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch }: SearchBa
               <div className="h-px w-full bg-gray-200" />
 
               {/* Section Title */}
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">
-                {query ? 'Výsledky' : 'Nedávná vyhledávání'}
+              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1 flex justify-between items-center">
+                <span>{query ? 'Výsledky' : 'Nedávná vyhledávání'}</span>
+                {isLoading && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500"></div>}
               </div>
 
               {/* Results List */}
               <div className="max-h-[min(400px,50vh)] overflow-y-auto pb-2">
                 {displayResults.length > 0 ? (
                   displayResults.map((result, index) => (
-                    <button
+                    <div
                       key={result.id}
                       role="option"
                       aria-selected={selectedIndex === index}
-                      onClick={() => handleSelect(result)}
+                      onMouseEnter={() => setSelectedIndex(index)}
+
+                      // CHANGE STARTS HERE
+                      onMouseDown={(e) => {
+                        // 1. Prevent the input from losing focus
+                        e.preventDefault();
+                        // 2. Use the shared handler so logic is identical to pressing 'Enter'
+                        handleSelect(result);
+                      }}
+                      // Remove the old onClick handler entirely
+                      // CHANGE ENDS HERE
+
                       className={`w-full px-4 py-2.5 flex items-center gap-3 cursor-pointer transition-colors text-left ${selectedIndex === index ? 'bg-[#8DC843]/10' : 'hover:bg-gray-50'
                         }`}
                     >
@@ -221,13 +299,21 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch }: SearchBa
                       <div className="flex-shrink-0">
                         {query === '' ? (
                           <Clock className="w-4 h-4 text-gray-400" />
-                        ) : result.type === 'person' ? (
+                        ) : result.personType === 'student' ? (
+                          <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                            <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                          </div>
+                        ) : result.personType === 'teacher' ? (
                           <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-                            <User className="w-3.5 h-3.5 text-purple-600" />
+                            <Briefcase className="w-3.5 h-3.5 text-purple-600" />
+                          </div>
+                        ) : result.personType === 'staff' ? (
+                          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                            <Briefcase className="w-3.5 h-3.5 text-gray-600" />
                           </div>
                         ) : (
-                          <div className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center">
-                            <FileText className="w-3.5 h-3.5 text-blue-600" />
+                          <div className="w-6 h-6 rounded bg-gray-100 flex items-center justify-center">
+                            <FileText className="w-3.5 h-3.5 text-gray-600" />
                           </div>
                         )}
                       </div>
@@ -242,7 +328,7 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch }: SearchBa
                             <>
                               <span className="text-gray-400 flex-shrink-0">•</span>
                               <span className="text-xs text-gray-500 flex-shrink-0">
-                                {result.type === 'person' ? 'Osoba' : 'Stránka'}
+                                {result.detail}
                               </span>
                             </>
                           )}
@@ -252,18 +338,23 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch }: SearchBa
                       {/* Right Icon - Type Indicator */}
                       {query !== '' && (
                         <div className="flex-shrink-0 ml-2">
-                          {result.type === 'person' ? (
-                            <User className="w-4 h-4 text-gray-400" />
-                          ) : (
-                            <FileText className="w-4 h-4 text-gray-400" />
-                          )}
+                          {/* Optional: Add arrow-up-right or similar to indicate external link */}
                         </div>
                       )}
-                    </button>
+                    </div>
                   ))
                 ) : (
                   <div className="px-4 py-8 text-center text-sm text-gray-500">
-                    Nic nenalezeno
+                    {isLoading ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                        <span>Načítání výsledků...</span>
+                      </div>
+                    ) : query.trim() === '' ? (
+                      <span>Začněte psát pro vyhledávání...</span>
+                    ) : (
+                      'Nic nenalezeno'
+                    )}
                   </div>
                 )}
               </div>
