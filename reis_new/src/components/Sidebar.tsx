@@ -157,10 +157,10 @@ export const Sidebar = () => {
             >
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all duration-200 mx-auto
+                className={`w-14 h-auto min-h-[56px] py-2 rounded-xl flex flex-col items-center justify-center transition-all duration-200 mx-auto
                                     ${activeItem === item.id
-                    ? 'bg-[#8DC843]/10 text-[#8DC843] shadow-sm'
-                    : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+                    ? 'bg-[#79be15]/10 text-[#79be15] shadow-sm'
+                    : 'text-gray-400 hover:bg-white hover:text-gray-900 hover:shadow-sm'
                   }`}
               >
                 {item.icon}

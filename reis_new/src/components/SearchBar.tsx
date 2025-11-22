@@ -233,13 +233,7 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch }: SearchBa
           aria-haspopup="listbox"
         >
           {/* THE "SHAPE SHIFTER" */}
-          <div className={`
-            flex items-center w-full bg-white transition-all duration-200
-            ${isOpen
-              ? 'rounded-t-lg rounded-b-none shadow-lg'
-              : 'shadow-sm'
-            }
-          `}>
+          <div className={`relative flex items-center w-full max-w-2xl bg-white rounded-xl border border-gray-200 shadow-sm transition-all duration-200 ${isOpen ? 'ring-2 ring-mendelu-green/20 border-mendelu-green' : 'hover:border-gray-300'}`}>
 
             {/* Input Area */}
             <div className="flex-1 flex items-center h-10 px-3 border border-gray-300 border-solid rounded-md">

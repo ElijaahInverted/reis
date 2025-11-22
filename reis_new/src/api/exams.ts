@@ -13,7 +13,6 @@ export async function getCachedExams(): Promise<ExamEvent[] | null> {
         const result = await chrome.storage.local.get(STORAGE_KEY);
         const cached = result[STORAGE_KEY] as any;
         if (cached && cached.timestamp && (Date.now() - cached.timestamp < CACHE_DURATION)) {
-            console.log("Returning cached exams");
             return cached.data;
         }
         return null;
@@ -25,16 +24,13 @@ export async function getCachedExams(): Promise<ExamEvent[] | null> {
 
 export async function fetchExams(): Promise<ExamEvent[]> {
     try {
-        console.log("Fetching exams from:", EXAMS_URL);
         const response = await fetchWithAuth(EXAMS_URL, {
             method: "GET",
         });
 
         // The response might be HTML
         const html = await response.text();
-        console.log("Exams HTML length:", html.length);
         const events = parseRegisteredExams(html);
-        console.log("Parsed exam events:", events);
 
         // Cache the results
         if (events.length > 0) {
@@ -44,7 +40,6 @@ export async function fetchExams(): Promise<ExamEvent[]> {
                     timestamp: Date.now()
                 }
             });
-            console.log("Exams cached successfully");
         }
 
         return events;

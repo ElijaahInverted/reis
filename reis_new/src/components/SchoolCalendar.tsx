@@ -4,6 +4,7 @@ import { timeToMinutes } from '../utils/calendarUtils';
 import { fetchWeekSchedule } from '../api/schedule';
 import { fetchExams, getCachedExams } from '../api/exams';
 import type { BlockLesson, LessonWithRow, OrganizedLessons, DateInfo } from '../types/calendarTypes';
+import { getCzechHoliday } from '../utils/holidays';
 
 const DAYS = ['PO', 'ÚT', 'ST', 'ČT', 'PÁ'];
 const START_HOUR = 7;
@@ -116,7 +117,6 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
 
         // Poll exams every minute
         const intervalId = setInterval(() => {
-            console.log("Polling exams...");
             loadData();
         }, 60000);
 
@@ -201,76 +201,133 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                     const rowHeight = Math.max(ROW_HEIGHT, totalRows * 60); // Dynamic height if many overlaps
 
 
+
+
+                    // ... (existing imports)
+
+                    // ... (inside SchoolCalendar component)
+
                     const isToday = (() => {
                         const today = new Date();
                         return parseInt(dateInfo.day) === today.getDate() &&
                             parseInt(dateInfo.month) === (today.getMonth() + 1) &&
-                            today.getFullYear() === new Date().getFullYear(); // Assuming current year for simplicity or pass year in dateInfo
+                            today.getFullYear() === new Date().getFullYear();
                     })();
+
+                    // Check for holiday
+                    // Construct Date object from dateInfo (assuming current year for now, or better use the actual date from weekDates generation logic if available, but here we reconstruct)
+                    const currentYear = new Date().getFullYear(); // Or better, use the year from the week start
+                    const checkDate = new Date(currentYear, parseInt(dateInfo.month) - 1, parseInt(dateInfo.day));
+                    const holidayName = getCzechHoliday(checkDate);
 
                     return (
                         <div key={dayIndex} className={`flex border border-gray-100 rounded-xl mb-3 overflow-hidden min-h-[120px] relative z-10 shadow-sm ${isToday ? 'bg-slate-50/60' : 'bg-white'}`}>
                             {/* Date Column */}
                             <div className="w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col items-center justify-center p-2">
-                                <span className="text-xs font-bold text-gray-400 uppercase">{dateInfo.weekday}</span>
-                                <span className="text-xl font-bold text-gray-800">{dateInfo.day}/{dateInfo.month}</span>
+                                <span className={`text-xs font-bold uppercase ${holidayName ? 'text-red-500' : 'text-gray-400'}`}>{dateInfo.weekday}</span>
+                                <span className={`text-xl font-bold ${holidayName ? 'text-red-600' : 'text-gray-800'}`}>{dateInfo.day}/{dateInfo.month}</span>
                             </div>
 
                             {/* Events Column */}
                             <div className="flex-1 relative bg-transparent" style={{ height: `${rowHeight}px` }}>
-                                {/* Row Grid */}
-                                <div className="absolute inset-0 flex pointer-events-none z-0">
-                                    {Array.from({ length: END_HOUR - START_HOUR + 1 }).map((_, i) => (
-                                        <div key={i} className="flex-1 border-r border-gray-200 h-full last:border-r-0"></div>
-                                    ))}
-                                </div>
-                                {lessons.map((lesson) => {
-                                    const startMinutes = timeToMinutes(lesson.startTime);
-                                    const endMinutes = timeToMinutes(lesson.endTime);
-                                    const dayStartMinutes = START_HOUR * 60;
-                                    const dayEndMinutes = END_HOUR * 60;
-                                    const totalDayMinutes = dayEndMinutes - dayStartMinutes;
-
-                                    // Calculate position percentages
-                                    const leftPercent = ((startMinutes - dayStartMinutes) / totalDayMinutes) * 100;
-                                    const widthPercent = ((endMinutes - startMinutes) / totalDayMinutes) * 100;
-
-                                    // Vertical position for overlaps
-                                    const topPercent = (lesson.row / totalRows) * 100;
-                                    const heightPercent = (1 / totalRows) * 100;
-
-                                    return (
-                                        <div
-                                            key={lesson.id}
-                                            className={`absolute ${lesson.isExam ? "bg-gradient-to-br from-rose-600 to-red-700 border-rose-800 text-white shadow-md hover:shadow-lg hover:from-rose-500 hover:to-red-600" : lesson.isSeminar == "true" ? "bg-indigo-50 border-indigo-200 text-indigo-900 hover:bg-indigo-100" : "bg-emerald-50 border-emerald-200 text-emerald-900 hover:bg-emerald-100"} border text-left font-dm p-1.5 rounded-md shadow-sm cursor-pointer transition-all overflow-hidden group`}
-                                            style={{
-                                                left: `${leftPercent}%`,
-                                                width: `${widthPercent}%`,
-                                                top: `${topPercent}%`,
-                                                height: `${heightPercent}%`,
-                                                zIndex: 10 + lesson.row
-                                            }}
-                                            onClick={() => { setSelected(lesson) }}
-                                            title={`${lesson.courseName}\n${lesson.startTime} - ${lesson.endTime}\n${lesson.room}\n${lesson.teachers[0]?.shortName}`}
-                                        >
-                                            <div className="flex flex-col h-full justify-between overflow-hidden">
-                                                <div>
-                                                    <div className={`text-[11px] font-bold flex items-center gap-1 ${lesson.isExam ? "text-white" : "text-gray-900"}`}>
-                                                        <span className="truncate">{lesson.courseCode}</span>
-                                                        <span className={`font-normal text-[9px] ml-auto whitespace-nowrap ${lesson.isExam ? "text-gray-200" : "text-gray-500"}`}>{lesson.roomStructured.name}</span>
-                                                    </div>
-                                                    <div className={`text-[10px] leading-tight mt-0.5 line-clamp-2 ${lesson.isExam ? "text-rose-100" : "text-gray-600"}`}>
-                                                        {lesson.courseName}
-                                                    </div>
-                                                </div>
-                                                <div className={`text-[9px] mt-auto ${lesson.isExam ? "text-rose-200" : "text-gray-400"}`}>
-                                                    {lesson.startTime} - {lesson.endTime}
-                                                </div>
-                                            </div>
-                                            <span className={`absolute left-0 top-1 bottom-1 w-0.5 rounded-r ${lesson.isExam ? "bg-white/30" : lesson.isSeminar == "true" ? "bg-indigo-400" : "bg-emerald-400"}`}></span>
+                                {holidayName ? (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-red-50/30 p-4">
+                                        <div className="flex flex-col items-center text-center">
+                                            <span className="text-3xl mb-2">🇨🇿</span>
+                                            <h3 className="text-lg font-bold text-red-800">{holidayName}</h3>
+                                            <span className="text-sm text-red-600 font-medium uppercase tracking-wider mt-1">Státní svátek</span>
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* Row Grid */}
+                                        <div className="absolute inset-0 flex pointer-events-none z-0">
+                                            {Array.from({ length: END_HOUR - START_HOUR + 1 }).map((_, i) => (
+                                                <div key={i} className="flex-1 border-r border-gray-100 h-full last:border-r-0"></div>
+                                            ))}
+                                        </div>
+                                        {lessons.map((lesson) => {
+                                            const startMinutes = timeToMinutes(lesson.startTime);
+                                            const endMinutes = timeToMinutes(lesson.endTime);
+                                            const dayStartMinutes = START_HOUR * 60;
+                                            const dayEndMinutes = END_HOUR * 60;
+                                            const totalDayMinutes = dayEndMinutes - dayStartMinutes;
+
+                                            // Calculate position percentages
+                                            const leftPercent = ((startMinutes - dayStartMinutes) / totalDayMinutes) * 100;
+                                            const widthPercent = ((endMinutes - startMinutes) / totalDayMinutes) * 100;
+
+                                            // Vertical position for overlaps
+                                            const topPercent = (lesson.row / totalRows) * 100;
+                                            const heightPercent = (1 / totalRows) * 100;
+
+                                            // Determine if the event is "short" (e.g., less than 60 minutes) to adjust layout
+                                            const durationMinutes = endMinutes - startMinutes;
+                                            const isShort = durationMinutes <= 60;
+                                            const isVeryShort = durationMinutes <= 45;
+
+                                            return (
+                                                <div
+                                                    key={lesson.id}
+                                                    className={`absolute ${lesson.isExam
+                                                        ? "bg-[#FEF2F2] border-[#dc2626] border-2 shadow-md hover:shadow-lg"
+                                                        : lesson.isSeminar == "true"
+                                                            ? "bg-[#F3FAEA] border border-gray-200 shadow-sm hover:shadow-md"
+                                                            : "bg-[#F0F7FF] border border-gray-200 shadow-sm hover:shadow-md"
+                                                        } text-left font-dm rounded-lg cursor-pointer transition-all overflow-hidden group`}
+                                                    style={{
+                                                        left: `${leftPercent}%`,
+                                                        width: `${widthPercent}%`,
+                                                        top: `${topPercent}%`,
+                                                        height: `${heightPercent}%`,
+                                                        zIndex: 10 + lesson.row
+                                                    }}
+                                                    onClick={() => { setSelected(lesson) }}
+                                                    title={`${lesson.courseName}\n${lesson.startTime} - ${lesson.endTime}\n${lesson.room}\n${lesson.teachers[0]?.shortName}`}
+                                                >
+                                                    {/* Colored Strip for Lessons */}
+                                                    {!lesson.isExam && (
+                                                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${lesson.isSeminar == "true" ? "bg-[#79be15]" : "bg-[#00548f]"
+                                                            }`}></div>
+                                                    )}
+
+                                                    <div className={`flex flex-col h-full justify-between p-2 ${!lesson.isExam ? "pl-3" : ""}`}>
+                                                        <div>
+                                                            <div className="flex items-start justify-between gap-1">
+                                                                <span className={`text-sm font-bold whitespace-nowrap ${lesson.isExam ? "text-[#991b1b]" : "text-gray-900"}`}>
+                                                                    {lesson.courseCode}
+                                                                </span>
+                                                                {!isVeryShort && (
+                                                                    <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+                                                                        {lesson.roomStructured.name}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            {!isShort && (
+                                                                <div className={`text-xs font-normal mt-1 leading-tight line-clamp-2 ${lesson.isExam ? "text-[#991b1b]/90" : lesson.isSeminar == "true" ? "text-[#365314]" : "text-[#1e3a8a]"}`}>
+                                                                    {lesson.courseName}
+                                                                </div>
+                                                            )}
+
+                                                            {lesson.isExam && (
+                                                                <div className="mt-1 flex items-center gap-1 text-[10px] font-bold text-[#991b1b] uppercase tracking-wide">
+                                                                    <span>⚠️ {lesson.courseName.toLowerCase().includes('test') ? 'TEST' : 'ZKOUŠKA'}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {!isVeryShort && (
+                                                            <div className={`text-[10px] font-medium mt-auto ${lesson.isExam ? "text-[#991b1b]/80" : "text-gray-400"}`}>
+                                                                {lesson.startTime} - {lesson.endTime}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </>
+                                )}
                             </div>
                         </div>
                     );
@@ -285,6 +342,7 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                     />
                 )
             }
-        </div>
+        </div >
     );
 }
+
