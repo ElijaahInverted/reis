@@ -425,7 +425,5 @@ export function getSmartWeekRange(referenceDate: Date = new Date()): { start: Da
     endOfWeek.setDate(startOfWeek.getDate() + 4);
     endOfWeek.setHours(23, 59, 59, 999);
 
-    console.log(`[Smart Week] Reference: ${now.toLocaleDateString('cs-CZ')}, Day: ${dayOfWeek}, Week: ${startOfWeek.toLocaleDateString('cs-CZ')} - ${endOfWeek.toLocaleDateString('cs-CZ')}`);
-
     return { start: startOfWeek, end: endOfWeek };
 }

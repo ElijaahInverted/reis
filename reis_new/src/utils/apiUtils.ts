@@ -46,7 +46,6 @@ export async function getStoredSubject(courseCode: string): Promise<StoredSubjec
             const subjectsData = await fetchSubjects();
 
             if (!subjectsData) {
-                console.warn("Failed to fetch subjects data");
                 return null;
             }
 

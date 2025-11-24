@@ -36,8 +36,6 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
 
         // Handle pagination
         if (paginationLinks && paginationLinks.length > 0) {
-            console.log(`Found ${paginationLinks.length} pagination links. Fetching other pages...`);
-
             // We need to fetch other pages. 
             // paginationLinks contains links to ALL pages (including the current one usually, or at least others).
             // We should fetch them all and merge results, removing duplicates if any.
@@ -69,7 +67,6 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
                 // Let's rely on the fact that we usually start at the first page.
                 // If the pagination row contains "1-10" (no link) and "11-20" (link), we just fetch the links.
 
-                console.log(`Fetching pagination page: ${pageUrl}`);
                 const pageResponse = await fetchWithAuth(pageUrl);
                 const pageHtml = await pageResponse.text();
                 const pageResult = parseServerFiles(pageHtml);
@@ -112,7 +109,6 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
                                 : `${BASE_URL}/auth/dok_server/${folderLink}`;
                     }
 
-                    console.log(`Fetching subfolder (depth ${currentDepth + 1}): ${file.file_name}`, absoluteUrl);
                     const subfolderFiles = await fetchFilesFromFolder(absoluteUrl, true, currentDepth + 1, maxDepth);
 
                     // Add subfolder info to each file
@@ -162,7 +158,6 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
     // Check if this is a "Read document" page (detail page)
     const attachmentsLabel = Array.from(doc.querySelectorAll('td')).find(td => td.textContent?.includes('Attachments:') || td.textContent?.includes('Přílohy:'));
     if (attachmentsLabel) {
-        console.log("Detected 'Read document' detail page");
         const row = attachmentsLabel.parentElement;
         const link = row?.querySelector('a')?.getAttribute('href');
 
@@ -234,9 +229,7 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
         // Convert to NodeList-like structure for compatibility if needed, or just map
         // For now, let's just iterate the array
         rows = dataRows as any;
-        console.log(`Found ${rows.length} rows with generic 'table tr' filter`);
     } else {
-        console.log(`Found ${rows.length} rows with specific class selectors`);
     }
 
     // Robust pagination detection: Scan ALL links in the document
