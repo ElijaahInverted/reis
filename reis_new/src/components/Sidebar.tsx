@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import {
   Home,
   User,
@@ -16,6 +16,7 @@ import {
   Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { MENDELU_LOGO_PATH } from '../constants/icons';
 
 
 interface MenuItem {
@@ -33,14 +34,6 @@ export const Sidebar = () => {
   const [activeItem, setActiveItem] = useState<string>('dashboard');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string>('');
-
-  // Get the logo URL from chrome extension
-  useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
-      setLogoUrl(chrome.runtime.getURL('mendelu-logo.png'));
-    }
-  }, []);
 
 
   // Menu configuration
@@ -143,7 +136,7 @@ export const Sidebar = () => {
       <aside className="hidden md:flex flex-col w-22 h-screen bg-gray-50 border-r border-gray-200 fixed left-0 top-0 z-40 items-center py-6">
         {/* Logo */}
         <div className="mb-8 w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center overflow-hidden">
-          {logoUrl && <img src={logoUrl} alt="Mendelu Logo" className="w-8 h-8 object-contain" />}
+          <img src={MENDELU_LOGO_PATH} alt="Mendelu Logo" className="w-8 h-8 object-contain" />
         </div>
 
         {/* Navigation Items */}
