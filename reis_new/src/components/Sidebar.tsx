@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MENDELU_LOGO_PATH } from '../constants/icons';
+import { useUserParams } from '../hooks/useUserParams';
 
 
 interface MenuItem {
@@ -35,6 +36,10 @@ export const Sidebar = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+
+  const { params } = useUserParams();
+  const studiumId = params?.studium || '';
+  const obdobiId = params?.obdobi || '';
 
   // Menu configuration
   const mainMenuItems: MenuItem[] = [
@@ -60,19 +65,19 @@ export const Sidebar = () => {
           id: 'zkousky',
           label: 'Zkoušky',
           icon: <ClipboardCheck className="w-4 h-4" />,
-          href: 'https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=149707;obdobi=801;lang=cz'
+          href: `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
         },
         {
           id: 'cvicne-testy',
           label: 'Cvičné testy',
           icon: <FileQuestion className="w-4 h-4" />,
-          href: 'https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl?studium=149707;obdobi=801;lang=cz'
+          href: `https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
         },
         {
           id: 'zapisy-predmetu',
           label: 'Zápisy předmětů',
           icon: <BookOpen className="w-4 h-4" />,
-          href: 'https://is.mendelu.cz/auth/student/registrace.pl?studium=149707;obdobi=801;lang=cz'
+          href: `https://is.mendelu.cz/auth/student/registrace.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
         }
       ]
     },

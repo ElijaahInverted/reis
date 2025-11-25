@@ -1,10 +1,11 @@
 import { fetchWithAuth, BASE_URL } from "./client";
+import { getUserParams } from "../utils/userParams";
 import { parseRegisteredExams } from "../utils/examParser";
 import type { ExamEvent } from "../utils/examParser";
 import { encryptData, decryptData } from "../utils/encryption";
 
 // Hardcoded URL for now as per request, but ideally should be dynamic
-const EXAMS_URL = `${BASE_URL}/auth/student/terminy_seznam.pl?studium=149707;obdobi=801;lang=cz`;
+// const EXAMS_URL = `${BASE_URL}/auth/student/terminy_seznam.pl?studium=XXXXXX;obdobi=XXX;lang=cz`;
 
 const STORAGE_KEY = 'reis_exams_cache';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (or adjust as needed)
@@ -27,7 +28,15 @@ export async function getCachedExams(): Promise<ExamEvent[] | null> {
 
 export async function fetchExams(): Promise<ExamEvent[]> {
     try {
-        const response = await fetchWithAuth(EXAMS_URL, {
+        const userParams = await getUserParams();
+        if (!userParams) {
+            console.error("Could not fetch user params for exams URL");
+            return [];
+        }
+
+        const examsUrl = `${BASE_URL}/auth/student/terminy_seznam.pl?studium=${userParams.studium};obdobi=${userParams.obdobi};lang=cz`;
+
+        const response = await fetchWithAuth(examsUrl, {
             method: "GET",
         });
 

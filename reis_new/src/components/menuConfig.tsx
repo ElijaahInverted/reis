@@ -26,7 +26,7 @@ export interface MenuItem {
     href?: string;
 }
 
-export const getMainMenuItems = (): MenuItem[] => [
+export const getMainMenuItems = (studiumId: string = '', obdobiId: string = ''): MenuItem[] => [
     {
         id: 'dashboard',
         label: 'Domů',
@@ -49,19 +49,19 @@ export const getMainMenuItems = (): MenuItem[] => [
                 id: 'zkousky',
                 label: 'Zkoušky',
                 icon: <ClipboardCheck className="w-4 h-4" />,
-                href: 'https://is.mendelu.cz/auth/student/terminy_seznam.pl'
+                href: `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
             },
             {
                 id: 'cvicne-testy',
                 label: 'Cvičné testy',
                 icon: <FileQuestion className="w-4 h-4" />,
-                href: 'https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl'
+                href: `https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
             },
             {
                 id: 'zapisy-predmetu',
                 label: 'Zápisy předmětů',
                 icon: <BookOpen className="w-4 h-4" />,
-                href: 'https://is.mendelu.cz/auth/student/registrace.pl'
+                href: `https://is.mendelu.cz/auth/student/registrace.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
             }
         ]
     },

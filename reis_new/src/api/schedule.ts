@@ -1,6 +1,7 @@
 import { fetchWithAuth, BASE_URL } from "./client";
 import { getUserId } from "./user";
 import { getLastWeekData, getScheduleFormat } from "../utils/date";
+import { getUserParams } from "../utils/userParams";
 import type { BlockLesson, ScheduleData } from "../types/schedule";
 
 const SCHEDULE_URL = `${BASE_URL}/auth/katalog/rozvrhy_view.pl`;
@@ -11,6 +12,16 @@ export async function fetchWeekSchedule(specific?: { start: Date, end: Date }): 
         console.error("User ID not found");
         return null;
     }
+
+    const userParams = await getUserParams();
+
+    if (!userParams) {
+        console.error("User params not found for schedule fetch");
+        return null;
+    }
+
+    const studiumId = userParams.studium;
+    const obdobiId = userParams.obdobi;
 
     let start: string;
     let end: string;
@@ -24,7 +35,7 @@ export async function fetchWeekSchedule(specific?: { start: Date, end: Date }): 
 
     const body = new URLSearchParams({
         rozvrh_student: userId,
-        zpet: `../student/moje_studium.pl?_m=3110,studium=141978,obdobi=801`, // Note: studium ID might need to be dynamic?
+        zpet: `../student/moje_studium.pl?_m=3110,studium=${studiumId},obdobi=${obdobiId}`,
         rezervace: "0",
         poznamky_base: "1",
         poznamky_parovani: "1",
