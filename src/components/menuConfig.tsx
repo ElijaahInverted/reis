@@ -9,8 +9,12 @@ import {
     BookMarked,
     ClipboardList,
     Wifi,
-    ClipboardCheck,
-    FileQuestion
+    FileQuestion,
+    LayoutDashboard,
+    Upload,
+    FileText,
+    CalendarCheck,
+    PenTool
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -40,22 +44,40 @@ export const getMainMenuItems = (studiumId: string = '', obdobiId: string = ''):
         expandable: true,
         children: [
             {
-                id: 'testy',
-                label: 'Testy',
-                icon: <FileQuestion className="w-4 h-4" />,
-                href: 'https://is.mendelu.cz/auth/elis/ot/psani_testu.pl?_m=205;lang=cz'
+                id: 'portal-studenta',
+                label: 'Portál studenta',
+                icon: <LayoutDashboard className="w-4 h-4" />,
+                href: 'https://is.mendelu.cz/auth/student/moje_studium.pl?lang=cz'
             },
             {
-                id: 'zkousky',
-                label: 'Zkoušky',
-                icon: <ClipboardCheck className="w-4 h-4" />,
+                id: 'zapisy-zkousky',
+                label: 'Zápisy na zkoušky',
+                icon: <CalendarCheck className="w-4 h-4" />,
                 href: `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
             },
             {
+                id: 'testy',
+                label: 'Testy',
+                icon: <PenTool className="w-4 h-4" />,
+                href: 'https://is.mendelu.cz/auth/elis/ot/psani_testu.pl?_m=205;lang=cz'
+            },
+            {
                 id: 'cvicne-testy',
-                label: 'Cvičné testy',
+                label: 'Cvičné testy (e-osnovy)',
                 icon: <FileQuestion className="w-4 h-4" />,
                 href: `https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
+            },
+            {
+                id: 'odevzdavarna',
+                label: 'Odevzdávárna',
+                icon: <Upload className="w-4 h-4" />,
+                href: `https://is.mendelu.cz/auth/student/odevzdavarny.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
+            },
+            {
+                id: 'list-zaznamnik',
+                label: 'List záznamníku učitele',
+                icon: <FileText className="w-4 h-4" />,
+                href: `https://is.mendelu.cz/auth/student/list.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
             },
             {
                 id: 'zapisy-predmetu',
