@@ -272,8 +272,8 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                                                     className={`absolute ${lesson.isExam
                                                         ? "bg-[#FEF2F2] border-[#dc2626] border-2 shadow-md hover:shadow-lg"
                                                         : lesson.isSeminar == "true"
-                                                            ? "bg-[#F3FAEA] border border-gray-200 shadow-sm hover:shadow-md"
-                                                            : "bg-[#F0F7FF] border border-gray-200 shadow-sm hover:shadow-md"
+                                                            ? "bg-[#F0F7FF] border border-gray-200 shadow-sm hover:shadow-md"
+                                                            : "bg-[#F3FAEA] border border-gray-200 shadow-sm hover:shadow-md"
                                                         } text-left font-dm rounded-lg cursor-pointer transition-all overflow-hidden group`}
                                                     style={{
                                                         left: `${leftPercent}%`,
@@ -287,7 +287,7 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                                                 >
                                                     {/* Colored Strip for Lessons */}
                                                     {!lesson.isExam && (
-                                                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${lesson.isSeminar == "true" ? "bg-[#79be15]" : "bg-[#00548f]"
+                                                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${lesson.isSeminar == "true" ? "bg-[#00548f]" : "bg-[#79be15]"
                                                             }`}></div>
                                                     )}
 
@@ -305,7 +305,7 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                                                             </div>
 
                                                             {!isShort && (
-                                                                <div className={`text-xs font-normal mt-1 leading-tight line-clamp-2 ${lesson.isExam ? "text-[#991b1b]/90" : lesson.isSeminar == "true" ? "text-[#365314]" : "text-[#1e3a8a]"}`}>
+                                                                <div className={`text-xs font-normal mt-1 leading-tight line-clamp-2 ${lesson.isExam ? "text-[#991b1b]/90" : lesson.isSeminar == "true" ? "text-[#1e3a8a]" : "text-[#365314]"}`}>
                                                                     {lesson.courseName}
                                                                 </div>
                                                             )}
