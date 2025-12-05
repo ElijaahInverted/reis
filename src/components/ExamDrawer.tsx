@@ -10,6 +10,7 @@ import {
 } from "./ui/select"
 import { useState, useEffect, useMemo } from 'react';
 import { fetchExamData, registerExam, unregisterExam } from '../api/exams';
+import { useExams } from '../hooks/data';
 import { ExamCalendar } from './ExamCalendar';
 
 export interface ExamTerm {
@@ -54,25 +55,24 @@ function getDayOfWeek(dateString: string): string {
 export function ExamDrawer({ isOpen, onClose }: ExamDrawerProps) {
     if (!isOpen) return null;
 
+    // Get stored exam data from hook (stale-while-revalidate)
+    const { exams: storedExams, isLoaded } = useExams();
+
+    // Local state for exams (allows updates after registration actions)
     const [exams, setExams] = useState<ExamSubject[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, _setError] = useState<string | null>(null);
 
+    // Sync stored exams to local state
     useEffect(() => {
-        if (isOpen) {
-            setIsLoading(true);
-            fetchExamData()
-                .then(data => {
-                    setExams(data);
-                    setIsLoading(false);
-                })
-                .catch(err => {
-                    console.error(err);
-                    setError("Failed to load exams");
-                    setIsLoading(false);
-                });
+        if (storedExams && storedExams.length > 0) {
+            setExams(storedExams);
+            setIsLoading(false);
+        } else if (isLoaded) {
+            // If loaded but empty, show empty state
+            setIsLoading(false);
         }
-    }, [isOpen]);
+    }, [storedExams, isLoaded]);
 
     const [selections, setSelections] = useState<Record<string, { date: string | undefined; time: string | undefined }>>({});
     const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});

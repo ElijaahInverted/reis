@@ -2,6 +2,10 @@ import { fetchWithAuth, BASE_URL } from "./client";
 import type { ParsedFile, FileAttachment } from "../types/documents";
 import { fetchSubjects } from "./subjects";
 import { sanitizeString, validateFileName, validateUrl } from "../utils/validation";
+import { requestQueue, processWithDelay } from "../utils/requestQueue";
+import { createLogger } from "../utils/logger";
+
+const log = createLogger('Files');
 
 export async function fetchDocumentsForSubject(subjectCode: string): Promise<FileAttachment[]> {
     const subjectsData = await fetchSubjects();
@@ -30,9 +34,11 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
             urlToFetch += (urlToFetch.includes('?') ? ';' : '?') + 'lang=cz';
         }
 
+        log.debug(`Fetching folder: ${urlToFetch} (depth: ${currentDepth}/${maxDepth})`);
         const response = await fetchWithAuth(urlToFetch);
         const html = await response.text();
         const { files, paginationLinks } = parseServerFiles(html);
+        log.info(`Found ${files.length} items, ${paginationLinks.length} pagination pages`);
 
         // Handle pagination
         if (paginationLinks && paginationLinks.length > 0) {
@@ -47,6 +53,7 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
             // Let's just fetch all unique pagination links that we haven't fetched yet.
             // To avoid infinite loops or re-fetching current, we can check if the link is different.
 
+            // Fetch pagination pages sequentially via request queue to avoid overwhelming the server
             for (const link of paginationLinks) {
                 // Construct absolute URL
                 let pageUrl = link.startsWith('http') ? link : `${BASE_URL}/auth/dok_server/${link.replace(/^\/auth\/dok_server\//, '')}`;
@@ -56,20 +63,12 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
                     pageUrl += (pageUrl.includes('?') ? ';' : '?') + 'lang=cz';
                 }
 
-                // Skip if it's effectively the same as current URL (simplified check)
-                // or if we've already fetched it (we'd need to track visited URLs, but for now let's assume 
-                // parseServerFiles returns links to *other* pages or we just fetch them and deduplicate files by ID/link).
-                // Actually, the current page might be "1-10", and links are "11-20", "21-22".
-                // If we are on "1-10", we just need to fetch the others.
-
-                // Ideally, we shouldn't re-fetch the current page. 
-                // But identifying "current page" from URL might be tricky if params differ slightly.
-                // Let's rely on the fact that we usually start at the first page.
-                // If the pagination row contains "1-10" (no link) and "11-20" (link), we just fetch the links.
-
-                const pageResponse = await fetchWithAuth(pageUrl);
-                const pageHtml = await pageResponse.text();
-                const pageResult = parseServerFiles(pageHtml);
+                // Use request queue to throttle concurrent requests
+                const pageResult = await requestQueue.add(async () => {
+                    const pageResponse = await fetchWithAuth(pageUrl);
+                    const pageHtml = await pageResponse.text();
+                    return parseServerFiles(pageHtml);
+                });
                 files.push(...pageResult.files);
             }
         }
@@ -77,6 +76,9 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
         // If recursive mode is enabled, fetch files from subfolders too
         if (recursive && currentDepth < maxDepth) {
             const allFiles: ParsedFile[] = [...files];
+
+            // Collect folders to fetch, then process sequentially with delay
+            const foldersToFetch: { absoluteUrl: string; parentName: string }[] = [];
 
             for (const file of files) {
                 // Check if this is a folder link (not a downloadable file)
@@ -91,17 +93,12 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
 
                     // Robust handling for slozka.pl links
                     if (folderLink.includes('slozka.pl')) {
-                        // We must NOT replace ; with & because IS Mendelu uses ; as separator
-                        // Just ensure it starts with ? if it has parameters
-
-                        // Check if it's absolute or relative
                         if (folderLink.startsWith('http')) {
                             absoluteUrl = folderLink;
                         } else {
                             absoluteUrl = `${BASE_URL}/auth/dok_server/${folderLink.replace(/^\/auth\/dok_server\//, '')}`;
                         }
                     } else {
-                        // Standard handling for other links
                         absoluteUrl = folderLink.startsWith('http')
                             ? folderLink
                             : folderLink.startsWith('/')
@@ -109,19 +106,26 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
                                 : `${BASE_URL}/auth/dok_server/${folderLink}`;
                     }
 
-                    const subfolderFiles = await fetchFilesFromFolder(absoluteUrl, true, currentDepth + 1, maxDepth);
-
-                    // Add subfolder info to each file
-                    subfolderFiles.forEach(sf => {
-                        // If we are deeper, we might want to preserve the path?
-                        // For now, just use the immediate parent folder name as subfolder
-                        // This flattens the structure visually but keeps files grouped by their immediate parent
-                        sf.subfolder = file.file_name;
-                    });
-
-                    allFiles.push(...subfolderFiles);
+                    foldersToFetch.push({ absoluteUrl, parentName: file.file_name });
                 }
             }
+
+            // Fetch subfolders sequentially with 200ms delay to avoid overwhelming the server
+            const subfolderResults = await processWithDelay(
+                foldersToFetch,
+                async ({ absoluteUrl, parentName }) => {
+                    const subfolderFiles = await fetchFilesFromFolder(absoluteUrl, true, currentDepth + 1, maxDepth);
+                    // Add subfolder info to each file
+                    subfolderFiles.forEach(sf => {
+                        sf.subfolder = parentName;
+                    });
+                    return subfolderFiles;
+                },
+                200 // 200ms delay between subfolder fetches
+            );
+
+            // Merge all subfolder results
+            subfolderResults.forEach(files => allFiles.push(...files));
 
             // Filter out folder entries, keep only actual files
             // Also deduplicate files based on link just in case pagination caused overlaps
@@ -144,7 +148,7 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
 
         return files;
     } catch (error) {
-        console.error("Failed to fetch files:", error);
+        log.error(`Failed to fetch folder: ${folderUrl}`, error);
         return [];
     }
 }

@@ -1,134 +1,94 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Clock, MapPin } from 'lucide-react';
-import { fetchWeekSchedule } from '../api/schedule';
-import { fetchExamData } from '../api/exams';
-import { timeToMinutes, getSmartWeekRange } from '../utils/calendarUtils';
+import { useSchedule, useExams } from '../hooks/data';
+import { timeToMinutes } from '../utils/calendarUtils';
 import { parseDate } from '../utils/dateHelpers';
+import { SectionHeader } from './atoms';
 import type { BlockLesson } from '../types/calendarTypes';
 
 export function DashboardWidgets() {
-    const [nextClass, setNextClass] = useState<BlockLesson | null>(null);
+    // Use data from storage (stale-while-revalidate)
+    const { schedule } = useSchedule();
+    const { exams: examSubjects } = useExams();
+
     const [currentClass, setCurrentClass] = useState<BlockLesson | null>(null);
+    const [nextClass, setNextClass] = useState<BlockLesson | null>(null);
     const [minutesUntil, setMinutesUntil] = useState<number | null>(null);
-    const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
 
+    // Process schedule data to find current/next class
     useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            const now = new Date();
+        if (!schedule || schedule.length === 0) return;
 
-            // 1. Fetch Schedule for Next Class
-            // Use smart week range to get the relevant week (current or next)
-            const { start: startOfWeek, end: endOfWeek } = getSmartWeekRange(now);
+        const now = new Date();
+        const currentDayStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-            const schedule = await fetchWeekSchedule({ start: startOfWeek, end: endOfWeek });
+        // Sort by date and time
+        const sortedSchedule = [...schedule].sort((a, b) => {
+            if (a.date !== b.date) return a.date.localeCompare(b.date);
+            return timeToMinutes(a.startTime) - timeToMinutes(b.startTime);
+        });
 
-            if (schedule) {
-                const currentDayStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-                const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        let foundCurrent: BlockLesson | null = null;
+        let foundNext: BlockLesson | null = null;
 
-                // Sort by date and time first
-                schedule.sort((a, b) => {
-                    if (a.date !== b.date) return a.date.localeCompare(b.date);
-                    return timeToMinutes(a.startTime) - timeToMinutes(b.startTime);
-                });
+        for (const lesson of sortedSchedule) {
+            const start = timeToMinutes(lesson.startTime);
+            const end = timeToMinutes(lesson.endTime);
 
-                let foundCurrent = null;
-                let foundNext = null;
-
-                for (const lesson of schedule) {
-                    const start = timeToMinutes(lesson.startTime);
-                    const end = timeToMinutes(lesson.endTime);
-
-                    // Check if it's today
-                    if (lesson.date === currentDayStr) {
-                        // Check if currently happening
-                        if (currentMinutes >= start && currentMinutes <= end) {
-                            foundCurrent = lesson;
-                            break; // Priority to current class
-                        }
-                        // Check if future today
-                        if (start > currentMinutes) {
-                            if (!foundNext) foundNext = lesson;
-                            // We don't break here because we might find a "current" one later if sorting was weird, 
-                            // but we sorted, so actually we can break if we only care about the *first* next.
-                            // But let's keep searching for a potential "current" one just in case of overlaps? 
-                            // Actually, if we sorted by time, the first one > currentMinutes is the next one.
-                            // If we found a next one, we can stop searching for next, but we still need to check for current.
-                            // Since we sorted, if we are at index i, and start > current, we can't be "in" it.
-                            break;
-                        }
-                    } else if (lesson.date > currentDayStr) {
-                        // Future day
-                        if (!foundNext) {
-                            foundNext = lesson;
-                            break; // Found the first class of a future day
-                        }
-                    }
+            if (lesson.date === currentDayStr) {
+                if (currentMinutes >= start && currentMinutes <= end) {
+                    foundCurrent = lesson;
+                    break;
                 }
-
-                setCurrentClass(foundCurrent);
-                setNextClass(foundNext);
-
-                if (foundNext) {
-                    // Calculate minutes until
-                    // If it's today
-                    if (foundNext.date === currentDayStr) {
-                        const start = timeToMinutes(foundNext.startTime);
-                        setMinutesUntil(start - currentMinutes);
-                    } else {
-                        // If it's a future day, we can just show the date/time, no minute countdown usually needed unless it's very close.
-                        // For simplicity, let's null out minutesUntil if it's not today, or calculate full diff.
-                        // User request: "countdown how many minutes until the start"
-                        // Let's do it only if it's today for now, or maybe < 24h?
-                        // Simple approach: only today.
-                        setMinutesUntil(null);
-                    }
-                } else {
-                    setMinutesUntil(null);
+                if (start > currentMinutes && !foundNext) {
+                    foundNext = lesson;
+                    break;
                 }
+            } else if (lesson.date > currentDayStr && !foundNext) {
+                foundNext = lesson;
+                break;
             }
+        }
 
-            // 2. Fetch Exams
-            const subjects = await fetchExamData();
+        setCurrentClass(foundCurrent);
+        setNextClass(foundNext);
 
-            if (subjects) {
-                // Flatten to exams
-                const exams: any[] = [];
-                subjects.forEach(subject => {
-                    subject.sections.forEach(section => {
-                        if (section.status === 'registered' && section.registeredTerm) {
-                            const cleanSubjectName = subject.name.replace(/ZS\s+\d{4}\/\d{4}\s+-\s+\w+(\s+-\s+)?/, '').trim();
-                            const cleanSectionName = section.name.charAt(0).toUpperCase() + section.name.slice(1);
+        if (foundNext && foundNext.date === currentDayStr) {
+            const start = timeToMinutes(foundNext.startTime);
+            setMinutesUntil(start - currentMinutes);
+        } else {
+            setMinutesUntil(null);
+        }
+    }, [schedule]);
 
-                            exams.push({
-                                title: cleanSubjectName ? `${cleanSubjectName} - ${cleanSectionName}` : cleanSectionName,
-                                start: parseDate(section.registeredTerm.date, section.registeredTerm.time),
-                                location: section.registeredTerm.room || 'Unknown'
-                            });
-                        }
+    // Process exam data to get upcoming exams
+    const upcomingExams = useMemo(() => {
+        if (!examSubjects || examSubjects.length === 0) return [];
+
+        const now = new Date();
+        const twoWeeksFromNow = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+        const exams: any[] = [];
+
+        examSubjects.forEach(subject => {
+            subject.sections.forEach(section => {
+                if (section.status === 'registered' && section.registeredTerm) {
+                    const cleanSubjectName = subject.name.replace(/ZS\s+\d{4}\/\d{4}\s+-\s+\w+(\s+-\s+)?/, '').trim();
+                    const cleanSectionName = section.name.charAt(0).toUpperCase() + section.name.slice(1);
+
+                    exams.push({
+                        title: cleanSubjectName ? `${cleanSubjectName} - ${cleanSectionName}` : cleanSectionName,
+                        start: parseDate(section.registeredTerm.date, section.registeredTerm.time),
+                        location: section.registeredTerm.room || 'Unknown'
                     });
-                });
+                }
+            });
+        });
 
-                // Filter for next 14 days
-                const twoWeeksFromNow = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-
-                const upcoming = exams.filter((exam: any) => {
-                    const examDate = exam.start;
-                    return examDate >= now && examDate <= twoWeeksFromNow;
-                });
-
-                // Sort by date
-                upcoming.sort((a: any, b: any) => a.start.getTime() - b.start.getTime());
-                setUpcomingExams(upcoming);
-            }
-
-            setLoading(false);
-        };
-
-        loadData();
-    }, []);
+        return exams
+            .filter(exam => exam.start >= now && exam.start <= twoWeeksFromNow)
+            .sort((a, b) => a.start.getTime() - b.start.getTime());
+    }, [examSubjects]);
 
     const getDayName = (dateStr: string) => {
         // dateStr is YYYYMMDD
@@ -153,7 +113,7 @@ export function DashboardWidgets() {
         return `${Math.floor(minutes / 60)}h`;
     };
 
-    if (loading) return null; // Or a skeleton loader
+    // Show nothing until we have some data to display
 
     // Determine what to display in the first widget
     const displayClass = currentClass || nextClass;
@@ -165,9 +125,9 @@ export function DashboardWidgets() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
 
                 <div>
-                    <h3 className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-1">
+                    <SectionHeader>
                         {isCurrent ? 'Teďka jsi na:' : 'Následující hodina'}
-                    </h3>
+                    </SectionHeader>
                     {displayClass ? (
                         <>
                             <div className="text-2xl font-bold text-gray-900 line-clamp-1" title={displayClass.courseName}>
@@ -207,7 +167,7 @@ export function DashboardWidgets() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-all">
 
                 <div>
-                    <h3 className="text-gray-500 text-sm font-medium uppercase tracking-wide mb-1">Exam Radar (14 dní)</h3>
+                    <SectionHeader>Exam Radar (14 dní)</SectionHeader>
                     {upcomingExams.length > 0 ? (
                         <>
                             <div className="mt-4 space-y-3">

@@ -324,7 +324,7 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
                       // Remove the old onClick handler entirely
                       // CHANGE ENDS HERE
 
-                      className={`w-full px-4 py-2.5 flex items-center gap-3 cursor-pointer transition-colors text-left ${selectedIndex === index ? 'bg-[#8DC843]/10' : 'hover:bg-gray-50'
+                      className={`w-full px-4 py-2.5 flex items-center gap-3 cursor-pointer transition-colors text-left ${selectedIndex === index ? 'bg-brand-accent/10' : 'hover:bg-gray-50'
                         }`}
                     >
                       {/* Left Icon Container */}

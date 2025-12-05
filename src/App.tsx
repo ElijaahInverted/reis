@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import { Sidebar } from './components/Sidebar'
 import { SearchBar } from './components/SearchBar'
@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getSmartWeekRange } from './utils/calendarUtils'
 import { ExamDrawer } from './components/ExamDrawer'
 import { PortalContext } from './components/ui/portal-context'
-import { useRef } from 'react'
+import { syncService } from './services/sync'
 
 function App() {
   const [currentDate, setCurrentDate] = useState(() => {
@@ -39,6 +39,12 @@ function App() {
 
   const [isExamDrawerOpen, setIsExamDrawerOpen] = useState(false);
   const portalContainerRef = useRef<HTMLDivElement>(null);
+
+  // Start background data sync on app mount
+  useEffect(() => {
+    syncService.start();
+    return () => syncService.stop();
+  }, []);
 
   return (
     <PortalContext.Provider value={portalContainerRef.current}>

@@ -2,9 +2,10 @@ import { X, FileType, Map as MapIcon, Check, Download, Loader2, Minus } from 'lu
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { GetIdFromLink } from "../utils/calendarUtils";
-import { getFilesFromId, getStoredSubject } from "../utils/apiUtils";
+import { getFilesFromId } from "../utils/apiUtils";
+import { useSubjects } from '../hooks/data';
 import type { FileObject, StoredSubject, BlockLesson } from "../types/calendarTypes";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 
 export interface SubjectPopupPropsV2 {
     code: BlockLesson,
@@ -24,7 +25,7 @@ export function RenderSubFiles(props: { status: number | null }) {
         case 2:
             return (
                 <div className="w-full h-80 xl:h-150 flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#8DC843]"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-accent"></div>
                 </div>
             )
     }
@@ -128,11 +129,22 @@ async function resolveFinalFileUrl(link: string): Promise<string> {
 }
 
 export function SubjectPopup(props: SubjectPopupPropsV2) {
-    //FETCH SUBJECT FROM STORAGE
-    const [subject_data, setSubjectData] = useState<StoredSubject | null>(null);
+    // Get subject data from hook (stale-while-revalidate)
+    const { getSubject, isLoaded: subjectsLoaded } = useSubjects();
+
+    // Derive subject_data from stored subjects
+    const subject_data: StoredSubject | null = useMemo(() => {
+        const subject = getSubject(props.code.courseCode);
+        if (!subject) return null;
+        return {
+            fullName: subject.fullName,
+            folderUrl: subject.folderUrl
+        };
+    }, [getSubject, props.code.courseCode]);
+
     const [files, setFiles] = useState<FileObject[] | null>(null);
     const [loadingfile, setLoadingFile] = useState<boolean>(false);
-    const [loadingSubject, setLoadingSubject] = useState<boolean>(true); // NEW: Track subject loading
+    const [loadingSubject, setLoadingSubject] = useState<boolean>(true);
     const [loadingFiles, setLoadingFiles] = useState<boolean>(true);
     const [subfolderFilter, setSubfolderFilter] = useState<string>("all");
 
@@ -165,50 +177,69 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
         }
         return name;
     }
-    //
+
+    // Ref to prevent duplicate file fetches (fixes flickering)
+    const fetchedForRef = useRef<string | null>(null);
+    const isFetchingRef = useRef<boolean>(false);
+
+    // Load files when subject data is available
     useEffect(() => {
-        (async () => {
-            try {
-                setLoadingSubject(true);
-                setLoadingFiles(true);
+        // Update loading state based on subjects hook
+        if (subjectsLoaded) {
+            setLoadingSubject(false);
+        }
 
-                const STORED_SUBJECT = await getStoredSubject(props.code.courseCode);
-                setSubjectData(STORED_SUBJECT);
-                setLoadingSubject(false); // Subject fetch complete
-
-                if (STORED_SUBJECT == null) {
-                    setFiles([]);
-                    setLoadingFiles(false);
-                    return;
-                }
-
-                // Try to load cached files first for fast display
-                const cachedKey = `files_${props.code.courseCode}`;
-                const cachedFiles = localStorage.getItem(cachedKey);
-                if (cachedFiles) {
-                    try {
-                        setFiles(JSON.parse(cachedFiles));
-                    } catch (e) {
-                        console.error("Failed to parse cached files", e);
-                    }
-                }
-
-                // Fetch fresh files in background (URLs may be ephemeral)
-                const files = await getFilesFromId(GetIdFromLink(STORED_SUBJECT.folderUrl));
-                setFiles(files);
-                setLoadingFiles(false);
-
-                // Cache for next time
-                if (files && files.length > 0) {
-                    localStorage.setItem(cachedKey, JSON.stringify(files));
-                }
-            } catch (error) {
-                console.error("Error loading popup data:", error);
-                setLoadingSubject(false);
+        if (!subject_data) {
+            if (subjectsLoaded) {
+                // Subject not found after loading
+                setFiles([]);
                 setLoadingFiles(false);
             }
+            return;
+        }
+
+        // Skip if already fetched for this subject (prevents flickering)
+        if (fetchedForRef.current === props.code.courseCode) {
+            setLoadingFiles(false);
+            return;
+        }
+
+        // Skip if already fetching
+        if (isFetchingRef.current) {
+            return;
+        }
+
+        // Mark as fetching BEFORE async operation
+        isFetchingRef.current = true;
+        fetchedForRef.current = props.code.courseCode;
+
+        // Load files for this subject
+        (async () => {
+            setLoadingFiles(true);
+
+            // Try to load cached files first for fast display
+            const cachedKey = `files_${props.code.courseCode}`;
+            const cachedFiles = localStorage.getItem(cachedKey);
+            if (cachedFiles) {
+                try {
+                    setFiles(JSON.parse(cachedFiles));
+                } catch (e) {
+                    console.error("Failed to parse cached files", e);
+                }
+            }
+
+            // Fetch fresh files in background (URLs may be ephemeral)
+            const freshFiles = await getFilesFromId(GetIdFromLink(subject_data.folderUrl));
+            setFiles(freshFiles);
+            setLoadingFiles(false);
+            isFetchingRef.current = false;
+
+            // Cache for next time
+            if (freshFiles && freshFiles.length > 0) {
+                localStorage.setItem(cachedKey, JSON.stringify(freshFiles));
+            }
         })();
-    }, [])
+    }, [subject_data, subjectsLoaded, props.code.courseCode]); // Removed 'files' from dependencies!
     //
     // Add ESC key listener to close popup
     useEffect(() => {
@@ -691,7 +722,7 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
         return (
             <div className="fixed z-[999] top-0 left-0 w-screen h-screen flex justify-center items-center bg-black/50 backdrop-grayscale font-dm p-8" onClick={handleBackdropClick}>
                 <div className="p-8 relative h-fit w-100 xl:w-180 rounded-xl bg-white shadow-xl flex flex-col items-center justify-center font-dm">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#8DC843] mb-4"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-accent mb-4"></div>
                     <span className="text-base xl:text-lg text-gray-600">Načítání předmětu...</span>
                 </div>
             </div>
@@ -769,7 +800,6 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
             {subject_data ?
                 <div
                     className="p-1 pl-4 pr-4 relative h-full w-100 xl:w-180 rounded-xl bg-gray-50 shadow-xl flex flex-col items-center font-dm bg-white select-none"
-                    onMouseDown={handleMouseDown}
                 >
                     <span className="absolute right-2 top-2 w-6 h-6 xl:w-8 xl:h-8 flex justify-center items-center text-gray-500 cursor-pointer hover:scale-90 transition-all close-icon" onClick={() => { props.onClose() }}>
                         <X size={"2rem"}></X>
@@ -805,7 +835,7 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
                             <div className="flex items-center gap-2">
                                 {files && files.length > 0 && (
                                     <div
-                                        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-colors shadow-sm select-all-trigger ${allVisibleSelected || someVisibleSelected ? 'bg-[#8DC843] border-[#8DC843]' : 'bg-white border-gray-400 hover:border-[#8DC843]'}`}
+                                        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-colors shadow-sm select-all-trigger ${allVisibleSelected || someVisibleSelected ? 'bg-brand-accent border-brand-accent' : 'bg-white border-gray-400 hover:border-brand-accent'}`}
                                         onClick={() => handleSelectAll(visibleFiles)}
                                     >
                                         {allVisibleSelected && (
@@ -835,13 +865,15 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
                             )}
                         </div>
                         <div
-                            className='w-full flex flex-1 flex-col overflow-y-auto relative select-none'
+                            className='w-full flex flex-1 flex-col overflow-y-auto relative select-none cursor-crosshair'
                             ref={containerRef}
+                            onMouseDown={handleMouseDown}
+                            data-file-container
                         >
                             {/* Selection Box */}
                             {isDragging && selectionStart && selectionEnd && (
                                 <div
-                                    className="absolute bg-[#8DC843]/20 border border-[#8DC843] pointer-events-none z-50"
+                                    className="absolute bg-brand-accent/20 border border-brand-accent pointer-events-none z-50"
                                     style={{
                                         left: Math.min(selectionStart.x, selectionEnd.x),
                                         top: Math.min(selectionStart.y, selectionEnd.y),
@@ -854,7 +886,7 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
                             <div ref={contentRef} className="w-full h-fit">
                                 {loadingFiles && (!files || files.length === 0) ? (
                                     <div className="w-full h-32 flex justify-center items-center">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8DC843]"></div>
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-accent"></div>
                                     </div>
                                 ) : files === null || files.length === 0 ? (
                                     <div className="w-full h-32 flex justify-center items-center">
@@ -862,7 +894,7 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
                                     </div>
                                 ) : loadingfile ? (
                                     <div className="w-full h-32 flex justify-center items-center">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8DC843]"></div>
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-accent"></div>
                                         <span className="ml-3 text-sm text-gray-500">Otevírání souboru...</span>
                                     </div>
                                 ) : (
@@ -888,11 +920,11 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
                                                         }}
                                                     >
                                                         {isSelected ? (
-                                                            <div className="w-5 h-5 rounded bg-[#8DC843] border-2 border-[#8DC843] flex items-center justify-center shadow-sm">
+                                                            <div className="w-5 h-5 rounded bg-brand-accent border-2 border-brand-accent flex items-center justify-center shadow-sm">
                                                                 <Check size={14} className="text-white" strokeWidth={4} />
                                                             </div>
                                                         ) : (
-                                                            <div className="w-5 h-5 rounded border-2 border-gray-400 bg-white items-center justify-center flex group-hover:border-[#8DC843] transition-colors shadow-sm" />
+                                                            <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white flex items-center justify-center group-hover:border-brand-accent transition-colors shadow-md ring-1 ring-gray-200" />
                                                         )}
                                                     </div>
 
@@ -936,7 +968,7 @@ export function SubjectPopup(props: SubjectPopupPropsV2) {
 
                         {/* Floating Action Bar */}
                         {selectedFileIds.length > 0 && (
-                            <div className="absolute bottom-6 right-6 bg-[#8DC843] text-white px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-200 z-50 floating-action-bar">
+                            <div className="absolute bottom-6 right-6 bg-brand-accent text-white px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-200 z-50 floating-action-bar">
                                 <span className="font-medium text-sm whitespace-nowrap">Vybráno: {selectedFileIds.length}</span>
                                 <div className="w-px h-4 bg-white/30"></div>
                                 <button

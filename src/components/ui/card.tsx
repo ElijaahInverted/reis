@@ -331,12 +331,12 @@ export function Sidebar({ isOpen: _isOpen, onToggle: _onToggle }: SidebarProps) 
                       setPopupPosition(null);
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${activeItem === child.id
-                      ? 'bg-[#8DC843]/10 text-[#8DC843]'
+                      ? 'bg-brand-accent/10 text-brand-accent'
                       : 'text-gray-700 hover:bg-gray-50'
                       }`}
                   >
                     {child.icon && (
-                      <span className={activeItem === child.id ? 'text-[#8DC843]' : 'text-gray-500'}>
+                      <span className={activeItem === child.id ? 'text-brand-accent' : 'text-gray-500'}>
                         {child.icon}
                       </span>
                     )}

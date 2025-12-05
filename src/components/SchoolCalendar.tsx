@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { SubjectPopup } from './SubjectPopup';
 import { timeToMinutes } from '../utils/calendarUtils';
-import { fetchWeekSchedule } from '../api/schedule';
-import { fetchExamData } from '../api/exams';
+import { useSchedule, useExams } from '../hooks/data';
 import type { BlockLesson, LessonWithRow, OrganizedLessons, DateInfo } from '../types/calendarTypes';
 import { getCzechHoliday } from '../utils/holidays';
 import { parseDate } from '../utils/dateHelpers';
@@ -17,138 +16,119 @@ interface SchoolCalendarProps {
 }
 
 export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps) {
-    const [scheduleData, setScheduleData] = useState<BlockLesson[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Get stored semester data from hooks (stale-while-revalidate)
+    const { schedule: storedSchedule } = useSchedule();
+    const { exams: storedExams } = useExams();
+
     const [selected, setSelected] = useState<BlockLesson | null>(null);
-    const [weekDates, setWeekDates] = useState<DateInfo[]>([]);
 
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            // Calculate start and end of the week based on initialDate
-            const startOfWeek = new Date(initialDate);
-            const day = startOfWeek.getDay() || 7; // Get current day number, converting Sun (0) to 7
-            if (day !== 1) startOfWeek.setHours(-24 * (day - 1)); // Set to Monday
+    // Calculate the week range for display
+    const weekDates = useMemo((): DateInfo[] => {
+        const startOfWeek = new Date(initialDate);
+        const day = startOfWeek.getDay() || 7;
+        if (day !== 1) startOfWeek.setHours(-24 * (day - 1));
+        startOfWeek.setHours(0, 0, 0, 0);
 
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 4); // Set to Friday
+        const dates: DateInfo[] = [];
+        for (let i = 0; i < 5; i++) {
+            const d = new Date(startOfWeek);
+            d.setDate(startOfWeek.getDate() + i);
+            dates.push({
+                weekday: DAYS[i],
+                day: String(d.getDate()),
+                month: String(d.getMonth() + 1),
+                year: String(d.getFullYear()),
+                full: d.toLocaleDateString('cs-CZ')
+            });
+        }
+        return dates;
+    }, [initialDate]);
 
-            const data = await fetchWeekSchedule({ start: startOfWeek, end: endOfWeek });
+    // Get the date strings for this week (YYYYMMDD format)
+    const weekDateStrings = useMemo(() => {
+        return weekDates.map(d =>
+            `${d.year}${d.month.padStart(2, '0')}${d.day.padStart(2, '0')}`
+        );
+    }, [weekDates]);
 
-            // Try to get cached exams first
-            // let exams = await getCachedExams();
+    // Process exams into BlockLesson format
+    const examLessons = useMemo((): BlockLesson[] => {
+        if (!storedExams || storedExams.length === 0) return [];
 
-            // Helper to process exams
-            const processExams = (examEvents: any[]) => {
-                const processed = examEvents.map(exam => {
-                    const dateObj = new Date(exam.start);
-                    const dateStr = `${dateObj.getFullYear()}${String(dateObj.getMonth() + 1).padStart(2, '0')}${String(dateObj.getDate()).padStart(2, '0')}`;
-                    const startTime = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
-                    const endObj = new Date(dateObj.getTime() + 90 * 60000);
-                    const endTime = `${String(endObj.getHours()).padStart(2, '0')}:${String(endObj.getMinutes()).padStart(2, '0')}`;
-
-                    return {
-                        id: `exam-${exam.id}-${exam.start}`,
-                        date: dateStr,
-                        startTime,
-                        endTime,
-                        courseCode: exam.id,
-                        courseName: exam.title,
-                        room: exam.location,
-                        roomStructured: { name: exam.location, id: '' },
-                        teachers: [{ fullName: exam.meta.teacher, shortName: exam.meta.teacher, id: '' }],
-                        isExam: true,
-                        examEvent: exam,
-                        isConsultation: 'false',
-                        studyId: '',
-                        facultyCode: '',
-                        isDefaultCampus: 'true',
-                        courseId: '',
-                        campus: '',
-                        isSeminar: 'false',
-                        periodId: ''
-                    } as BlockLesson;
-                });
-                return processed;
-            };
-
-            let allLessons: BlockLesson[] = [];
-            if (data) {
-                allLessons = [...data];
-            }
-
-            // If we have cached exams, add them immediately
-            // (Caching logic temporarily removed during refactor)
-            setScheduleData(allLessons);
-
-            setLoading(false);
-
-            // Fetch fresh exams in background
-            fetchExamData().then(subjects => {
-                // Flatten subjects to exams
-                const allExams: any[] = [];
-                subjects.forEach(subject => {
-                    subject.sections.forEach(section => {
-                        // Add registered term
-                        if (section.status === 'registered' && section.registeredTerm) {
-                            allExams.push({
-                                id: section.id,
-                                title: `${subject.name} - ${section.name}`,
-                                start: parseDate(section.registeredTerm.date, section.registeredTerm.time),
-                                location: 'Unknown', // Parser doesn't extract location yet
-                                meta: { teacher: 'Unknown' }
-                            });
-                        }
-                        // We could also add open terms if we want to show them on calendar? 
-                        // Usually calendar shows only registered exams.
-                    });
-                });
-
-                if (allExams.length > 0) {
-                    const examLessons = processExams(allExams);
-                    setScheduleData(prev => {
-                        const nonExams = prev.filter(l => !l.isExam);
-                        return [...nonExams, ...examLessons];
+        const allExams: any[] = [];
+        storedExams.forEach(subject => {
+            subject.sections.forEach((section: any) => {
+                if (section.status === 'registered' && section.registeredTerm) {
+                    allExams.push({
+                        id: section.id,
+                        title: `${subject.name} - ${section.name}`,
+                        start: parseDate(section.registeredTerm.date, section.registeredTerm.time),
+                        location: section.registeredTerm.room || 'Unknown',
+                        meta: { teacher: section.registeredTerm.teacher || 'Unknown' }
                     });
                 }
             });
+        });
 
-            // Set week dates for display
-            const dates: DateInfo[] = [];
-            for (let i = 0; i < 5; i++) {
-                const d = new Date(startOfWeek);
-                d.setDate(startOfWeek.getDate() + i);
-                dates.push({
-                    weekday: DAYS[i],
-                    day: String(d.getDate()),
-                    month: String(d.getMonth() + 1),
-                    year: String(d.getFullYear()),
-                    full: d.toLocaleDateString('cs-CZ')
-                });
-            }
-            setWeekDates(dates);
-        };
-        loadData();
+        return allExams.map(exam => {
+            const dateObj = new Date(exam.start);
+            const dateStr = `${dateObj.getFullYear()}${String(dateObj.getMonth() + 1).padStart(2, '0')}${String(dateObj.getDate()).padStart(2, '0')}`;
+            const startTime = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+            const endObj = new Date(dateObj.getTime() + 90 * 60000);
+            const endTime = `${String(endObj.getHours()).padStart(2, '0')}:${String(endObj.getMinutes()).padStart(2, '0')}`;
 
-        // Poll exams every minute - REMOVED to prevent UI flashing
-        // const intervalId = setInterval(() => {
-        //     loadData();
-        // }, 60000);
+            return {
+                id: `exam-${exam.id}-${exam.start}`,
+                date: dateStr,
+                startTime,
+                endTime,
+                courseCode: exam.id,
+                courseName: exam.title,
+                room: exam.location,
+                roomStructured: { name: exam.location, id: '' },
+                teachers: [{ fullName: exam.meta.teacher, shortName: exam.meta.teacher, id: '' }],
+                isExam: true,
+                examEvent: exam,
+                isConsultation: 'false',
+                studyId: '',
+                facultyCode: '',
+                isDefaultCampus: 'true',
+                courseId: '',
+                campus: '',
+                isSeminar: 'false',
+                periodId: ''
+            } as BlockLesson;
+        });
+    }, [storedExams]);
 
-        // return () => clearInterval(intervalId);
-    }, [initialDate]);
+    // Filter stored semester data for this week + add exams
+    const scheduleData = useMemo((): BlockLesson[] => {
+        let lessons: BlockLesson[] = [];
 
+        // Filter stored schedule for this week's dates
+        if (storedSchedule && storedSchedule.length > 0) {
+            lessons = storedSchedule.filter(lesson =>
+                weekDateStrings.includes(lesson.date)
+            );
+        }
+
+        // Add exams that fall on this week
+        const weekExams = examLessons.filter(exam =>
+            weekDateStrings.includes(exam.date)
+        );
+
+        return [...lessons, ...weekExams];
+    }, [storedSchedule, examLessons, weekDateStrings]);
 
     // Helper to organize lessons into rows to prevent overlap
     const organizeLessons = (lessons: BlockLesson[]): OrganizedLessons => {
         if (!lessons || lessons.length === 0) return { lessons: [], totalRows: 1 };
 
-        // Sort by start time
         const sortedLessons = [...lessons].sort((a, b) =>
             timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
         );
 
-        const rows: number[] = []; // Stores the end time (in minutes) of the last lesson in each row
+        const rows: number[] = [];
         const lessonsWithRows: LessonWithRow[] = [];
 
         sortedLessons.forEach(lesson => {
@@ -173,14 +153,6 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
 
         return { lessons: lessonsWithRows, totalRows: rows.length };
     };
-
-    if (loading) {
-        return (
-            <div className="w-full h-[600px] flex justify-center items-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="w-full h-full flex flex-col font-dm relative">
