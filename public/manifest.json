@@ -4,13 +4,8 @@
     "version": "3.0.0",
     "description": "Modernized reIS extension for IS Mendelu",
     "permissions": [
-        "storage",
-        "management",
-        "tabs"
+        "storage"
     ],
-    "background": {
-        "service_worker": "hot-reload.js"
-    },
     "content_security_policy": {
         "extension_pages": "script-src 'self'; object-src 'self'; font-src 'self'; style-src 'self'"
     },

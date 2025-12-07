@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Safelist DaisyUI toggle component (not auto-detected by JIT scanner) */
+@source inline("toggle toggle-xs toggle-sm toggle-md toggle-lg toggle-primary toggle-secondary toggle-accent toggle-success toggle-warning toggle-error toggle-info");
+
 /* Custom Mendelu theme for REIS extension */
 @plugin "daisyui/theme" {
   name: "mendelu";

@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getSmartWeekRange } from './utils/calendarUtils'
 import { ExamDrawer } from './components/ExamDrawer'
 import { PortalContext } from './components/ui/portal-context'
-import { syncService } from './services/sync'
+import { syncService, outlookSyncService } from './services/sync'
 
 function App() {
   const [currentDate, setCurrentDate] = useState(() => {
@@ -57,6 +57,7 @@ function App() {
   // Start background data sync on app mount
   useEffect(() => {
     syncService.start();
+    outlookSyncService.init();
     return () => syncService.stop();
   }, []);
 

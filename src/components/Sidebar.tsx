@@ -4,12 +4,15 @@ import {
   LayoutGrid,
   Mail,
   Settings,
-  ExternalLink
+  ExternalLink,
+  Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MENDELU_LOGO_PATH } from '../constants/icons';
 import { useUserParams } from '../hooks/useUserParams';
 import { getMainMenuItems, type MenuItem } from './menuConfig';
+import { useOutlookSync } from '../hooks/data';
+
 
 interface SidebarProps {
   onOpenExamDrawer?: () => void;
@@ -18,7 +21,12 @@ interface SidebarProps {
 export const Sidebar = ({ onOpenExamDrawer }: SidebarProps) => {
   const [activeItem, setActiveItem] = useState<string>('dashboard');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [profilHovered, setProfilHovered] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profilTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Outlook sync hook
+  const { isEnabled: outlookSyncEnabled, isLoading: outlookSyncLoading, toggle: toggleOutlookSync } = useOutlookSync();
 
 
   const { params } = useUserParams();
@@ -134,10 +142,65 @@ export const Sidebar = ({ onOpenExamDrawer }: SidebarProps) => {
             <Mail className="w-5 h-5 group-hover:scale-110 transition-transform" />
             <span className="text-[10px] mt-1 font-medium">Outlook</span>
           </a>
-          <button className="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm transition-all mx-auto">
-            <Settings className="w-5 h-5" />
-            <span className="text-[10px] mt-1 font-medium">Profil</span>
-          </button>
+          {/* Profil with popup */}
+          <div
+            className="relative"
+            onMouseEnter={() => {
+              if (profilTimeoutRef.current) clearTimeout(profilTimeoutRef.current);
+              setProfilHovered(true);
+            }}
+            onMouseLeave={() => {
+              profilTimeoutRef.current = setTimeout(() => setProfilHovered(false), 300);
+            }}
+          >
+            <button className="w-12 h-12 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm transition-all mx-auto">
+              <Settings className="w-5 h-5" />
+              <span className="text-[10px] mt-1 font-medium">Profil</span>
+            </button>
+
+            {/* Profil Popup */}
+            <AnimatePresence>
+              {profilHovered && (
+                <motion.div
+                  initial={{ opacity: 0, x: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="absolute left-14 bottom-0 w-72 bg-white rounded-xl shadow-popover-heavy border border-slate-200 p-3 z-50"
+                >
+                  <div className="px-1 py-1 border-b border-gray-100 mb-3">
+                    <h3 className="font-semibold text-gray-900">Nastavení</h3>
+                  </div>
+
+                  {/* Outlook Sync Toggle - Custom inline styles (DaisyUI toggle broken) */}
+                  <label className="flex items-center justify-between gap-3 px-1 py-2 cursor-pointer">
+                    <div className="flex items-center gap-2 flex-1">
+                      <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
+                      <span className="text-xs text-gray-600">Synchronizace rozvrhu do Outlooku</span>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={outlookSyncEnabled ?? false}
+                      disabled={outlookSyncLoading || outlookSyncEnabled === null}
+                      onClick={() => toggleOutlookSync()}
+                      className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{
+                        backgroundColor: (outlookSyncEnabled ?? false) ? '#79be15' : '#e5e7eb'
+                      }}
+                    >
+                      <span
+                        className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                        style={{
+                          transform: (outlookSyncEnabled ?? false) ? 'translateX(16px)' : 'translateX(0)'
+                        }}
+                      />
+                    </button>
+                  </label>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </aside>
     </>

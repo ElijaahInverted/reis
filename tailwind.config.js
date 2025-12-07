@@ -6,6 +6,13 @@ export default {
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
+    // Safelist DaisyUI components that use complex internal selectors
+    // These won't be detected by Tailwind's JIT scanner
+    safelist: [
+        'toggle', 'toggle-xs', 'toggle-sm', 'toggle-md', 'toggle-lg',
+        'toggle-primary', 'toggle-secondary', 'toggle-accent',
+        'toggle-success', 'toggle-warning', 'toggle-error', 'toggle-info',
+    ],
     theme: {
         // ========================================
         // CRITICAL: Override ALL rem-based defaults to px

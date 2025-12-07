@@ -11,8 +11,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "audit-ui": "./scripts/audit-ui.sh"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

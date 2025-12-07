@@ -1,0 +1,124 @@
+/**
+ * Outlook Sync Service - Manages calendar sync state.
+ * 
+ * - Checks status once on init (called at app startup)
+ * - Caches result in localStorage
+ * - Provides toggle method for UI
+ */
+
+import { checkOutlookSyncStatus, setOutlookSyncStatus } from '../../api/outlookSync';
+import { StorageService } from '../storage';
+import { STORAGE_KEYS } from '../storage/keys';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('OutlookSyncService');
+
+type OutlookSyncListener = (enabled: boolean | null) => void;
+
+class OutlookSyncServiceClass {
+    private listeners: Set<OutlookSyncListener> = new Set();
+    private isChecking = false;
+    private currentStatus: boolean | null = null;
+
+    /**
+     * Initialize the service - check status once.
+     * Called at app startup.
+     */
+    async init(): Promise<void> {
+        logger.info('Initializing Outlook Sync Service...');
+
+        // Load cached status first for instant UI
+        const cached = StorageService.get<boolean>(STORAGE_KEYS.OUTLOOK_SYNC);
+        if (cached !== null) {
+            logger.debug(`Loaded cached status: ${cached ? 'ENABLED' : 'DISABLED'}`);
+            this.currentStatus = cached;
+            this.notifyListeners();
+        }
+
+        // Check actual status from server
+        await this.refreshStatus();
+    }
+
+    /**
+     * Refresh status from server.
+     */
+    async refreshStatus(): Promise<void> {
+        if (this.isChecking) {
+            logger.debug('Already checking, skipping...');
+            return;
+        }
+
+        this.isChecking = true;
+
+        try {
+            const status = await checkOutlookSyncStatus();
+            this.currentStatus = status;
+            StorageService.set(STORAGE_KEYS.OUTLOOK_SYNC, status);
+            logger.info(`Status refreshed: ${status ? 'ENABLED' : 'DISABLED'}`);
+            this.notifyListeners();
+        } catch (error) {
+            logger.error('Failed to refresh status:', error);
+            // Keep cached value on error
+        } finally {
+            this.isChecking = false;
+        }
+    }
+
+    /**
+     * Toggle sync status.
+     */
+    async toggle(): Promise<void> {
+        const newStatus = !this.currentStatus;
+        logger.info(`Toggling sync to: ${newStatus ? 'ENABLED' : 'DISABLED'}`);
+
+        // Optimistic update
+        this.currentStatus = newStatus;
+        StorageService.set(STORAGE_KEYS.OUTLOOK_SYNC, newStatus);
+        this.notifyListeners();
+
+        // Apply to server
+        const success = await setOutlookSyncStatus(newStatus);
+
+        if (!success) {
+            logger.warn('Server update failed, reverting optimistic update');
+            // Revert on failure
+            this.currentStatus = !newStatus;
+            StorageService.set(STORAGE_KEYS.OUTLOOK_SYNC, !newStatus);
+            this.notifyListeners();
+        }
+    }
+
+    /**
+     * Get current status.
+     */
+    getStatus(): boolean | null {
+        return this.currentStatus;
+    }
+
+    /**
+     * Check if currently refreshing.
+     */
+    isRefreshing(): boolean {
+        return this.isChecking;
+    }
+
+    /**
+     * Subscribe to status changes.
+     */
+    subscribe(listener: OutlookSyncListener): () => void {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
+    }
+
+    private notifyListeners(): void {
+        this.listeners.forEach(listener => {
+            try {
+                listener(this.currentStatus);
+            } catch (error) {
+                logger.error('Listener error:', error);
+            }
+        });
+    }
+}
+
+export const outlookSyncService = new OutlookSyncServiceClass();

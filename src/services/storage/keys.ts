@@ -20,6 +20,9 @@ export const STORAGE_KEYS = {
     // User parameters
     USER_PARAMS: 'reis_user_params',
 
+    // Outlook calendar sync
+    OUTLOOK_SYNC: 'reis_outlook_sync',
+
     // Sync metadata
     LAST_SYNC: 'reis_last_sync',
     SYNC_ERROR: 'reis_sync_error',
