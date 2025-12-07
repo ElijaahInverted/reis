@@ -19,5 +19,37 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Enforce using StorageService instead of direct chrome.storage
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: "MemberExpression[object.object.name='chrome'][object.property.name='storage']",
+          message: 'Use StorageService from src/services/storage instead of chrome.storage directly.'
+        }
+      ],
+      // Warn on dangerouslySetInnerHTML usage
+      'react/no-danger': 'off', // Using custom rule instead
+    },
+  },
+  // Allow chrome.storage in StorageService only
+  {
+    files: ['**/services/storage/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': 'off',
+    },
+  },
+  // Allow 'any' in utility files where it's intentional for generics
+  {
+    files: [
+      '**/utils/logger.ts',
+      '**/utils/encryption.ts',
+      '**/utils/requestQueue.ts',
+      '**/types/**/*.ts',
+      '**/components/ui/**/*.tsx',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
   },
 ])

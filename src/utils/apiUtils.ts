@@ -2,50 +2,38 @@ import type { FileObject, StoredSubject } from "../types/calendarTypes";
 import { fetchSubjects } from "../api/subjects";
 import { fetchFilesFromFolder } from "../api/documents";
 import { encryptData, decryptData } from "./encryption";
+import { StorageService } from "../services/storage";
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const SUBJECTS_CACHE_KEY = 'reis_subjects_cache';
+const FILES_CACHE_PREFIX = 'reis_files_cache_';
 
-// Helper to get data from Chrome storage
-async function getChromeStorageData<T>(key: string): Promise<T | null> {
-    if (typeof chrome === 'undefined' || !chrome.storage) {
-        return null;
-    }
-
-    try {
-        const result = await chrome.storage.local.get(key);
-        return (result[key] as T) || null;
-    } catch (error) {
-        console.error(`Error reading from Chrome storage (${key}):`, error);
-        return null;
-    }
+interface SubjectsCache {
+    data: string; // encrypted
+    timestamp: number;
 }
 
-// Helper to set data in Chrome storage
-async function setChromeStorageData(key: string, value: any): Promise<void> {
-    if (typeof chrome === 'undefined' || !chrome.storage) {
-        return;
-    }
-
-    try {
-        await chrome.storage.local.set({ [key]: value });
-    } catch (error) {
-        console.error(`Error writing to Chrome storage (${key}):`, error);
-    }
+interface FilesCache {
+    files: string; // encrypted
+    timestamp: number;
 }
 
 export async function getStoredSubject(courseCode: string): Promise<StoredSubject | null> {
+    console.debug('[getStoredSubject] Fetching subject:', courseCode);
+
     try {
         const now = Date.now();
-        const STORAGE_KEY = 'subjects_cache';
 
-        // Try to load from Chrome storage first (data is now encrypted string)
-        let subjectsCache = await getChromeStorageData<{ data: string, timestamp: number }>(STORAGE_KEY);
+        // Try to load from storage first (data is now encrypted string)
+        let subjectsCache = await StorageService.getAsync<SubjectsCache>(SUBJECTS_CACHE_KEY);
 
         // Check if cache is valid
         if (!subjectsCache || (now - subjectsCache.timestamp > CACHE_DURATION)) {
+            console.debug('[getStoredSubject] Cache miss or expired, fetching fresh data');
             const subjectsData = await fetchSubjects();
 
             if (!subjectsData) {
+                console.debug('[getStoredSubject] No subjects data returned');
                 return null;
             }
 
@@ -55,7 +43,8 @@ export async function getStoredSubject(courseCode: string): Promise<StoredSubjec
                 data: encryptedData,
                 timestamp: now
             };
-            await setChromeStorageData(STORAGE_KEY, subjectsCache);
+            await StorageService.setAsync(SUBJECTS_CACHE_KEY, subjectsCache);
+            console.debug('[getStoredSubject] Cached fresh subjects data');
         }
 
         try {
@@ -65,21 +54,22 @@ export async function getStoredSubject(courseCode: string): Promise<StoredSubjec
             const subject = parsedData[courseCode];
 
             if (!subject) {
-                console.warn(`Subject ${courseCode} not found in subjects data`);
+                console.warn(`[getStoredSubject] Subject ${courseCode} not found in subjects data`);
                 return null;
             }
 
+            console.debug('[getStoredSubject] Found subject:', courseCode);
             return {
                 fullName: subject.fullName,
                 folderUrl: subject.folderUrl
             };
         } catch (error) {
-            console.warn("Cache corruption detected (decryption/parse failed), clearing cache...", error);
-            await setChromeStorageData(STORAGE_KEY, null);
+            console.warn("[getStoredSubject] Cache corruption detected (decryption/parse failed), clearing cache...", error);
+            await StorageService.removeAsync(SUBJECTS_CACHE_KEY);
             return null;
         }
     } catch (error) {
-        console.error("Error fetching stored subject:", error);
+        console.error("[getStoredSubject] Error fetching stored subject:", error);
         return null;
     }
 }
@@ -87,12 +77,14 @@ export async function getStoredSubject(courseCode: string): Promise<StoredSubjec
 export async function getFilesFromId(folderId: string | null): Promise<FileObject[] | null> {
     if (!folderId) return null;
 
+    console.debug('[getFilesFromId] Fetching files for folder:', folderId);
+
     try {
         const now = Date.now();
-        const STORAGE_KEY = `files_cache_${folderId}`;
+        const storageKey = `${FILES_CACHE_PREFIX}${folderId}`;
 
-        // Try to load from Chrome storage first (files now encrypted as string)
-        const cachedData = await getChromeStorageData<{ files: string, timestamp: number }>(STORAGE_KEY);
+        // Try to load from storage first (files now encrypted as string)
+        const cachedData = await StorageService.getAsync<FilesCache>(storageKey);
 
         // If we have valid cache (5 minutes for files - fresh during lectures)
         const FILE_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes (was 1 hour)
@@ -102,34 +94,38 @@ export async function getFilesFromId(folderId: string | null): Promise<FileObjec
                 try {
                     // Decrypt cached files
                     const decryptedFiles = await decryptData(cachedData.files);
+                    console.debug('[getFilesFromId] Returning cached files');
                     return JSON.parse(decryptedFiles);
                 } catch (error) {
-                    console.warn("Cache corruption detected (files), clearing cache...", error);
-                    await setChromeStorageData(STORAGE_KEY, null);
+                    console.warn("[getFilesFromId] Cache corruption detected (files), clearing cache...", error);
+                    await StorageService.removeAsync(storageKey);
                     // Fall through to fetch
                 }
             }
         }
 
+        console.debug('[getFilesFromId] Cache miss, fetching from IS');
         // Construct the folder URL from the ID
         const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
 
         const files = await fetchFilesFromFolder(folderUrl);
 
         if (!files || files.length === 0) {
+            console.debug('[getFilesFromId] No files found');
             return [];
         }
 
         // Encrypt files before storing
         const encryptedFiles = await encryptData(JSON.stringify(files));
-        await setChromeStorageData(STORAGE_KEY, {
+        await StorageService.setAsync(storageKey, {
             files: encryptedFiles,
             timestamp: now
         });
 
+        console.debug('[getFilesFromId] Cached', files.length, 'files');
         return files;
     } catch (error) {
-        console.error("Error fetching files:", error);
+        console.error("[getFilesFromId] Error fetching files:", error);
         return null;
     }
 }

@@ -237,7 +237,7 @@ function DialogPortal({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 function DialogOverlay() {
   return null; // daisyUI modal handles its own backdrop
 }

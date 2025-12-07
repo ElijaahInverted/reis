@@ -64,7 +64,7 @@ export function EventDetailDialog({ event, isOpen, onClose }: EventDetailDialogP
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-900">{event.room}</span>
                                 {/* Map icon placeholder */}
-                                <span className="text-green-500">🗺️</span>
+                                <span className="text-success">🗺️</span>
                             </div>
                         </div>
                     </div>
@@ -75,7 +75,7 @@ export function EventDetailDialog({ event, isOpen, onClose }: EventDetailDialogP
 
                         {isLoading ? (
                             <div className="flex justify-center py-4">
-                                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                                <Loader2 className="w-6 h-6 animate-spin text-primary" />
                             </div>
                         ) : documents.length > 0 ? (
                             <div className="space-y-2">
@@ -90,7 +90,7 @@ export function EventDetailDialog({ event, isOpen, onClose }: EventDetailDialogP
                                         <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
                                             <FileText className="w-4 h-4 text-gray-600" />
                                         </div>
-                                        <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
+                                        <span className="text-sm text-gray-700 group-hover:text-primary transition-colors">
                                             {doc.name}
                                         </span>
                                     </a>

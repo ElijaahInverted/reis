@@ -88,7 +88,7 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
                 );
 
                 if (isFolder && file.files.length > 0) {
-                    let folderLink = file.files[0].link;
+                    const folderLink = file.files[0].link;
                     let absoluteUrl: string;
 
                     // Robust handling for slozka.pl links
@@ -153,8 +153,8 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean
     }
 }
 
-
 export function parseServerFiles(html: string): { files: ParsedFile[], paginationLinks: string[] } {
+    console.debug('[parseServerFiles] Starting parse, HTML length:', html.length);
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const files: ParsedFile[] = [];
     const paginationLinks: string[] = [];
@@ -214,6 +214,7 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
 
     // If no rows found, try less strict selector
     if (rows.length === 0) {
+        console.debug('[parseServerFiles] No .uis-hl-table.lbn rows, trying .uis-hl-table');
         rows = doc.querySelectorAll('tr.uis-hl-table');
     }
 
@@ -233,7 +234,9 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
         // Convert to NodeList-like structure for compatibility if needed, or just map
         // For now, let's just iterate the array
         rows = dataRows as any;
+        console.debug('[parseServerFiles] Found', dataRows.length, 'data rows via fallback');
     } else {
+        console.debug('[parseServerFiles] Found', rows.length, 'rows via class selector');
     }
 
     // Robust pagination detection: Scan ALL links in the document
@@ -286,7 +289,7 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
         const subfolder = sanitizeString(cells[(adder)]?.textContent || '', 100);
         const nameCell = cells[(1 + adder)];
         let link = nameCell?.querySelector('a');
-        let file_name = validateFileName(nameCell?.textContent || '');
+        const file_name = validateFileName(nameCell?.textContent || '');
 
         // If the name cell doesn't have a link, look for it in other cells
         if (!link) {
@@ -326,8 +329,8 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
 
         // Look for file links - try multiple cell indices starting from the end
         // Usually the last two columns are View and Attach
-        let filesCell = cells[cells.length - 1];
-        let viewCell = cells[cells.length - 2];
+        const filesCell = cells[cells.length - 1];
+        const viewCell = cells[cells.length - 2];
 
         // Collect links from both View and Attach cells
         const potentialLinks: Element[] = [];
@@ -421,5 +424,6 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
         }
     });
 
+    console.debug('[parseServerFiles] Parse complete. Files:', files.length, ', Pagination:', paginationLinks.length);
     return { files, paginationLinks };
 }

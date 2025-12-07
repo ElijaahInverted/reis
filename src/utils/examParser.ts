@@ -1,6 +1,8 @@
 import type { ExamSubject } from '../components/ExamDrawer';
 
 export function parseExamData(html: string): ExamSubject[] {
+    console.debug('[parseExamData] Starting parse, input length:', html.length);
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const subjectsMap = new Map<string, ExamSubject>();
@@ -10,7 +12,7 @@ export function parseExamData(html: string): ExamSubject[] {
         // Clean name: Remove "ZS 202X/202X - FACULTY" prefix/suffix
         // Example: "ZS 2025/2026 - PEF Algoritmizace" or "Algoritmizace ZS 2025/2026 - PEF"
         // Usually it's "ZS 2025/2026 - PEF <Name>"
-        let name = rawName.replace(/ZS\s+\d{4}\/\d{4}\s+-\s+\w+\s+/, '').trim();
+        const name = rawName.replace(/ZS\s+\d{4}\/\d{4}\s+-\s+\w+\s+/, '').trim();
 
         if (!subjectsMap.has(code)) {
             subjectsMap.set(code, {
@@ -41,11 +43,18 @@ export function parseExamData(html: string): ExamSubject[] {
 
     // 1. Parse Registered Terms (Table 1)
     const table1 = doc.querySelector('#table_1');
+    console.debug('[parseExamData] table_1 (registered terms) found:', !!table1);
+
     if (table1) {
         const rows = table1.querySelectorAll('tbody tr');
-        rows.forEach(row => {
+        console.debug('[parseExamData] table_1 rows found:', rows.length);
+
+        rows.forEach((row, rowIndex) => {
             const cols = row.querySelectorAll('td');
-            if (cols.length < 6) return; // Reduced min length check
+            if (cols.length < 6) {
+                console.debug('[parseExamData] table_1 row', rowIndex, 'skipped: insufficient columns', cols.length);
+                return;
+            }
 
             // Standard indices (assuming hidden column is present)
             // 0: Hidden, 1: Num, 2: Code, 3: Name, 4: Period(Hidden), 5: Date, 6: Room, 7: Type, 8: Teacher
@@ -59,7 +68,10 @@ export function parseExamData(html: string): ExamSubject[] {
                 }
             }
 
-            if (dateIndex === -1) return; // Could not find date, skip row
+            if (dateIndex === -1) {
+                console.debug('[parseExamData] table_1 row', rowIndex, 'skipped: no date column found');
+                return;
+            }
 
             const code = cols[2].textContent?.trim() || '';
             const name = cols[3].textContent?.trim() || '';
@@ -98,16 +110,25 @@ export function parseExamData(html: string): ExamSubject[] {
                 room,
                 teacher
             };
+
+            console.debug('[parseExamData] table_1 parsed registered term:', code, sectionName, date, time);
         });
     }
 
     // 2. Parse Available Terms (Table 2)
     const table2 = doc.querySelector('#table_2');
+    console.debug('[parseExamData] table_2 (available terms) found:', !!table2);
+
     if (table2) {
         const rows = table2.querySelectorAll('tbody tr');
-        rows.forEach(row => {
+        console.debug('[parseExamData] table_2 rows found:', rows.length);
+
+        rows.forEach((row, rowIndex) => {
             const cols = row.querySelectorAll('td');
-            if (cols.length < 8) return;
+            if (cols.length < 8) {
+                console.debug('[parseExamData] table_2 row', rowIndex, 'skipped: insufficient columns', cols.length);
+                return;
+            }
 
             // Standard indices (assuming hidden column is present)
             // 0: Hidden, 1: Num, 2: Status, 3: Code, 4: Name, 5: Period(Hidden), 6: Date, 7: Room, 8: Type, 9: Teacher, 10: Capacity
@@ -121,7 +142,10 @@ export function parseExamData(html: string): ExamSubject[] {
                 }
             }
 
-            if (dateIndex === -1) return;
+            if (dateIndex === -1) {
+                console.debug('[parseExamData] table_2 row', rowIndex, 'skipped: no date column found');
+                return;
+            }
 
             const code = cols[3].textContent?.trim() || '';
             const name = cols[4].textContent?.trim() || '';
@@ -191,9 +215,15 @@ export function parseExamData(html: string): ExamSubject[] {
                 teacher,
                 registrationStart: registrationStart || undefined
             });
+
+            console.debug('[parseExamData] table_2 parsed available term:', code, sectionName, datePart, timePart, 'full:', isFull);
         });
     }
 
     // Convert Map to Array
-    return Array.from(subjectsMap.values());
+    const results = Array.from(subjectsMap.values());
+    console.debug('[parseExamData] Completed. Returning', results.length, 'subjects with',
+        results.reduce((acc, s) => acc + s.sections.length, 0), 'total sections');
+
+    return results;
 }

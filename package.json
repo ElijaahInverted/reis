@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vitest run && tsc -b && vite build",
+    "build:watch": "vite build --watch",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "audit-ui": "./scripts/audit-ui.sh"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",

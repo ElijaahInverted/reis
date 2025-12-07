@@ -19,12 +19,14 @@ export interface Person {
  * @returns {Array<Person>} An array of person objects.
  */
 export function parseMendeluResults(htmlString: string): Person[] {
+    console.debug('[parseMendeluResults] Starting parse, HTML length:', htmlString.length);
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
     const baseUrl = "https://is.mendelu.cz/auth/lide/";
 
     // --- Case 1: Check for the multi-result list page ---
     const personLinks = doc.querySelectorAll("a[href*='clovek.pl?zpet=']");
+    console.debug('[parseMendeluResults] Case 1 check: found', personLinks.length, 'person links');
     if (personLinks.length > 0) {
         return Array.from(personLinks).map(link => {
             const name = link.textContent?.trim() ?? 'Unknown Name';
@@ -120,6 +122,7 @@ export function parseMendeluResults(htmlString: string): Person[] {
     // --- Case 2: Check for a single-person profile page (using your helpful snippet) ---
     // We look for a unique element on that page, like the name in the big font.
     const nameElement = doc.querySelector('td.odsazena b font[size="+1"]');
+    console.debug('[parseMendeluResults] Case 2 check: found name element?', !!nameElement);
     if (nameElement) {
         const name = nameElement.textContent?.trim() ?? 'Unknown Name';
         let id: string | null = null;
@@ -231,6 +234,7 @@ export function parseMendeluResults(htmlString: string): Person[] {
     }
 
     // --- Case 3: No results found on either page type ---
+    console.debug('[parseMendeluResults] No results found (Case 3)');
     return [];
 }
 

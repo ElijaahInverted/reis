@@ -99,7 +99,7 @@ async function resolveFinalFileUrl(link: string): Promise<string> {
             );
 
             if (downloadLink) {
-                let newLink = downloadLink.getAttribute('href');
+                const newLink = downloadLink.getAttribute('href');
                 if (newLink) {
                     // Handle relative paths
                     if (!newLink.startsWith('http')) {

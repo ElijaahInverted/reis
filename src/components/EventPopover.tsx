@@ -335,7 +335,7 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                             <span className="font-bold text-slate-900 text-sm">{lesson.courseCode}</span>
-                            <span className="text-xs bg-white border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded shadow-sm">{lesson.room}</span>
+                            <span className="badge badge-sm badge-ghost">{lesson.room}</span>
                         </div>
                         <div className="text-xs text-slate-500 mt-0.5 truncate">{lesson.teachers[0]?.shortName}</div>
                     </div>
@@ -353,7 +353,7 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
                         <button
                             onClick={() => setActiveTab('all')}
                             className={`flex-shrink-0 px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'all'
-                                ? 'border-blue-500 text-blue-600'
+                                ? 'border-primary text-primary'
                                 : 'border-transparent text-slate-500 hover:text-slate-700'
                                 }`}
                         >
@@ -364,7 +364,7 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
                                 key={tabKey}
                                 onClick={() => setActiveTab(tabKey)}
                                 className={`flex-shrink-0 px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tabKey
-                                    ? 'border-blue-500 text-blue-600'
+                                    ? 'border-primary text-primary'
                                     : 'border-transparent text-slate-500 hover:text-slate-700'
                                     }`}
                             >
@@ -382,7 +382,7 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
                         </div>
                     ) : loadingFile ? (
                         <div className="flex items-center justify-center h-24 gap-2">
-                            <Loader2 size={20} className="animate-spin text-blue-500" />
+                            <Loader2 size={20} className="animate-spin text-primary" />
                             <span className="text-xs text-slate-500">Otevírání...</span>
                         </div>
                     ) : !files || visibleFiles.length === 0 ? (
@@ -397,7 +397,7 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
                                     return (
                                         <div
                                             key={`${i}-${j}`}
-                                            className={`group flex items-center gap-2 p-2 rounded hover:bg-slate-50 transition-colors cursor-default ${isSelected ? 'bg-blue-50/60' : ''
+                                            className={`group flex items-center gap-2 p-2 rounded hover:bg-slate-50 transition-colors cursor-default ${isSelected ? 'bg-primary/10' : ''
                                                 }`}
                                         >
                                             {/* DaisyUI Checkbox */}
@@ -413,8 +413,8 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
                                                 onClick={() => openFile(subFile.link)}
                                                 className="flex-1 flex items-center gap-2 text-left min-w-0 group/text"
                                             >
-                                                <FileText size={14} className="text-slate-400 flex-shrink-0 transition-colors group-hover/text:text-blue-500" />
-                                                <span className="text-xs text-slate-700 font-medium group-hover/text:text-blue-600 group-hover/text:underline truncate">
+                                                <FileText size={14} className="text-slate-400 flex-shrink-0 transition-colors group-hover/text:text-primary" />
+                                                <span className="text-xs text-slate-700 font-medium group-hover/text:text-primary group-hover/text:underline truncate">
                                                     {file.files.length === 1
                                                         ? file.file_name
                                                         : `${file.file_name}: část ${j + 1}`
@@ -443,7 +443,7 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
                         <button
                             onClick={downloadZip}
                             disabled={isDownloading}
-                            className="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-300 text-white text-xs font-semibold rounded shadow-sm transition-all"
+                            className="btn btn-primary btn-sm w-full gap-2"
                         >
                             {isDownloading ? (
                                 <>

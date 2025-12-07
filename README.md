@@ -1,73 +1,78 @@
-# React + TypeScript + Vite
+# REIS.mendelu
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Zjednodušit a měřitelně zrychlit každodenní práci studentů s Informačním systémem MENDELU.**
 
-Currently, two official plugins are available:
+REIS.mendelu je rozšíření prohlížeče, které zpřehledňuje a personalizuje Informační systém. Pracuje čistě na straně klienta – přímo v prohlížeči studenta – a nijak nezasahuje do samotného IS.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🎯 Proč REIS?
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Problém | Řešení |
+|---------|--------|
+| Zbytečně mnoho kliknutí pro základní úkoly | **Pravidlo tří kliknutí** – vše důležité max. na 3 kliky |
+| Zobrazování nerelevantních informací | **Kontextová priorita** – nejdříve váš semestr, pak obor, fakulta, univerzita |
+| Informace roztříštěné na mnoha místech | **Vertikální integrace** – klik na předmět = materiály + vyučující + termíny najednou |
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ✨ Klíčové funkce
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Personalizovaný Dashboard** – přehled toho, co je právě důležité
+- **Inteligentní propojení dat** – související informace pohromadě
+- **Kontextová personalizace** – obsah přizpůsobený vašemu oboru a ročníku
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🚀 Instalace
+
+1. Stáhněte si rozšíření: [tinyurl.com/reismendelu](https://tinyurl.com/reismendelu)
+2. Otevřete [is.mendelu.cz](https://is.mendelu.cz)
+3. Přihlaste se
+4. Rozšíření se automaticky načte
+
+---
+
+## 👥 Tým
+
+| Jméno | Role |
+|-------|------|
+| Dominik Holek | Vedoucí projektu, datová analýza |
+| Tomáš Vymazal | Technický vedoucí, designér |
+| Antonín Dědeček | Produktový a komunitní manažer |
+| Kryštof Janda | Výzkum a inovace |
+
+---
+
+## 📅 Roadmap
+
+| Fáze | Období | Status |
+|------|--------|--------|
+| Vývoj a interní testování | ZS 2025/2026 | 🔄 Probíhá |
+| Sběr a analýza zpětné vazby | ZS 2025/2026 | ⏳ Plánováno |
+| Finální úpravy a veřejné vydání | LS 2025/2026 | ⏳ Plánováno |
+
+---
+
+## 🔒 Soukromí
+
+Rozšíření pracuje výhradně lokálně ve vašem prohlížeči. Žádná data neopouštějí váš počítač. Více v [PRIVACY.md](PRIVACY.md).
+
+---
+
+## 🛠️ Pro vývojáře
+
+```bash
+# Instalace závislostí
+npm install
+
+# Spuštění dev serveru
+npm run dev
+
+# Build rozšíření
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+*Nezávislá studentská iniciativa • Provozně ekonomická fakulta • MENDELU*

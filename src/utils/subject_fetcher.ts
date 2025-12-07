@@ -7,8 +7,8 @@ const PRODUCTION: boolean = true;
 
 function getLastWeekData() {
     const today: Date = new Date();
-    let start: string;
-    let end: string;
+    let start: string = '';
+    let end: string = '';
 
     const currentDayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
 

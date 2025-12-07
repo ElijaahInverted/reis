@@ -232,7 +232,7 @@ export function ExamDrawer({ isOpen, onClose }: ExamDrawerProps) {
                                     Načítání zkoušek...
                                 </div>
                             ) : error ? (
-                                <div className="flex items-center justify-center h-full text-red-500">
+                                <div className="flex items-center justify-center h-full text-error">
                                     {error}
                                 </div>
                             ) : (

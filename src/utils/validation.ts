@@ -29,7 +29,7 @@ export function sanitizeString(input: unknown, maxLength = 500): string {
     // Remove: <, >, ", ', \, null bytes
     const safe = stripped
         .replace(/[<>"'\\]/g, '')  // Remove quote chars and backslashes
-        .replace(/\x00/g, '');      // Remove null bytes
+        .split(String.fromCharCode(0)).join(''); // Remove null bytes
 
     // Normalize whitespace (collapse multiple spaces, trim)
     const normalized = safe.replace(/\s+/g, ' ').trim();
@@ -144,7 +144,7 @@ export function validateFileName(filename: string): string {
     if (!filename || typeof filename !== 'string') return '';
 
     // Remove path traversal attempts
-    const safe = filename.replace(/\.\./g, '').replace(/[\/\\]/g, '');
+    const safe = filename.replace(/\.\./g, '').replace(/[/\\]/g, '');
 
     // Sanitize (allow letters, numbers, spaces, dots, dashes, underscores)
     const sanitized = safe.replace(/[^a-zA-Z0-9\s.\-_áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]/g, '');

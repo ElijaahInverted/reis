@@ -332,16 +332,16 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
                         {query === '' ? (
                           <Clock className="w-4 h-4 text-gray-400" />
                         ) : result.type === 'page' ? (
-                          <div className="w-6 h-6 rounded bg-green-100 flex items-center justify-center">
-                            <FileText className="w-3.5 h-3.5 text-green-600" />
+                          <div className="w-6 h-6 rounded bg-success/20 flex items-center justify-center">
+                            <FileText className="w-3.5 h-3.5 text-success" />
                           </div>
                         ) : result.personType === 'student' ? (
-                          <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                            <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                          <div className="w-6 h-6 rounded-full bg-info/20 flex items-center justify-center">
+                            <GraduationCap className="w-3.5 h-3.5 text-info" />
                           </div>
                         ) : result.personType === 'teacher' ? (
-                          <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-                            <Briefcase className="w-3.5 h-3.5 text-purple-600" />
+                          <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center">
+                            <Briefcase className="w-3.5 h-3.5 text-secondary" />
                           </div>
                         ) : result.personType === 'staff' ? (
                           <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">

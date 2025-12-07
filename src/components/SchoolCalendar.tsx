@@ -207,21 +207,21 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                     const holidayName = getCzechHoliday(checkDate);
 
                     return (
-                        <div key={dayIndex} className={`flex border rounded-xl mb-3 overflow-hidden min-h-[120px] relative z-10 shadow-sm transition-all ${isToday ? 'bg-blue-50/50 border-primary ring-1 ring-primary shadow-md' : 'bg-white border-gray-100'}`}>
+                        <div key={dayIndex} className={`flex border rounded-xl mb-3 overflow-hidden min-h-[120px] relative z-10 shadow-sm transition-all ${isToday ? 'bg-primary/5 border-primary ring-1 ring-primary shadow-md' : 'bg-white border-gray-100'}`}>
                             {/* Date Column */}
-                            <div className={`w-20 flex-shrink-0 border-r flex flex-col items-center justify-center p-2 ${isToday ? 'bg-blue-100/30 border-blue-100' : 'bg-gray-50 border-gray-200'}`}>
-                                <span className={`text-xs font-bold uppercase ${holidayName ? 'text-red-500' : isToday ? 'text-primary' : 'text-gray-400'}`}>{dateInfo.weekday}</span>
-                                <span className={`text-xl font-bold ${holidayName ? 'text-red-600' : isToday ? 'text-primary' : 'text-gray-800'}`}>{dateInfo.day}/{dateInfo.month}</span>
+                            <div className={`w-20 flex-shrink-0 border-r flex flex-col items-center justify-center p-2 ${isToday ? 'bg-primary/10 border-primary/30' : 'bg-gray-50 border-gray-200'}`}>
+                                <span className={`text-xs font-bold uppercase ${holidayName ? 'text-error' : isToday ? 'text-primary' : 'text-gray-400'}`}>{dateInfo.weekday}</span>
+                                <span className={`text-xl font-bold ${holidayName ? 'text-error' : isToday ? 'text-primary' : 'text-gray-800'}`}>{dateInfo.day}/{dateInfo.month}</span>
                             </div>
 
                             {/* Events Column */}
                             <div className="flex-1 relative bg-transparent" style={{ height: `${rowHeight}px` }}>
                                 {holidayName ? (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-red-50/30 p-4">
+                                    <div className="absolute inset-0 flex items-center justify-center bg-error/10 p-4">
                                         <div className="flex flex-col items-center text-center">
                                             <span className="text-3xl mb-2">🇨🇿</span>
-                                            <h3 className="text-lg font-bold text-red-800">{holidayName}</h3>
-                                            <span className="text-sm text-red-600 font-medium uppercase tracking-wider mt-1">Státní svátek</span>
+                                            <h3 className="text-lg font-bold text-error">{holidayName}</h3>
+                                            <span className="text-sm text-error/80 font-medium uppercase tracking-wider mt-1">Státní svátek</span>
                                         </div>
                                     </div>
                                 ) : (
@@ -286,7 +286,7 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                                                                     {lesson.courseCode}
                                                                 </span>
                                                                 {!isVeryShort && (
-                                                                    <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+                                                                    <span className="badge badge-xs badge-ghost whitespace-nowrap">
                                                                         {lesson.roomStructured.name}
                                                                     </span>
                                                                 )}

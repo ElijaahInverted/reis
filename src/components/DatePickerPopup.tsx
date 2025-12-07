@@ -220,7 +220,7 @@ export function DatePickerPopup({
                                             {/* Small red dot */}
                                             {otherExam && (
                                                 <div
-                                                    className="absolute top-0 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500"
+                                                    className="absolute top-0 right-0.5 w-1.5 h-1.5 rounded-full bg-error"
                                                     title={otherExam.label}
                                                 />
                                             )}
@@ -236,13 +236,13 @@ export function DatePickerPopup({
                                                 className={`
                                                     w-7 h-7 flex items-center justify-center rounded-full text-xs transition-all
                                                     ${isSelected
-                                                        ? 'bg-blue-500 text-white font-bold'
+                                                        ? 'bg-primary text-primary-content font-bold'
                                                         : hasAvailableExam
-                                                            ? 'text-slate-900 font-bold hover:bg-blue-100 cursor-pointer'
+                                                            ? 'text-slate-900 font-bold hover:bg-primary/10 cursor-pointer'
                                                             : isFull
                                                                 ? 'text-slate-300 cursor-default'
                                                                 : isTodayDate
-                                                                    ? 'ring-1 ring-blue-400 text-blue-600 font-medium cursor-default'
+                                                                    ? 'ring-1 ring-primary text-primary font-medium cursor-default'
                                                                     : isCurrentMonth
                                                                         ? 'text-slate-400 cursor-default'
                                                                         : 'text-slate-200 cursor-default'
@@ -264,7 +264,7 @@ export function DatePickerPopup({
                             <span className="font-bold text-slate-800">15</span> Volný
                         </span>
                         <span className="flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Jiná
+                            <span className="w-1.5 h-1.5 rounded-full bg-error"></span> Jiná
                         </span>
                     </div>
                 </div>
@@ -284,7 +284,7 @@ export function DatePickerPopup({
                                         ${term.full
                                             ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
                                             : selectedTermId === term.id
-                                                ? 'bg-blue-500 text-white'
+                                                ? 'bg-primary text-primary-content'
                                                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                                         }
                                     `}
@@ -302,7 +302,7 @@ export function DatePickerPopup({
                     <div className="px-3 pb-3 bg-white">
                         <button
                             onClick={() => onConfirm(selectedTermId)}
-                            className="w-full py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded transition-colors"
+                            className="btn btn-primary btn-sm w-full"
                         >
                             Potvrdit
                         </button>

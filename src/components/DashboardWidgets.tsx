@@ -134,7 +134,7 @@ export function DashboardWidgets() {
                                 {displayClass.courseName}
                             </div>
                             <div className="flex items-center gap-2 mt-2 text-gray-600">
-                                <span className={`font-medium px-2 py-0.5 rounded text-sm ${isCurrent ? 'bg-emerald-100 text-emerald-700' : 'bg-primary/10 text-primary'}`}>
+                                <span className={`badge ${isCurrent ? 'badge-success' : 'badge-primary badge-outline'}`}>
                                     {isCurrent ? 'Právě probíhá' : (
                                         minutesUntil !== null ? `Začíná za ${formatCountdown(minutesUntil)}` : `${getDayName(displayClass.date)} • ${displayClass.startTime}`
                                     )}
@@ -172,9 +172,9 @@ export function DashboardWidgets() {
                         <>
                             <div className="mt-4 space-y-3">
                                 {upcomingExams.slice(0, 2).map((exam: any, i: number) => (
-                                    <div key={i} className="flex items-center gap-3 bg-red-50/50 p-2 rounded-lg border border-red-100">
+                                    <div key={i} className="flex items-center gap-3 bg-error/10 p-2 rounded-lg border border-error/20">
                                         <div className="bg-white p-1.5 rounded shadow-sm text-center min-w-[40px]">
-                                            <div className="text-[10px] font-bold text-red-500 uppercase">
+                                            <div className="text-[10px] font-bold text-error uppercase">
                                                 {new Date(exam.start).toLocaleDateString('cs-CZ', { weekday: 'short' })}
                                             </div>
                                             <div className="text-sm font-bold text-gray-900 leading-none">

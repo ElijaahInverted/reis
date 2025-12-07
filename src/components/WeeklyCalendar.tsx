@@ -52,7 +52,7 @@ export function WeeklyCalendar({ currentWeek, onNavigateWeek: _onNavigateWeek, o
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center h-full bg-white">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -98,7 +98,7 @@ export function WeeklyCalendar({ currentWeek, onNavigateWeek: _onNavigateWeek, o
             return (
               <div
                 key={index}
-                className={`flex-1 flex flex-col items-center justify-center ${isTodayDate ? 'bg-blue-50' : ''
+                className={`flex-1 flex flex-col items-center justify-center ${isTodayDate ? 'bg-primary/5' : ''
                   }`}
                 style={{ height: HEADER_HEIGHT }}
               >
@@ -107,7 +107,7 @@ export function WeeklyCalendar({ currentWeek, onNavigateWeek: _onNavigateWeek, o
                 </span>
                 <button
                   className={`text-xl flex items-center justify-center w-10 h-10 rounded-full transition-all ${isTodayDate
-                    ? 'bg-blue-600 text-white shadow-md font-medium'
+                    ? 'bg-primary text-primary-content shadow-md font-medium'
                     : isWeekend
                       ? 'text-gray-400'
                       : 'text-gray-800 hover:bg-gray-100'
