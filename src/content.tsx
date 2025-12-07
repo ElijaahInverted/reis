@@ -5,12 +5,12 @@ import App from './App';
 // ⚡ IMMEDIATELY hide the original page to prevent flash
 document.documentElement.style.visibility = 'hidden';
 
-// ✨ 1. Inject locally bundled DM Sans font
-function injectDmSansFont() {
+// ✨ 1. Inject locally bundled Inter font
+function injectInterFont() {
     const fontLink = document.createElement('link');
     fontLink.rel = 'stylesheet';
-    // Load from local extension bundle instead of Google CDN
-    fontLink.href = chrome.runtime.getURL('fonts/dm-sans.css');
+    // Load from local extension bundle
+    fontLink.href = chrome.runtime.getURL('fonts/inter.css');
 
     // Append the link to the document's head
     document.head.appendChild(fontLink);
@@ -23,6 +23,44 @@ function injectFavicon() {
     link.rel = 'icon';
     link.href = chrome.runtime.getURL('mendelu_logo_128.png');
     document.head.appendChild(link);
+}
+
+// 🔍 DEBUG: Check if custom Tailwind utilities are in the CSS bundle
+function debugCssUtilities(css: string) {
+    const customUtilities = [
+        // Custom shadows
+        { name: 'shadow-popover-heavy', pattern: /25px\s+50px/ },
+        { name: 'shadow-card', pattern: /shadow-card/ },
+        { name: 'shadow-popup', pattern: /shadow-popup/ },
+        // Custom colors
+        { name: 'bg-surface-primary', pattern: /surface-primary/ },
+        { name: 'bg-surface-secondary', pattern: /surface-secondary/ },
+        { name: 'text-content-primary', pattern: /content-primary/ },
+        // Font
+        { name: 'font-sans (Inter)', pattern: /Inter/ },
+    ];
+
+    console.group('[CSS Debug] Checking custom Tailwind utilities in Shadow DOM');
+    console.log(`CSS bundle size: ${(css.length / 1024).toFixed(1)}KB`);
+
+    const missing: string[] = [];
+    const found: string[] = [];
+
+    customUtilities.forEach(({ name, pattern }) => {
+        if (pattern.test(css)) {
+            found.push(name);
+        } else {
+            missing.push(name);
+        }
+    });
+
+    if (found.length > 0) {
+        console.log('✅ Found:', found.join(', '));
+    }
+    if (missing.length > 0) {
+        console.warn('❌ Missing (may cause styling issues):', missing.join(', '));
+    }
+    console.groupEnd();
 }
 
 async function firstLoad() {
@@ -47,10 +85,10 @@ async function firstLoad() {
     document.head.replaceChildren();
 
     // ✨ 2. Call the function to add the font link to the new, empty head.
-    injectDmSansFont();
+    injectInterFont();
     injectFavicon();
 
-    document.documentElement.style.fontFamily = '"DM Sans", sans-serif';
+    document.documentElement.style.fontFamily = '"Inter", system-ui, sans-serif';
 
     // Create container for shadow root
     const host = document.createElement('div');
@@ -64,6 +102,9 @@ async function firstLoad() {
     const style = document.createElement('style');
     style.textContent = css;
     shadow.appendChild(style);
+
+    // 🔍 DEBUG: Check if custom Tailwind utilities are in the CSS bundle
+    debugCssUtilities(css);
 
     // Create root element for React inside shadow DOM
     const app = document.createElement('div');

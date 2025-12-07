@@ -33,8 +33,22 @@ function App() {
     setCurrentDate(start);
   };
 
-  const getMonthYear = () => {
-    return currentDate.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
+  const getDateRangeLabel = () => {
+    // Show date range like "3.12. - 9.12." or "28.12. - 3.1." if spanning months
+    const weekEnd = new Date(currentDate);
+    weekEnd.setDate(currentDate.getDate() + 6);
+
+    const startDay = currentDate.getDate();
+    const startMonth = currentDate.getMonth() + 1;
+    const endDay = weekEnd.getDate();
+    const endMonth = weekEnd.getMonth() + 1;
+    const year = weekEnd.getFullYear();
+
+    if (startMonth === endMonth) {
+      return `${startDay}. - ${endDay}.${startMonth}. ${year}`;
+    } else {
+      return `${startDay}.${startMonth}. - ${endDay}.${startMonth === 12 && endMonth === 1 ? endMonth + '.' + (year) : endMonth + '.'} ${year}`;
+    }
   };
 
   const [isExamDrawerOpen, setIsExamDrawerOpen] = useState(false);
@@ -48,10 +62,10 @@ function App() {
 
   return (
     <PortalContext.Provider value={portalContainerRef.current}>
-      <div className="flex min-h-screen bg-white font-sans text-gray-900" ref={portalContainerRef}>
+      <div className="flex min-h-screen bg-slate-50 font-sans text-gray-900" ref={portalContainerRef}>
         <Sidebar onOpenExamDrawer={() => setIsExamDrawerOpen(true)} />
         <main className="flex-1 ml-0 md:ml-20 transition-all duration-300">
-          <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 px-8 py-4">
+          <div className="sticky top-0 z-30 bg-slate-50/90 backdrop-blur-md border-b border-gray-200 px-8 py-4">
             <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
               {/* Navigation Controls */}
               <div className="flex items-center gap-4">
@@ -65,11 +79,11 @@ function App() {
                 </div>
                 <button
                   onClick={handleToday}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-[#79be15] hover:bg-[#79be15]/90 rounded-md transition-all shadow-sm"
+                  className="btn btn-primary btn-sm"
                 >
                   Dnes
                 </button>
-                <span className="text-lg font-semibold text-gray-800 capitalize min-w-[150px]">{getMonthYear()}</span>
+                <span className="text-lg font-semibold text-gray-800 min-w-[150px]">{getDateRangeLabel()}</span>
               </div>
 
               <div className="flex-1 max-w-2xl">
@@ -78,10 +92,20 @@ function App() {
             </div>
           </div>
 
-          <div className="p-8 max-w-8xl mx-auto">
+          <div className="p-4 max-w-8xl mx-auto">
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[800px]">
-              <SchoolCalendar key={currentDate.toISOString()} initialDate={currentDate} />
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <SchoolCalendar
+                key={currentDate.toISOString()}
+                initialDate={currentDate}
+                onEmptyWeek={(direction) => {
+                  if (direction === 'next') {
+                    handleNextWeek();
+                  } else {
+                    handlePrevWeek();
+                  }
+                }}
+              />
             </div>
           </div>
         </main>

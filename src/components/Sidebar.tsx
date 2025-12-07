@@ -3,7 +3,8 @@ import {
   ChevronRight,
   LayoutGrid,
   Mail,
-  Settings
+  Settings,
+  ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MENDELU_LOGO_PATH } from '../constants/icons';
@@ -87,7 +88,7 @@ export const Sidebar = ({ onOpenExamDrawer }: SidebarProps) => {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: 10, scale: 0.95 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute left-14 top-0 w-64 bg-white rounded-xl shadow-xl border border-gray-100 p-2 z-50"
+                    className="absolute left-14 top-0 w-64 bg-white rounded-xl shadow-popover-heavy border border-slate-200 p-2 z-50"
                     style={{ top: '-1rem' }}
                   >
                     <div className="px-3 py-2 border-b border-gray-50 mb-1">
@@ -109,7 +110,10 @@ export const Sidebar = ({ onOpenExamDrawer }: SidebarProps) => {
                           <span className="text-gray-400 group-hover/item:text-primary transition-colors">
                             {child.icon || <ChevronRight className="w-4 h-4" />}
                           </span>
-                          {child.label}
+                          <span className="flex-1">{child.label}</span>
+                          {!child.isFeature && (
+                            <ExternalLink className="w-3 h-3 text-gray-300 group-hover/item:text-gray-400" />
+                          )}
                         </a>
                       ))}
                     </div>

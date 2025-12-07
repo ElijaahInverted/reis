@@ -25,7 +25,13 @@ export interface MenuItem {
     popupLabel?: string; // For popup header
     icon: React.ReactNode;
     expandable?: boolean;
-    children?: { label: string; id: string; icon?: React.ReactNode; href?: string }[];
+    children?: {
+        label: string;
+        id: string;
+        icon?: React.ReactNode;
+        href?: string;
+        isFeature?: boolean; // true = built-in feature, false/undefined = redirect to old IS
+    }[];
     danger?: boolean;
     onClick?: () => void;
     href?: string;
@@ -66,13 +72,14 @@ export const getMainMenuItems = (studiumId: string = '', obdobiId: string = ''):
                 id: 'zapisy-zkousky',
                 label: 'Zápisy na zkoušky',
                 icon: <CalendarCheck className="w-4 h-4" />,
-                href: `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
+                href: `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`,
+                isFeature: true // Built-in feature, not a redirect
             },
             {
                 id: 'e-index',
                 label: 'E-index',
                 icon: <Book className="w-4 h-4" />,
-                href: `https://is.mendelu.cz/auth/student/index.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
+                href: `https://is.mendelu.cz/auth/student/pruchod_studiem.pl?studium=${studiumId};obdobi=${obdobiId};lang=cz`
             },
             {
                 id: 'cvicne-testy',

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { EventPopover } from './EventPopover';
 import { timeToMinutes } from '../utils/calendarUtils';
 import { useSchedule, useExams } from '../hooks/data';
@@ -7,15 +7,14 @@ import { getCzechHoliday } from '../utils/holidays';
 import { parseDate } from '../utils/dateHelpers';
 
 const DAYS = ['PO', 'ÚT', 'ST', 'ČT', 'PÁ'];
-const START_HOUR = 7;
-const END_HOUR = 20;
-const ROW_HEIGHT = 120; // px
+const ROW_HEIGHT = 125; // px - comfortable height
 
 interface SchoolCalendarProps {
     initialDate?: Date;
+    onEmptyWeek?: (direction: 'next' | 'prev') => void; // Callback when week is empty
 }
 
-export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps) {
+export function SchoolCalendar({ initialDate = new Date(), onEmptyWeek }: SchoolCalendarProps) {
     // Get stored semester data from hooks (stale-while-revalidate)
     const { schedule: storedSchedule } = useSchedule();
     const { exams: storedExams } = useExams();
@@ -155,17 +154,50 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
         return { lessons: lessonsWithRows, totalRows: rows.length };
     };
 
+    // Check if this week has events - used for auto-skip
+    const hasEventsThisWeek = useMemo(() => {
+        return scheduleData.length > 0;
+    }, [scheduleData]);
+
+    // Dynamic time range - only show hours with events (+1 hour padding)
+    const { startHour, endHour } = useMemo(() => {
+        if (scheduleData.length === 0) return { startHour: 8, endHour: 17 };
+        let min = 23, max = 0;
+        scheduleData.forEach(lesson => {
+            const start = parseInt(lesson.startTime.split(':')[0]);
+            const end = parseInt(lesson.endTime.split(':')[0]) + 1; // +1 to include end hour
+            min = Math.min(min, start);
+            max = Math.max(max, end);
+        });
+        return {
+            startHour: Math.max(7, min - 1), // 1 hour padding before
+            endHour: Math.min(21, max + 1)   // 1 hour padding after
+        };
+    }, [scheduleData]);
+
+    // Auto-skip empty weeks (e.g., Christmas break)
+    useEffect(() => {
+        // Only trigger if we have schedule data loaded but no events this week
+        if (storedSchedule && storedSchedule.length > 0 && !hasEventsThisWeek && onEmptyWeek) {
+            // Small delay to prevent rapid-fire skipping
+            const timer = setTimeout(() => {
+                onEmptyWeek('next');
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [hasEventsThisWeek, onEmptyWeek, storedSchedule]);
+
     return (
         <div className="w-full h-full flex flex-col font-dm relative">
             {/* Header - Times */}
             <div className="flex border-b border-gray-200 bg-gray-50/50">
                 <div className="w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50"></div> {/* Corner */}
                 <div className="flex-1 flex relative">
-                    {Array.from({ length: END_HOUR - START_HOUR + 1 }).map((_, i) => {
-                        const hour = START_HOUR + i;
+                    {Array.from({ length: endHour - startHour + 1 }).map((_, i) => {
+                        const hour = startHour + i;
                         return (
-                            <div key={hour} className="flex-1 py-3 text-center border-r border-gray-100 last:border-r-0">
-                                <span className="text-sm font-medium text-gray-500">{hour}:00</span>
+                            <div key={hour} className="flex-1 py-1.5 text-center border-r border-gray-100 last:border-r-0">
+                                <span className="text-xs font-medium text-gray-500">{hour}:00</span>
                             </div>
                         );
                     })}
@@ -207,7 +239,7 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                     const holidayName = getCzechHoliday(checkDate);
 
                     return (
-                        <div key={dayIndex} className={`flex border rounded-xl mb-3 overflow-hidden min-h-[120px] relative z-10 shadow-sm transition-all ${isToday ? 'bg-primary/5 border-primary ring-1 ring-primary shadow-md' : 'bg-white border-gray-100'}`}>
+                        <div key={dayIndex} className={`flex border-b last:border-b-0 overflow-hidden min-h-[70px] relative z-10 transition-all ${isToday ? 'bg-primary/5 ring-1 ring-inset ring-primary' : 'bg-white'}`}>
                             {/* Date Column */}
                             <div className={`w-20 flex-shrink-0 border-r flex flex-col items-center justify-center p-2 ${isToday ? 'bg-primary/10 border-primary/30' : 'bg-gray-50 border-gray-200'}`}>
                                 <span className={`text-xs font-bold uppercase ${holidayName ? 'text-error' : isToday ? 'text-primary' : 'text-gray-400'}`}>{dateInfo.weekday}</span>
@@ -228,15 +260,15 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                                     <>
                                         {/* Row Grid */}
                                         <div className="absolute inset-0 flex pointer-events-none z-0">
-                                            {Array.from({ length: END_HOUR - START_HOUR + 1 }).map((_, i) => (
+                                            {Array.from({ length: endHour - startHour + 1 }).map((_, i) => (
                                                 <div key={i} className="flex-1 border-r border-gray-100 h-full last:border-r-0"></div>
                                             ))}
                                         </div>
                                         {lessons.map((lesson) => {
                                             const startMinutes = timeToMinutes(lesson.startTime);
                                             const endMinutes = timeToMinutes(lesson.endTime);
-                                            const dayStartMinutes = START_HOUR * 60;
-                                            const dayEndMinutes = END_HOUR * 60;
+                                            const dayStartMinutes = startHour * 60;
+                                            const dayEndMinutes = endHour * 60;
                                             const totalDayMinutes = dayEndMinutes - dayStartMinutes;
 
                                             // Calculate position percentages
@@ -247,9 +279,8 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                                             const topPercent = (lesson.row / totalRows) * 100;
                                             const heightPercent = (1 / totalRows) * 100;
 
-                                            // Determine if the event is "short" (e.g., less than 60 minutes) to adjust layout
+                                            // Determine if the event is very short to adjust layout
                                             const durationMinutes = endMinutes - startMinutes;
-                                            const isShort = durationMinutes <= 60;
                                             const isVeryShort = durationMinutes <= 45;
 
                                             return (
@@ -279,37 +310,33 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                                                         lesson.isSeminar == "true" ? "bg-[#00548f]" : "bg-[#79be15]"
                                                         }`}></div>
 
-                                                    <div className={`flex flex-col h-full justify-between p-2 ${!lesson.isExam ? "pl-3" : ""}`}>
+                                                    <div className="flex flex-col h-full justify-between p-2 pl-3">
                                                         <div>
-                                                            <div className="flex items-start justify-between gap-1">
-                                                                <span className={`text-sm font-bold whitespace-nowrap ${lesson.isExam ? "text-[#991b1b]" : "text-gray-900"}`}>
+                                                            <div className="flex items-center justify-between gap-1 mb-1">
+                                                                <span className={`text-base font-extrabold whitespace-nowrap ${lesson.isExam ? "text-[#991b1b]" : "text-gray-900"}`}>
                                                                     {lesson.courseCode}
                                                                 </span>
-                                                                {!isVeryShort && (
-                                                                    <span className="badge badge-xs badge-ghost whitespace-nowrap">
-                                                                        {lesson.roomStructured.name}
-                                                                    </span>
-                                                                )}
+                                                                <span className="badge badge-sm badge-ghost whitespace-nowrap text-xs font-semibold">
+                                                                    {lesson.roomStructured.name}
+                                                                </span>
                                                             </div>
 
-                                                            {!isShort && (
-                                                                <div className={`text-xs font-normal mt-1 leading-tight line-clamp-2 ${lesson.isExam ? "text-[#991b1b]/90" : lesson.isSeminar == "true" ? "text-[#1e3a8a]" : "text-[#365314]"}`}>
+                                                            {!isVeryShort && (
+                                                                <div className={`text-sm font-medium leading-tight line-clamp-2 ${lesson.isExam ? "text-[#991b1b]" : lesson.isSeminar == "true" ? "text-[#1e3a8a]" : "text-[#365314]"}`}>
                                                                     {lesson.courseName}
                                                                 </div>
                                                             )}
 
                                                             {lesson.isExam && (
-                                                                <div className="mt-1 flex items-center gap-1 text-[10px] font-bold text-[#991b1b] uppercase tracking-wide">
+                                                                <div className="mt-1 flex items-center gap-1 text-[11px] font-bold text-[#991b1b] uppercase tracking-wide">
                                                                     <span>⚠️ {lesson.courseName.toLowerCase().includes('test') ? 'TEST' : 'ZKOUŠKA'}</span>
                                                                 </div>
                                                             )}
                                                         </div>
 
-                                                        {!isVeryShort && (
-                                                            <div className={`text-[10px] font-medium mt-auto ${lesson.isExam ? "text-[#991b1b]/80" : "text-gray-400"}`}>
-                                                                {lesson.startTime} - {lesson.endTime}
-                                                            </div>
-                                                        )}
+                                                        <div className={`text-xs font-medium ${lesson.isExam ? "text-[#991b1b]/80" : "text-gray-500"}`}>
+                                                            {lesson.startTime} - {lesson.endTime}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );
@@ -321,33 +348,7 @@ export function SchoolCalendar({ initialDate = new Date() }: SchoolCalendarProps
                     );
                 })}
 
-                {/* Empty State - No events this week */}
-                {(() => {
-                    // Check if this week has any events
-                    const hasEventsThisWeek = weekDates.some(dateInfo => {
-                        const dayLessons = scheduleData.filter(l => {
-                            const year = l.date.substring(0, 4);
-                            const month = l.date.substring(4, 6);
-                            const day = l.date.substring(6, 8);
-                            return parseInt(year) === parseInt(dateInfo.year) &&
-                                parseInt(day) === parseInt(dateInfo.day) &&
-                                parseInt(month) === parseInt(dateInfo.month);
-                        });
-                        return dayLessons.length > 0;
-                    });
 
-                    if (!hasEventsThisWeek) {
-                        return (
-                            <div className="flex items-center justify-center h-64">
-                                <div className="text-center p-8 rounded-xl bg-gray-50 border border-gray-200">
-                                    <div className="text-5xl mb-3">📅</div>
-                                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Žádné události tento týden</h3>
-                                </div>
-                            </div>
-                        );
-                    }
-                    return null;
-                })()}
             </div>
 
             <EventPopover

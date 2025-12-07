@@ -163,7 +163,7 @@ export function DatePickerPopup({
             {/* The popup */}
             <div
                 ref={popupRef}
-                className="absolute bg-slate-50 rounded-lg shadow-xl border border-slate-300 w-[260px]"
+                className="absolute bg-white rounded-xl shadow-popover-heavy border border-slate-200 w-[260px]"
                 style={{ top: position.top, left: position.left }}
                 onClick={e => e.stopPropagation()}
             >
@@ -236,13 +236,13 @@ export function DatePickerPopup({
                                                 className={`
                                                     w-7 h-7 flex items-center justify-center rounded-full text-xs transition-all
                                                     ${isSelected
-                                                        ? 'bg-primary text-primary-content font-bold'
+                                                        ? 'bg-primary text-white font-bold'
                                                         : hasAvailableExam
-                                                            ? 'text-slate-900 font-bold hover:bg-primary/10 cursor-pointer'
+                                                            ? 'bg-primary/20 text-primary font-bold hover:bg-primary/30 cursor-pointer ring-1 ring-primary/50'
                                                             : isFull
                                                                 ? 'text-slate-300 cursor-default'
                                                                 : isTodayDate
-                                                                    ? 'ring-1 ring-primary text-primary font-medium cursor-default'
+                                                                    ? 'ring-1 ring-slate-400 text-slate-700 font-medium cursor-default'
                                                                     : isCurrentMonth
                                                                         ? 'text-slate-400 cursor-default'
                                                                         : 'text-slate-200 cursor-default'
@@ -261,7 +261,8 @@ export function DatePickerPopup({
                     {/* Legend */}
                     <div className="flex items-center gap-3 mt-2 pt-2 border-t border-slate-200 text-[10px] text-slate-500">
                         <span className="flex items-center gap-1">
-                            <span className="font-bold text-slate-800">15</span> Volný
+                            <span className="w-4 h-4 rounded-full bg-primary/20 ring-1 ring-primary/50 flex items-center justify-center text-primary font-bold text-[8px]">15</span>
+                            Volný
                         </span>
                         <span className="flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-error"></span> Jiná

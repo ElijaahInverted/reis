@@ -21,7 +21,7 @@ export interface CardProps {
 
 const variantClasses = {
     widget: 'bg-white rounded-2xl shadow-sm border border-gray-100',
-    popup: 'bg-white rounded-xl shadow-xl border border-gray-200',
+    popup: 'bg-white rounded-xl shadow-popover-heavy border border-slate-200',
     container: 'bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden',
 } as const;
 
