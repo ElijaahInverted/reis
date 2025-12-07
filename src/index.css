@@ -41,3 +41,37 @@
   /* Border size */
   --border: 1px;
 }
+
+/* Tailwind v4: Custom tokens via @theme */
+@theme {
+  /* Event Type Colors */
+  --color-exam-border: #dc2626;
+  --color-exam-bg: #FEF2F2;
+  --color-exam-text: #991b1b;
+
+  --color-lecture-border: #00548f;
+  --color-lecture-bg: #F0F7FF;
+  --color-lecture-text: #1e3a8a;
+
+  --color-seminar-border: #79be15;
+  --color-seminar-bg: #F3FAEA;
+  --color-seminar-text: #365314;
+
+  /* Surface Colors */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f9fafb;
+  --color-surface-tertiary: #f3f4f6;
+
+  /* Content/Text Colors */
+  --color-content-primary: #111827;
+  --color-content-secondary: #4b5563;
+  --color-content-muted: #9ca3af;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-popup: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-drawer: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* Typography */
+  --font-dm: "DM Sans", sans-serif;
+}

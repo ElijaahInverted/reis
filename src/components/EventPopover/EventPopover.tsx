@@ -55,7 +55,7 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
             const anchorRect = anchorRef.current.getBoundingClientRect();
 
             const popupWidth = 450;
-            const popupHeight = 450; // Match max-height
+            const popupHeight = 400;
             const padding = 16;
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
@@ -63,39 +63,24 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
             let left = anchorRect.right + 8;
             let top = anchorRect.top;
 
-            // === Horizontal positioning ===
-            // Try right of anchor first
             if (left + popupWidth > viewportWidth - padding) {
-                // Try left of anchor
                 const leftCandidate = anchorRect.left - popupWidth - 8;
                 if (leftCandidate > padding) {
                     left = leftCandidate;
                 } else {
-                    // Center horizontally if no room on either side
-                    left = Math.max(padding, (viewportWidth - popupWidth) / 2);
+                    left = Math.max(padding, anchorRect.left);
+                    if (left + popupWidth > viewportWidth - padding) {
+                        left = viewportWidth - popupWidth - padding;
+                    }
+                    top = anchorRect.bottom + 4;
                 }
             }
 
-            // === Vertical positioning ===
-            const spaceBelow = viewportHeight - anchorRect.top;
-            const spaceAbove = anchorRect.bottom;
-
-            if (spaceBelow >= popupHeight + padding) {
-                // Enough room below - align top of popup with top of anchor
-                top = anchorRect.top;
-            } else if (spaceAbove >= popupHeight + padding) {
-                // Position ABOVE the anchor when no room below
-                top = anchorRect.bottom - popupHeight;
-            } else {
-                // Not enough room anywhere - position at top of viewport with padding
-                top = padding;
+            if (top + popupHeight > viewportHeight - padding) {
+                const diff = (top + popupHeight) - (viewportHeight - padding);
+                top = Math.max(padding, top - diff);
             }
 
-            // Final clamping - ensure popup never goes off screen
-            top = Math.max(padding, Math.min(top, viewportHeight - popupHeight - padding));
-            left = Math.max(padding, Math.min(left, viewportWidth - popupWidth - padding));
-
-            log.debug(`Position: top=${top}, left=${left}, spaceBelow=${spaceBelow}, spaceAbove=${spaceAbove}`);
             setPosition({ top, left });
         }
     }, [isOpen, anchorRef, lesson]);
@@ -233,19 +218,14 @@ export function EventPopover({ lesson, isOpen, onClose, anchorRef }: EventPopove
         <div className="fixed inset-0 z-[100]" onClick={handleBackdropClick}>
             <div
                 ref={popupRef}
-                className="absolute bg-white rounded-xl border border-slate-200 w-[450px] max-h-[450px] flex flex-col"
-                style={{
-                    top: position.top,
-                    left: position.left,
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 12px 24px -8px rgba(0, 0, 0, 0.15)'
-                }}
+                className="absolute bg-white rounded-lg shadow-2xl border border-slate-200 ring-1 ring-slate-900/10 w-[450px] max-h-[450px] flex flex-col"
+                style={{ top: position.top, left: position.left }}
                 onClick={e => e.stopPropagation()}
             >
                 <PopoverHeader
                     courseCode={lesson.courseCode}
                     room={lesson.room}
                     teacherName={lesson.teachers[0]?.shortName}
-                    teacherId={lesson.teachers[0]?.id}
                     onClose={onClose}
                 />
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import { Sidebar } from './components/Sidebar'
 import { SearchBar } from './components/SearchBar'
-import { SchoolCalendar } from './components/SchoolCalendar'
+import { NewCalendarView } from './components/NewCalendarView'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getSmartWeekRange } from './utils/calendarUtils'
@@ -95,7 +95,7 @@ function App() {
           <div className="p-4 max-w-8xl mx-auto">
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <SchoolCalendar
+              <NewCalendarView
                 key={currentDate.toISOString()}
                 initialDate={currentDate}
                 onEmptyWeek={(direction) => {
