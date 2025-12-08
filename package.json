@@ -5,13 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vitest run && tsc -b && vite build && vite build -c vite.config.bg.ts",
+    "build": "npm run build:app && npm run build:content && npm run build:bg",
+    "build:app": "vite build",
+    "build:content": "BUILD_TARGET=content vite build",
+    "build:bg": "vite build -c vite.config.bg.ts",
     "build:watch": "vite build --watch",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -b"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

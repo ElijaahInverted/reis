@@ -1,20 +1,64 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { Sidebar } from './components/Sidebar'
 import { SearchBar } from './components/SearchBar'
 import { NewCalendarView } from './components/NewCalendarView'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { getSmartWeekRange } from './utils/calendarUtils'
 import { ExamDrawer } from './components/ExamDrawer'
-import { PortalContext } from './components/ui/portal-context'
-import { syncService, outlookSyncService } from './services/sync'
+import { signalReady, requestData, isInIframe } from './api/proxyClient'
+import type { SyncedData } from './types/messages'
 
 function App() {
   const [currentDate, setCurrentDate] = useState(() => {
     const { start } = getSmartWeekRange();
     return start;
   });
+
+  const [isExamDrawerOpen, setIsExamDrawerOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [syncData, setSyncData] = useState<SyncedData | null>(null);
+
+  // Set up postMessage communication with Content Script
+  useEffect(() => {
+    // Only set up iframe communication if we're in an iframe
+    if (isInIframe()) {
+      console.log('[App] Running in iframe, setting up postMessage listener');
+
+      const handleMessage = (event: MessageEvent) => {
+        // Accept messages from parent (content script)
+        if (event.source !== window.parent) return;
+
+        const data = event.data;
+        if (!data || typeof data !== 'object') return;
+
+        console.log('[App] Received message:', data.type);
+
+        if (data.type === 'REIS_DATA' || data.type === 'REIS_SYNC_UPDATE') {
+          setSyncData(data.data || data);
+          setIsLoading(false);
+          console.log('[App] Data received, loading complete');
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+
+      // Signal that iframe is ready
+      signalReady();
+
+      // Request initial data
+      requestData('all');
+
+      return () => {
+        window.removeEventListener('message', handleMessage);
+      };
+    } else {
+      // Not in iframe (dev mode), skip loading state
+      console.log('[App] Running standalone (dev mode)');
+      setIsLoading(false);
+    }
+  }, []);
 
   const handlePrevWeek = () => {
     const newDate = new Date(currentDate);
@@ -51,69 +95,79 @@ function App() {
     }
   };
 
-  const [isExamDrawerOpen, setIsExamDrawerOpen] = useState(false);
-  const portalContainerRef = useRef<HTMLDivElement>(null);
+  // Show loading spinner while waiting for data from content script
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-lg text-gray-600">Načítání dat...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Start background data sync on app mount
-  useEffect(() => {
-    syncService.start();
-    outlookSyncService.init();
-    return () => syncService.stop();
-  }, []);
+  // Log sync data for debugging
+  if (syncData) {
+    console.log('[App] Current sync data:', {
+      hasSchedule: !!syncData.schedule,
+      hasExams: !!syncData.exams,
+      hasSubjects: !!syncData.subjects,
+      lastSync: syncData.lastSync
+    });
+  }
 
   return (
-    <PortalContext.Provider value={portalContainerRef.current}>
-      <div className="flex min-h-screen bg-slate-50 font-sans text-gray-900" ref={portalContainerRef}>
-        <Sidebar onOpenExamDrawer={() => setIsExamDrawerOpen(true)} />
-        <main className="flex-1 ml-0 md:ml-20 transition-all duration-300">
-          <div className="sticky top-0 z-30 bg-slate-50/90 backdrop-blur-md border-b border-gray-200 px-8 py-4">
-            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-              {/* Navigation Controls */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                  <button onClick={handlePrevWeek} className="p-1 hover:bg-white rounded-md shadow-sm transition-all text-gray-600 hover:text-primary">
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button onClick={handleNextWeek} className="p-1 hover:bg-white rounded-md shadow-sm transition-all text-gray-600 hover:text-primary">
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
-                <button
-                  onClick={handleToday}
-                  className="btn btn-primary btn-sm"
-                >
-                  Dnes
+    <div className="flex min-h-screen bg-slate-50 font-sans text-gray-900">
+      <Sidebar onOpenExamDrawer={() => setIsExamDrawerOpen(true)} />
+      <main className="flex-1 ml-0 md:ml-20 transition-all duration-300">
+        <div className="sticky top-0 z-30 bg-slate-50/90 backdrop-blur-md border-b border-gray-200 px-8 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            {/* Navigation Controls */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                <button onClick={handlePrevWeek} className="p-1 hover:bg-white rounded-md shadow-sm transition-all text-gray-600 hover:text-primary">
+                  <ChevronLeft size={20} />
                 </button>
-                <span className="text-lg font-semibold text-gray-800 min-w-[150px]">{getDateRangeLabel()}</span>
+                <button onClick={handleNextWeek} className="p-1 hover:bg-white rounded-md shadow-sm transition-all text-gray-600 hover:text-primary">
+                  <ChevronRight size={20} />
+                </button>
               </div>
+              <button
+                onClick={handleToday}
+                className="btn btn-primary btn-sm"
+              >
+                Dnes
+              </button>
+              <span className="text-lg font-semibold text-gray-800 min-w-[150px]">{getDateRangeLabel()}</span>
+            </div>
 
-              <div className="flex-1 max-w-2xl">
-                <SearchBar onOpenExamDrawer={() => setIsExamDrawerOpen(true)} />
-              </div>
+            <div className="flex-1 max-w-2xl">
+              <SearchBar onOpenExamDrawer={() => setIsExamDrawerOpen(true)} />
             </div>
           </div>
+        </div>
 
-          <div className="p-4 max-w-8xl mx-auto">
+        <div className="p-4 max-w-8xl mx-auto">
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <NewCalendarView
-                key={currentDate.toISOString()}
-                initialDate={currentDate}
-                onEmptyWeek={(direction) => {
-                  if (direction === 'next') {
-                    handleNextWeek();
-                  } else {
-                    handlePrevWeek();
-                  }
-                }}
-              />
-            </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <NewCalendarView
+              key={currentDate.toISOString()}
+              initialDate={currentDate}
+              onEmptyWeek={(direction) => {
+                if (direction === 'next') {
+                  handleNextWeek();
+                } else {
+                  handlePrevWeek();
+                }
+              }}
+            />
           </div>
-        </main>
+        </div>
+      </main>
 
-        <ExamDrawer isOpen={isExamDrawerOpen} onClose={() => setIsExamDrawerOpen(false)} />
-      </div>
-    </PortalContext.Provider>
+      <ExamDrawer isOpen={isExamDrawerOpen} onClose={() => setIsExamDrawerOpen(false)} />
+    </div>
   )
 }
 

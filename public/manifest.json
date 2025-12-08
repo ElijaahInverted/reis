@@ -45,6 +45,8 @@
     "web_accessible_resources": [
         {
             "resources": [
+                "index.html",
+                "assets/*",
                 "mendelu_logo_16.png",
                 "mendelu_logo_48.png",
                 "mendelu_logo_128.png",
