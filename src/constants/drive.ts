@@ -7,6 +7,9 @@ export const DRIVE_CONSTANTS = {
   CLIENT_ID:
     "997458327786-9aj0ftqndiv41uth7al38vjtkgld4ubr.apps.googleusercontent.com",
 
+  /** Token endpoint for OAuth2 authorization code exchange */
+  TOKEN_ENDPOINT: "https://oauth2.googleapis.com/token",
+
   /** Root folder name where all synced files are stored */
   DEFAULT_FOLDER_NAME: "Soubory Mendelu (Synchronizováno)",
 
@@ -27,4 +30,7 @@ export const DRIVE_CONSTANTS = {
 
   /** Auto-sync interval in minutes */
   SYNC_INTERVAL_MINUTES: 5,
+
+  /** Token refresh buffer (refresh 5 minutes before expiry) */
+  TOKEN_REFRESH_BUFFER_MS: 5 * 60 * 1000,
 };

@@ -10,7 +10,7 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('OutlookSync');
 
-const SYNC_URL = '/auth/ca/konfigurace_prenosu_udalosti.pl';
+const SYNC_URL = 'https://is.mendelu.cz/auth/ca/konfigurace_prenosu_udalosti.pl';
 const SOURCES = [1, 4] as const; // 1 = Výuka, 4 = Zkoušky
 
 /**

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:app && npm run build:content && npm run build:bg",
+    "build": "npm run test:run && npm run build:app && npm run build:content && npm run build:bg",
     "build:app": "vite build",
     "build:content": "BUILD_TARGET=content vite build",
     "build:bg": "vite build -c vite.config.bg.ts",

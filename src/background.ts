@@ -6,6 +6,10 @@
  * - Token storage and management via chrome.storage.local
  * - Auto-sync alarm (every 5 minutes)
  * - Offscreen document coordination for background sync
+ * 
+ * NOTE: Using implicit flow because the OAuth client is configured as "Web application".
+ * For PKCE authorization code flow with refresh tokens, reconfigure the OAuth client
+ * as "Desktop application" in Google Cloud Console (no client_secret required).
  */
 
 import { DRIVE_CONSTANTS } from "./constants/drive";
@@ -45,6 +49,10 @@ console.log("[Background] Redirect URL:", REDIRECT_URL);
 /**
  * Handle OAuth using launchWebAuthFlow (implicit flow).
  * This works with "Web application" OAuth clients.
+ * 
+ * NOTE: Implicit flow does not provide refresh tokens.
+ * Users will need to re-authenticate when tokens expire (after ~1 hour).
+ * To enable refresh tokens, reconfigure OAuth client as "Desktop application".
  */
 async function handleOAuthFlow(interactive: boolean): Promise<AuthResponse> {
   console.log(
@@ -52,7 +60,7 @@ async function handleOAuthFlow(interactive: boolean): Promise<AuthResponse> {
   );
 
   try {
-    // Build the Google OAuth authorization URL
+    // Build the Google OAuth authorization URL (implicit flow)
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     authUrl.searchParams.set("client_id", DRIVE_CONSTANTS.CLIENT_ID);
     authUrl.searchParams.set("redirect_uri", REDIRECT_URL);
@@ -93,7 +101,7 @@ async function handleOAuthFlow(interactive: boolean): Promise<AuthResponse> {
       driveToken: { accessToken: token, expiresAt } as DriveToken,
     });
 
-    console.log("[Background] Token obtained and stored");
+    console.log("[Background] Token obtained and stored (expires in:", expiresIn, "seconds)");
 
     // Fetch user email for display
     let email: string | undefined;
@@ -157,6 +165,9 @@ async function handleOAuthFlow(interactive: boolean): Promise<AuthResponse> {
 /**
  * Get a valid access token from storage.
  * Throws if not authenticated or token is expired.
+ * 
+ * NOTE: With implicit flow, there's no refresh token.
+ * When token expires, user must re-authenticate.
  */
 async function getValidAccessToken(): Promise<string> {
   const result = await chrome.storage.local.get(["driveToken"]);
@@ -167,9 +178,14 @@ async function getValidAccessToken(): Promise<string> {
   }
 
   // Check if token is expired (with 5 min buffer)
-  const bufferMs = 5 * 60 * 1000; // 5 minutes
-  if (tokenData.expiresAt < Date.now() + bufferMs) {
-    throw new Error("Token expired");
+  if (tokenData.expiresAt < Date.now() + DRIVE_CONSTANTS.TOKEN_REFRESH_BUFFER_MS) {
+    // Token expired - clear auth state and throw
+    console.log("[Background] Token expired, clearing auth state");
+    await chrome.storage.local.set({
+      driveAuth: { isAuthorized: false },
+      driveSettings: { isAuthorized: false, rootFolderId: null, rootFolderName: null },
+    });
+    throw new Error("Token expired - please re-authenticate");
   }
 
   return tokenData.accessToken;

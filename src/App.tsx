@@ -10,9 +10,13 @@ import { ExamDrawer } from './components/ExamDrawer'
 import { signalReady, requestData, isInIframe } from './api/proxyClient'
 import type { SyncedData } from './types/messages'
 import { StorageService, STORAGE_KEYS } from './services/storage'
-import { syncService } from './services/sync'
+import { syncService, outlookSyncService } from './services/sync'
 
 function App() {
+  // Initialize Outlook sync service on startup
+  useEffect(() => {
+    outlookSyncService.init();
+  }, []);
   const [currentDate, setCurrentDate] = useState(() => {
     const { start } = getSmartWeekRange();
     return start;
