@@ -14,7 +14,7 @@ import {
     isToday
 } from 'date-fns';
 import { cs } from 'date-fns/locale';
-import type { ExamTerm, ExamSubject } from './ExamDrawer';
+import type { ExamTerm, ExamSubject } from '../types/exams';
 
 interface DatePickerPopupProps {
     isOpen: boolean;

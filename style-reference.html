@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REIS Extension - Visual Style Reference</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ==========================================
+           REIS EXTENSION - BRAND BOARD / STYLE REFERENCE
+           Generated from codebase design tokens
+           ========================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            color: #111827;
+            padding: 64px;
+            line-height: 1.5;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 48px;
+            margin-bottom: 24px;
+            color: #111827;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #4b5563;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 48px;
+        }
+
+        /* ==========================================
+           COLOR PALETTE SECTION
+           ========================================== */
+
+        .color-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .color-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .color-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 12px;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            position: relative;
+        }
+
+        .color-swatch .hex {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #111827;
+        }
+
+        .color-swatch .label {
+            font-size: 11px;
+            margin-top: 8px;
+            text-align: center;
+            color: #111827;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .color-swatch.dark-text .hex,
+        .color-swatch.dark-text .label {
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffffff;
+        }
+
+        /* Brand Colors */
+        .primary { background: #79be15; }
+        .primary-hover { background: #6aab12; }
+        .secondary { background: #8DC843; }
+        .accent-blue { background: #00548f; }
+        .accent-blue-light { background: #3b82f6; }
+
+        /* Semantic Colors */
+        .error { background: #ef4444; }
+        .warning { background: #f59e0b; }
+        .success { background: #22c55e; }
+        .info { background: #3b82f6; }
+
+        /* Surface Colors */
+        .base-100 { background: #ffffff; border: 1px solid #e5e7eb; }
+        .base-200 { background: #f9fafb; }
+        .base-300 { background: #f3f4f6; }
+        .neutral { background: #444444; }
+
+        /* Event Colors - Backgrounds */
+        .exam-bg { background: #FEF2F2; }
+        .lecture-bg { background: #F0F7FF; }
+        .seminar-bg { background: #F3FAEA; }
+
+        /* Event Colors - Borders */
+        .exam-border { background: #dc2626; }
+        .lecture-border { background: #00548f; }
+        .seminar-border { background: #79be15; }
+
+        /* Event Colors - Text */
+        .exam-text { background: #991b1b; }
+        .lecture-text { background: #1e3a8a; }
+        .seminar-text { background: #365314; }
+
+        /* ==========================================
+           TYPOGRAPHY SECTION
+           ========================================== */
+
+        .typography-sample {
+            background: #f9fafb;
+            padding: 32px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .type-h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .type-h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .type-h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+
+        .type-body {
+            font-size: 16px;
+            font-weight: 400;
+            color: #4b5563;
+            max-width: 600px;
+            margin-bottom: 8px;
+        }
+
+        .type-small {
+            font-size: 14px;
+            font-weight: 400;
+            color: #9ca3af;
+        }
+
+        .type-meta {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 16px;
+        }
+
+        /* ==========================================
+           SCHEDULE CARD COMPONENTS
+           ========================================== */
+
+        .cards-container {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+
+        .schedule-card {
+            width: 200px;
+            height: 140px;
+            border-radius: 4px;
+            border-left: 4px solid;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            cursor: pointer;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .schedule-card:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        /* Seminar Card - Green (Lectures in app) */
+        .schedule-card.seminar {
+            background: rgba(243, 250, 234, 0.9); /* #F3FAEA at 90% */
+            border-left-color: #79be15;
+        }
+
+        /* Lecture Card - Blue (Seminars in app) */
+        .schedule-card.lecture {
+            background: rgba(240, 247, 255, 0.9); /* #F0F7FF at 90% */
+            border-left-color: #00548f;
+        }
+
+        /* Exam Card - Red */
+        .schedule-card.exam {
+            background: rgba(254, 242, 242, 0.9); /* #FEF2F2 at 90% */
+            border-left-color: #dc2626;
+        }
+
+        .schedule-card .course-code {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+            flex-shrink: 0;
+        }
+
+        .schedule-card .course-name {
+            font-size: 14px;
+            color: #111827;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .schedule-card.exam .course-name {
+            color: #991b1b;
+            font-weight: 700;
+        }
+
+        .schedule-card .bottom-row {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .schedule-card .location {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .schedule-card .location span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .schedule-card .time {
+            color: #6b7280;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Map Pin Icon (inline SVG) */
+        .map-pin {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+        }
+
+        /* ==========================================
+           BUTTON COMPONENTS
+           ========================================== */
+
+        .buttons-container {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            gap: 8px;
+        }
+
+        /* Primary Button */
+        .btn-primary {
+            background: #79be15;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #6aab12;
+        }
+
+        /* Secondary Button */
+        .btn-secondary {
+            background: #8DC843;
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover {
+            background: #7db83a;
+        }
+
+        /* Ghost Button */
+        .btn-ghost {
+            background: transparent;
+            color: #4b5563;
+            border: none;
+        }
+
+        .btn-ghost:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        /* Outline Button */
+        .btn-outline {
+            background: transparent;
+            color: #79be15;
+            border: 1px solid #79be15;
+        }
+
+        .btn-outline:hover {
+            background: #79be15;
+            color: #ffffff;
+        }
+
+        /* Error/Destructive Button */
+        .btn-error {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .btn-error:hover {
+            background: #dc2626;
+        }
+
+        /* Button Sizes */
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-lg {
+            padding: 12px 24px;
+            font-size: 16px;
+        }
+
+        /* ==========================================
+           SHADOWS & RADIUS REFERENCE
+           ========================================== */
+
+        .shadow-samples {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .shadow-box {
+            width: 160px;
+            height: 100px;
+            background: #ffffff;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        .shadow-card {
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .shadow-popup {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        .shadow-drawer {
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .shadow-label {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        /* ==========================================
+           RADIUS REFERENCE
+           ========================================== */
+
+        .radius-samples {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .radius-box {
+            width: 80px;
+            height: 80px;
+            background: #79be15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .radius-4 { border-radius: 4px; }
+        .radius-6 { border-radius: 6px; }
+        .radius-8 { border-radius: 8px; }
+        .radius-12 { border-radius: 12px; }
+        .radius-full { border-radius: 9999px; }
+
+        /* ==========================================
+           LAYOUT HELPERS
+           ========================================== */
+
+        .section-description {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .token-info {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 48px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>REIS Extension</h1>
+    <p class="subtitle">Visual Style Reference — Brand Board for Generative AI Tools</p>
+
+    <!-- ==========================================
+         COLOR PALETTE
+         ========================================== -->
+    
+    <h2>Color Palette</h2>
+
+    <h3>Brand Colors</h3>
+    <div class="color-row">
+        <div class="color-swatch primary">
+            <span class="hex">#79be15</span>
+            <span class="label">Primary</span>
+        </div>
+        <div class="color-swatch primary-hover">
+            <span class="hex">#6aab12</span>
+            <span class="label">Primary Hover</span>
+        </div>
+        <div class="color-swatch secondary">
+            <span class="hex">#8DC843</span>
+            <span class="label">Secondary</span>
+        </div>
+        <div class="color-swatch accent-blue">
+            <span class="hex">#00548f</span>
+            <span class="label">Accent Blue</span>
+        </div>
+    </div>
+
+    <h3>Semantic Colors</h3>
+    <div class="color-row">
+        <div class="color-swatch error">
+            <span class="hex">#ef4444</span>
+            <span class="label">Error</span>
+        </div>
+        <div class="color-swatch warning">
+            <span class="hex">#f59e0b</span>
+            <span class="label">Warning</span>
+        </div>
+        <div class="color-swatch success">
+            <span class="hex">#22c55e</span>
+            <span class="label">Success</span>
+        </div>
+        <div class="color-swatch info">
+            <span class="hex">#3b82f6</span>
+            <span class="label">Info</span>
+        </div>
+    </div>
+
+    <h3>Surface / Background Colors</h3>
+    <div class="color-row">
+        <div class="color-swatch base-100 dark-text">
+            <span class="hex">#ffffff</span>
+            <span class="label">Base 100</span>
+        </div>
+        <div class="color-swatch base-200 dark-text">
+            <span class="hex">#f9fafb</span>
+            <span class="label">Base 200</span>
+        </div>
+        <div class="color-swatch base-300 dark-text">
+            <span class="hex">#f3f4f6</span>
+            <span class="label">Base 300</span>
+        </div>
+        <div class="color-swatch neutral">
+            <span class="hex">#444444</span>
+            <span class="label">Neutral</span>
+        </div>
+    </div>
+
+    <h3>Event Type Colors — Backgrounds</h3>
+    <p class="section-description">Light tinted backgrounds for schedule blocks</p>
+    <div class="color-row">
+        <div class="color-swatch seminar-bg dark-text">
+            <span class="hex">#F3FAEA</span>
+            <span class="label">Seminar BG</span>
+        </div>
+        <div class="color-swatch lecture-bg dark-text">
+            <span class="hex">#F0F7FF</span>
+            <span class="label">Lecture BG</span>
+        </div>
+        <div class="color-swatch exam-bg dark-text">
+            <span class="hex">#FEF2F2</span>
+            <span class="label">Exam BG</span>
+        </div>
+    </div>
+
+    <h3>Event Type Colors — Borders (Left Accent)</h3>
+    <p class="section-description">Bold accent colors for the 4px left border</p>
+    <div class="color-row">
+        <div class="color-swatch seminar-border">
+            <span class="hex">#79be15</span>
+            <span class="label">Seminar</span>
+        </div>
+        <div class="color-swatch lecture-border">
+            <span class="hex">#00548f</span>
+            <span class="label">Lecture</span>
+        </div>
+        <div class="color-swatch exam-border">
+            <span class="hex">#dc2626</span>
+            <span class="label">Exam</span>
+        </div>
+    </div>
+
+    <h3>Event Type Colors — Text</h3>
+    <p class="section-description">Dark text variants for event labels</p>
+    <div class="color-row">
+        <div class="color-swatch seminar-text">
+            <span class="hex">#365314</span>
+            <span class="label">Seminar Text</span>
+        </div>
+        <div class="color-swatch lecture-text">
+            <span class="hex">#1e3a8a</span>
+            <span class="label">Lecture Text</span>
+        </div>
+        <div class="color-swatch exam-text">
+            <span class="hex">#991b1b</span>
+            <span class="label">Exam Text</span>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ==========================================
+         TYPOGRAPHY
+         ========================================== -->
+    
+    <h2>Typography</h2>
+    <p class="section-description">Font Family: <strong>Inter</strong> (Google Fonts)</p>
+
+    <div class="typography-sample">
+        <div class="type-h1">Heading 1 — The quick brown fox</div>
+        <div class="type-h2">Heading 2 — Jumps over the lazy dog</div>
+        <div class="type-h3">Heading 3 — Pack my box with five dozen liquor jugs</div>
+        <div class="type-body">
+            Body text at 16px. This is the standard paragraph text used throughout the application. 
+            It provides comfortable readability while maintaining a professional, clean appearance.
+        </div>
+        <div class="type-small">Small text at 14px — Used for secondary information and captions.</div>
+        <div class="type-meta">
+            Font weights: 400 (Regular), 500 (Medium), 600 (Semibold), 700 (Bold)<br>
+            Line height: 1.5 (24px for 16px base)
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ==========================================
+         SCHEDULE CARD COMPONENTS
+         ========================================== -->
+    
+    <h2>UI Components — Schedule Cards</h2>
+    <p class="section-description">
+        Event cards with <strong>4px left border</strong> accent, <strong>4px border-radius</strong>, and subtle background tinting at 90% opacity.
+    </p>
+
+    <div class="cards-container">
+        <!-- Seminar Card (Green - used for Lectures in app logic) -->
+        <div class="schedule-card seminar">
+            <div class="course-code">EBC-MAT1</div>
+            <div class="course-name">Matematika 1</div>
+            <div class="bottom-row">
+                <div class="location">
+                    <svg class="map-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>Q01/01014</span>
+                </div>
+                <div class="time">9:00 - 10:50</div>
+            </div>
+        </div>
+
+        <!-- Lecture Card (Blue - used for Seminars in app logic) -->
+        <div class="schedule-card lecture">
+            <div class="course-code">EBC-ALG</div>
+            <div class="course-name">Algebra a diskretní matematika</div>
+            <div class="bottom-row">
+                <div class="location">
+                    <svg class="map-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>Q02/02034</span>
+                </div>
+                <div class="time">11:00 - 12:50</div>
+            </div>
+        </div>
+
+        <!-- Exam Card (Red) -->
+        <div class="schedule-card exam">
+            <div class="course-code">EBC-PRG</div>
+            <div class="course-name">Průběžný test 2</div>
+            <div class="bottom-row">
+                <div class="location">
+                    <svg class="map-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>Q03/03003</span>
+                </div>
+                <div class="time">14:00 - 15:50</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ==========================================
+         BUTTONS
+         ========================================== -->
+    
+    <h2>UI Components — Buttons</h2>
+    <p class="section-description">
+        Buttons use <strong>8px border-radius</strong> (rounded-lg) with 250ms transitions.
+    </p>
+
+    <h3>Primary Variants</h3>
+    <div class="buttons-container">
+        <button class="btn btn-primary">Primary Button</button>
+        <button class="btn btn-secondary">Secondary Button</button>
+        <button class="btn btn-outline">Outline Button</button>
+        <button class="btn btn-ghost">Ghost Button</button>
+        <button class="btn btn-error">Destructive</button>
+    </div>
+
+    <h3>Button Sizes</h3>
+    <div class="buttons-container">
+        <button class="btn btn-primary btn-sm">Small</button>
+        <button class="btn btn-primary">Default</button>
+        <button class="btn btn-primary btn-lg">Large</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ==========================================
+         SHADOWS
+         ========================================== -->
+    
+    <h2>Shadows</h2>
+    <p class="section-description">Three levels of elevation for cards, popups, and drawers.</p>
+
+    <div class="shadow-samples">
+        <div class="shadow-box shadow-card">
+            <span class="shadow-label">shadow-card</span>
+            <span class="token-info">Subtle elevation</span>
+        </div>
+        <div class="shadow-box shadow-popup">
+            <span class="shadow-label">shadow-popup</span>
+            <span class="token-info">Medium elevation</span>
+        </div>
+        <div class="shadow-box shadow-drawer">
+            <span class="shadow-label">shadow-drawer</span>
+            <span class="token-info">High elevation</span>
+        </div>
+    </div>
+
+    <p class="section-description" style="font-family: monospace; font-size: 11px; background: #f3f4f6; padding: 16px; border-radius: 8px;">
+        <strong>shadow-card:</strong> 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)<br>
+        <strong>shadow-popup:</strong> 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)<br>
+        <strong>shadow-drawer:</strong> 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)
+    </p>
+
+    <div class="divider"></div>
+
+    <!-- ==========================================
+         BORDER RADIUS
+         ========================================== -->
+    
+    <h2>Border Radius</h2>
+    <p class="section-description">Consistent rounded corners throughout the UI.</p>
+
+    <div class="radius-samples">
+        <div class="radius-box radius-4">4px<br><span style="font-size:10px">default</span></div>
+        <div class="radius-box radius-6">6px<br><span style="font-size:10px">field</span></div>
+        <div class="radius-box radius-8">8px<br><span style="font-size:10px">button</span></div>
+        <div class="radius-box radius-12">12px<br><span style="font-size:10px">card/box</span></div>
+        <div class="radius-box radius-full" style="width:80px;height:80px;">full<br><span style="font-size:10px">9999px</span></div>
+    </div>
+
+    <p class="section-description" style="font-family: monospace; font-size: 11px; background: #f3f4f6; padding: 16px; border-radius: 8px;">
+        <strong>--radius-selector (buttons):</strong> 8px<br>
+        <strong>--radius-field (inputs):</strong> 6px<br>
+        <strong>--radius-box (cards):</strong> 12px<br>
+        <strong>Schedule cards:</strong> 4px (rounded)
+    </p>
+
+</body>
+</html>

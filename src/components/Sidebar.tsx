@@ -6,7 +6,8 @@ import {
   Settings,
   ExternalLink,
   Calendar,
-  Moon
+  Moon,
+  CalendarCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MENDELU_LOGO_PATH } from '../constants/icons';
@@ -16,13 +17,16 @@ import { useOutlookSync } from '../hooks/data';
 import { useTheme } from '../hooks/useTheme';
 
 
+export type AppView = 'calendar' | 'exams';
+
 interface SidebarProps {
-  onOpenExamDrawer?: () => void;
+  currentView: AppView;
+  onViewChange: (view: AppView) => void;
   /** Ref that will be populated with a function to open settings popup */
   onOpenSettingsRef?: React.MutableRefObject<(() => void) | null>;
 }
 
-export const Sidebar = ({ onOpenExamDrawer, onOpenSettingsRef }: SidebarProps) => {
+export const Sidebar = ({ currentView: _currentView, onViewChange, onOpenSettingsRef }: SidebarProps) => {
   const [activeItem, setActiveItem] = useState<string>('dashboard');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [profilHovered, setProfilHovered] = useState(false);
@@ -75,6 +79,11 @@ export const Sidebar = ({ onOpenExamDrawer, onOpenSettingsRef }: SidebarProps) =
 
   const handleItemClick = (item: MenuItem) => {
     setActiveItem(item.id);
+    // Handle view switching for home (dashboard)
+    if (item.id === 'dashboard') {
+      onViewChange('calendar');
+      return;
+    }
     if (item.href) {
       window.location.href = item.href;
     }
@@ -84,14 +93,65 @@ export const Sidebar = ({ onOpenExamDrawer, onOpenSettingsRef }: SidebarProps) =
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-22 h-screen bg-base-200 border-r border-base-300 fixed left-0 top-0 z-40 items-center py-6">
-        {/* Logo */}
-        <div className="mb-8 w-10 h-10 rounded-xl bg-base-100 shadow-sm flex items-center justify-center overflow-hidden">
+        {/* Logo - click to return to calendar */}
+        <div 
+          onClick={() => onViewChange('calendar')}
+          className="mb-8 w-10 h-10 rounded-xl bg-base-100 shadow-sm flex items-center justify-center overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+          title="Zpět na rozvrh"
+        >
           <img src={MENDELU_LOGO_PATH} alt="Mendelu Logo" className="w-8 h-8 object-contain" />
         </div>
 
         {/* Navigation Items */}
         <nav className="flex-1 flex flex-col w-full px-2 gap-2">
-          {mainMenuItems.map((item) => (
+          {/* Domů - Dashboard */}
+          <div className="relative group">
+            <button
+              onClick={() => {
+                setActiveItem('dashboard');
+                onViewChange('calendar');
+              }}
+              className={`w-14 h-auto min-h-[56px] py-2 rounded-xl flex flex-col items-center justify-center transition-all duration-200 mx-auto
+                ${activeItem === 'dashboard'
+                  ? 'bg-primary/10 text-primary shadow-sm'
+                  : 'text-base-content/50 hover:bg-base-100 hover:text-base-content hover:shadow-sm'
+                }`}
+            >
+              {mainMenuItems.find(i => i.id === 'dashboard')?.icon}
+              <span className="text-[10px] mt-1 font-medium w-full text-center px-1 leading-tight">
+                Domů
+              </span>
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-base-300 mx-2 my-1" />
+
+          {/* Zkousky - Own Section */}
+          <div className="relative group">
+            <button
+              onClick={() => {
+                setActiveItem('zkousky');
+                onViewChange('exams');
+              }}
+              className={`w-14 h-auto min-h-[56px] py-2 rounded-xl flex flex-col items-center justify-center transition-all duration-200 mx-auto
+                ${activeItem === 'zkousky'
+                  ? 'bg-primary/10 text-primary shadow-sm'
+                  : 'text-base-content/50 hover:bg-base-100 hover:text-base-content hover:shadow-sm'
+                }`}
+            >
+              <CalendarCheck className="w-5 h-5" />
+              <span className="text-[10px] mt-1 font-medium w-full text-center px-1 leading-tight">
+                Zkoušky
+              </span>
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-base-300 mx-2 my-1" />
+
+          {/* Other Menu Items (excluding dashboard) */}
+          {mainMenuItems.filter(item => item.id !== 'dashboard').map((item) => (
             <div
               key={item.id}
               className="relative group"
@@ -135,7 +195,7 @@ export const Sidebar = ({ onOpenExamDrawer, onOpenSettingsRef }: SidebarProps) =
                           onClick={(e) => {
                             if (child.id === 'zapisy-zkousky') {
                               e.preventDefault();
-                              onOpenExamDrawer?.();
+                              onViewChange('exams');
                             }
                           }}
                           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-base-content/70 hover:bg-base-200 hover:text-primary transition-colors group/item cursor-pointer"

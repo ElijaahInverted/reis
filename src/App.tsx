@@ -8,7 +8,8 @@ import { Toaster } from './components/ui/sonner'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getSmartWeekRange } from './utils/calendarUtils'
-import { ExamDrawer } from './components/ExamDrawer'
+import { ExamPanel } from './components/ExamPanel'
+import { type AppView } from './components/Sidebar'
 import { signalReady, requestData, isInIframe } from './api/proxyClient'
 import type { SyncedData } from './types/messages'
 import { StorageService, STORAGE_KEYS } from './services/storage'
@@ -99,7 +100,19 @@ function App() {
     return start;
   });
 
-  const [isExamDrawerOpen, setIsExamDrawerOpen] = useState(false);
+  // View state for main content area (persisted to localStorage)
+  const VIEW_STORAGE_KEY = 'reis_current_view';
+  const [currentView, setCurrentView] = useState<AppView>(() => {
+    const stored = localStorage.getItem(VIEW_STORAGE_KEY);
+    console.debug('[App] Initializing view from storage:', stored);
+    return (stored === 'exams' ? 'exams' : 'calendar') as AppView;
+  });
+  
+  // Persist view changes
+  useEffect(() => {
+    console.debug('[App] Persisting view to storage:', currentView);
+    localStorage.setItem(VIEW_STORAGE_KEY, currentView);
+  }, [currentView]);
   
   // Navigation count for Outlook sync hint trigger
   const [weekNavCount, setWeekNavCount] = useState(0);
@@ -236,49 +249,56 @@ function App() {
     <div className="flex h-screen overflow-hidden bg-base-200 font-sans text-base-content">
       <Toaster position="top-center" />
       <Sidebar 
-        onOpenExamDrawer={() => setIsExamDrawerOpen(true)} 
+        currentView={currentView}
+        onViewChange={setCurrentView}
         onOpenSettingsRef={openSettingsRef}
       />
       <main className="flex-1 flex flex-col ml-0 md:ml-20 transition-all duration-300 overflow-hidden">
         <div className="flex-shrink-0 z-30 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-4 py-2">
           <div className="flex items-center justify-between gap-4 w-full">
-            {/* Navigation Controls - flush left */}
-            <div className="flex items-center gap-4 flex-shrink-0">
-              <div className="flex items-center bg-base-300 rounded-lg p-1">
-                <button onClick={handlePrevWeek} className="p-1 hover:bg-base-100 rounded-md shadow-sm transition-all text-base-content/70 hover:text-primary">
-                  <ChevronLeft size={20} />
+            {/* Navigation Controls - only show on calendar view */}
+            {currentView === 'calendar' && (
+              <div className="flex items-center gap-4 flex-shrink-0">
+                <div className="flex items-center bg-base-300 rounded-lg p-1">
+                  <button onClick={handlePrevWeek} className="p-1 hover:bg-base-100 rounded-md shadow-sm transition-all text-base-content/70 hover:text-primary">
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button onClick={handleNextWeek} className="p-1 hover:bg-base-100 rounded-md shadow-sm transition-all text-base-content/70 hover:text-primary">
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+                <button
+                  onClick={handleToday}
+                  className="btn btn-primary btn-sm"
+                >
+                  Dnes
                 </button>
-                <button onClick={handleNextWeek} className="p-1 hover:bg-base-100 rounded-md shadow-sm transition-all text-base-content/70 hover:text-primary">
-                  <ChevronRight size={20} />
-                </button>
+                <span className="text-lg font-semibold text-base-content whitespace-nowrap">{getDateRangeLabel()}</span>
               </div>
-              <button
-                onClick={handleToday}
-                className="btn btn-primary btn-sm"
-              >
-                Dnes
-              </button>
-              <span className="text-lg font-semibold text-base-content whitespace-nowrap">{getDateRangeLabel()}</span>
-            </div>
+            )}
 
             {/* SearchBar - always far right */}
-            <div className="flex-shrink-0 w-[480px] mr-2">
-              <SearchBar onOpenExamDrawer={() => setIsExamDrawerOpen(true)} />
+            <div className="flex-shrink-0 w-[480px] mr-2 ml-auto">
+              <SearchBar onOpenExamDrawer={() => setCurrentView('exams')} />
             </div>
           </div>
         </div>
 
         <div className="flex-1 pt-3 px-4 pb-1 overflow-hidden flex flex-col">
           <div className="flex-1 bg-base-100 rounded-lg shadow-sm border border-base-300 overflow-hidden">
-            <WeeklyCalendar
-              key={currentDate.toISOString()}
-              initialDate={currentDate}
-            />
+            {currentView === 'calendar' ? (
+              <WeeklyCalendar
+                key={currentDate.toISOString()}
+                initialDate={currentDate}
+              />
+            ) : (
+              <ExamPanel onClose={() => setCurrentView('calendar')} />
+            )}
           </div>
         </div>
       </main>
 
-      <ExamDrawer isOpen={isExamDrawerOpen} onClose={() => setIsExamDrawerOpen(false)} />
+      {/* ExamDrawer removed - replaced by ExamPanel view */}
       
       {/* Outlook Sync Tutorial Hint */}
       <OutlookSyncHint

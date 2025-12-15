@@ -6,32 +6,9 @@ import { fetchExamData, registerExam, unregisterExam } from '../api/exams';
 import { useExams } from '../hooks/data';
 import { DatePickerPopup } from './DatePickerPopup';
 
-export interface ExamTerm {
-    id: string;
-    date: string;
-    time: string;
-    capacity?: string;
-    full?: boolean;
-    room?: string;
-    teacher?: string;
-    registrationStart?: string;
-}
-
-export interface ExamSection {
-    id: string;
-    name: string;
-    type: string;
-    status: string;
-    registeredTerm?: { id?: string; date: string; time: string; room?: string; teacher?: string };
-    terms: ExamTerm[];
-}
-
-export interface ExamSubject {
-    id: string;
-    name: string;
-    code: string;
-    sections: ExamSection[];
-}
+// Re-export types from centralized types file
+export type { ExamTerm, ExamSection, ExamSubject } from '../types/exams';
+import type { ExamTerm, ExamSection, ExamSubject } from '../types/exams';
 
 interface ExamDrawerProps {
     isOpen: boolean;

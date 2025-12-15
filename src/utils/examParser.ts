@@ -1,4 +1,4 @@
-import type { ExamSubject } from '../components/ExamDrawer';
+import type { ExamSubject } from '../types/exams';
 
 export function parseExamData(html: string): ExamSubject[] {
     console.debug('[parseExamData] Starting parse, input length:', html.length);

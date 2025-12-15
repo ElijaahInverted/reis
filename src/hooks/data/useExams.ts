@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { StorageService, STORAGE_KEYS } from '../../services/storage';
 import { syncService } from '../../services/sync';
-import type { ExamSubject } from '../../components/ExamDrawer';
+import type { ExamSubject } from '../../types/exams';
 
 export interface UseExamsResult {
     exams: ExamSubject[];

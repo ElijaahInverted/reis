@@ -1,5 +1,5 @@
 import { Search, X, ChevronUp, ChevronDown, Clock, FileText, GraduationCap, Briefcase } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { searchPeople } from '../api/search';
 import { pagesData, injectUserParams } from '../data/pagesData';
 import type { PageItem, PageCategory } from '../data/pagesData';
@@ -34,6 +34,11 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Detect Mac vs Windows/Linux for keyboard shortcut display
+  const isMac = useMemo(() => {
+    return typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+  }, []);
 
   const [recentSearches, setRecentSearches] = useState<SearchResult[]>([]);
 
@@ -242,10 +247,10 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
           aria-haspopup="listbox"
         >
           {/* THE "SHAPE SHIFTER" */}
-          <div className={`relative flex items-center w-full max-w-3xl bg-base-100 rounded-xl border border-base-300 shadow-sm transition-all duration-200 ${isOpen ? 'ring-2 ring-primary/20 border-primary' : 'hover:border-base-content/30'}`}>
+          <div className={`relative flex items-center w-full max-w-3xl bg-base-100 rounded-xl border shadow-sm transition-all duration-200 ${isOpen ? 'border-primary shadow-[0_0_0_3px_rgba(121,190,21,0.15)]' : 'border-base-300 hover:border-base-content/30'}`}>
 
-            {/* Input Area */}
-            <div className="flex-1 flex items-center h-12 px-4 border border-base-300 border-solid rounded-md">
+            {/* Input Area - no border, parent owns visual boundary */}
+            <div className="flex-1 flex items-center h-12 px-4">
               <Search className={`w-5 h-5 mr-3 transition-colors ${isOpen ? 'text-base-content' : 'text-base-content/50'}`} />
 
               <input
@@ -280,7 +285,11 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
               ) : (
                 !isOpen && (
                   <kbd className="hidden sm:inline-flex items-center gap-0.5 text-xs text-base-content/50 bg-base-200 border border-base-300 rounded px-1.5 py-0.5 font-sans">
-                    <span className="text-[10px]">⌃</span>K
+                    {isMac ? (
+                      <><span className="text-[10px]">⌘</span>K</>
+                    ) : (
+                      <><span className="text-[10px]">⌃</span>K</>
+                    )}
                   </kbd>
                 )
               )}

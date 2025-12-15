@@ -5,7 +5,7 @@
  * Integrates REIS logic: useSchedule, useExams, auto-skip, Czech holidays, EventPopover.
  */
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { CalendarEventCard } from './CalendarEventCard';
 import { SubjectFileDrawer } from './SubjectFileDrawer';
 import { useSchedule, useExams } from '../hooks/data';
@@ -91,7 +91,7 @@ interface WeeklyCalendarProps {
 export function WeeklyCalendar({ initialDate = new Date() }: WeeklyCalendarProps) {
     // Get stored semester data from hooks
     const { schedule: storedSchedule, isLoaded: isScheduleLoaded } = useSchedule();
-    const { exams: storedExams, isLoaded: isExamsLoaded } = useExams();
+    const { exams: storedExams, isLoaded: _isExamsLoaded } = useExams();
 
     const [selected, setSelected] = useState<BlockLesson | null>(null);
 
