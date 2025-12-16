@@ -162,31 +162,34 @@ export function parseExamData(html: string): ExamSubject[] {
             console.debug(`[parseExamData DEBUG] Row ${rowIndex} All Cols HTML:`, Array.from(cols).map(c => c.innerHTML));
 
             // Extract deregistration deadline from column with <br> separators
-            // Format: "Přihlašování od<br>Přihlašování do<br>Odhlašování do"
-            // Values: "--<br>17.12.2025 23:59<br>17.12.2025 23:59"
+            // Header format: "Přihlašování od<br>Přihlašování do<br>Odhlašování do"
+            // Value format: "--<br>DD.MM.YYYY HH:MM<br>DD.MM.YYYY HH:MM" (3 parts separated by <br>)
+            // We specifically want parts[2] which is "Odhlašování do"
             let deregistrationDeadline: string | undefined;
             for (let i = 0; i < cols.length; i++) {
-                if (cols[i].innerHTML.match(/<br\s*\/?>/i)) { // Check for any br tag
-                    const cellHtml = cols[i].innerHTML;
+                const cellHtml = cols[i].innerHTML;
+                // Look for columns with at least 2 <br> tags (indicating 3 parts)
+                const brMatches = cellHtml.match(/<br\s*\/?>/gi);
+                if (brMatches && brMatches.length >= 2) {
                     const parts = cellHtml.split(/<br\s*\/?>/i);
+                    console.debug(`[parseExamData DEBUG] Row ${rowIndex} Col ${i} has ${parts.length} parts:`, parts);
 
-                    console.debug(`[parseExamData DEBUG] Row ${rowIndex} DateCol Candidates:`, parts.length, parts);
-
+                    // parts[2] should be "Odhlašování do" value
                     if (parts.length >= 3) {
                         const deadlineRaw = parts[2].replace(/<[^>]*>/g, '').trim();
-                        console.debug(`[parseExamData DEBUG] Row ${rowIndex} Raw Deadline: '${deadlineRaw}'`);
+                        console.debug(`[parseExamData DEBUG] Row ${rowIndex} Odhlašování do (parts[2]): '${deadlineRaw}'`);
 
                         if (deadlineRaw !== '--' && deadlineRaw.match(/\d{2}\.\d{2}\.\d{4}/)) {
                             deregistrationDeadline = deadlineRaw;
-                            console.debug(`[parseExamData DEBUG] Row ${rowIndex} Valid Deadline Found: '${deregistrationDeadline}'`);
-                        } else {
-                            console.debug(`[parseExamData DEBUG] Row ${rowIndex} Deadline rejected (format/empty)`);
+                            console.debug(`[parseExamData DEBUG] Row ${rowIndex} ✓ Valid deregistration deadline: '${deregistrationDeadline}'`);
+                            break; // Found it, stop searching
                         }
-                    } else {
-                        console.debug(`[parseExamData DEBUG] Row ${rowIndex} < 3 parts found`);
                     }
-                    break;
                 }
+            }
+
+            if (!deregistrationDeadline) {
+                console.debug(`[parseExamData DEBUG] Row ${rowIndex} No deregistration deadline found`);
             }
 
             const subject = getOrCreateSubject(code, name);
