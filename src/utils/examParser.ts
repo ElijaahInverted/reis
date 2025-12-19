@@ -298,30 +298,28 @@ export function parseExamData(html: string): ExamSubject[] {
             const finalId = termId || Math.random().toString(36).substr(2, 9);
 
             // Find registration info column (contains <br>)
-            // Format: parts[0] = Přihlašování od, parts[1] = Přihlašování do
-            // DEFENSIVE: Wrap in try/catch to detect IS MENDELU HTML structure changes
+            // Header format: "Přihlašování od<br>Přihlašování do<br>Odhlašování do"
+            // Value format: "DD.MM.YYYY HH:MM<br>DD.MM.YYYY HH:MM<br>DD.MM.YYYY HH:MM" (3 parts separated by <br>)
+            // parts[0] = Přihlašování od, parts[1] = Přihlašování do, parts[2] = Odhlašování do
             let registrationStart: string | null = null;
             let registrationEnd: string | null = null;
-            let foundBrColumn = false;
 
             try {
                 for (let i = 0; i < cols.length; i++) {
-                    if (cols[i].innerHTML.includes('<br>')) {
-                        foundBrColumn = true;
-                        // Check for registration dates (contains <br>)
-                        // Only access innerHTML once
-                        const cellHtml = cols[i].innerHTML;
+                    const cellHtml = cols[i].innerHTML;
+                    // Look for columns with at least 2 <br> tags (indicating 3 parts) - same as registered terms
+                    const brMatches = cellHtml.match(/<br\s*\/?>/gi);
+                    if (brMatches && brMatches.length >= 2) {
                         const parts = cellHtml.split(/<br\s*\/?>/i);
+                        console.debug(`[parseExamData] Row ${rowIndex} Col ${i} has ${parts.length} registration parts:`, parts);
 
                         // parts[0] = Přihlašování od (registration start)
                         if (parts.length >= 1) {
                             const startRaw = parts[0].replace(/<[^>]*>/g, '').trim();
+                            console.debug(`[parseExamData] Row ${rowIndex} Přihlašování od (parts[0]): '${startRaw}'`);
                             if (startRaw !== '--' && startRaw.match(/\d{2}\.\d{2}\.\d{4}/)) {
                                 registrationStart = startRaw;
-                                const timePart = startRaw.split(' ')[1];
-                                if (timePart && !timePart.match(/^\d{2}:\d{2}$/)) {
-                                    console.warn('[parseExamData] Registration time format unexpected:', timePart, 'in row', rowIndex);
-                                }
+                                console.debug(`[parseExamData] Row ${rowIndex} ✓ registrationStart: '${registrationStart}'`);
                             }
                         }
 
@@ -332,13 +330,8 @@ export function parseExamData(html: string): ExamSubject[] {
                                 registrationEnd = endRaw;
                             }
                         }
-                        break;
+                        break; // Found the column, stop searching
                     }
-                }
-
-                // DEFENSIVE: Warn if expected structure not found
-                if (!foundBrColumn && cols.length > 0) {
-                    console.warn('[parseExamData] No <br> column found for registration dates. IS MENDELU HTML structure may have changed. Row:', rowIndex);
                 }
             } catch (parseError) {
                 console.error('[parseExamData] Failed to parse registration date for row', rowIndex, ':', parseError);
@@ -369,6 +362,45 @@ export function parseExamData(html: string): ExamSubject[] {
                 }
             }
 
+            // Parse "Požadován zápočet" (credit required) field
+            // The label "<b>Požadován zápočet:</b>" is in one cell, value in the next
+            // hasCredit = true means user HAS the credit and can register
+            // hasCredit = false means user is MISSING the credit and cannot register
+            let hasCredit: boolean | undefined;
+
+            // First try: search row HTML for the pattern
+            const rowHtml = row.innerHTML.toLowerCase();
+            if (rowHtml.includes('požadován') && rowHtml.includes('zápočet')) {
+                // Check if value is "ano" (yes, has credit) or "ne" (no, missing credit)
+                // Look for pattern like: zápočet:</b></td><td...>ano or ne
+                const creditMatch = rowHtml.match(/zápočet[^<]*<\/b><\/td>\s*<td[^>]*>([^<]*)/i);
+                if (creditMatch) {
+                    const value = creditMatch[1].toLowerCase().trim();
+                    console.debug(`[parseExamData] Row ${rowIndex} Credit value found: '${value}'`);
+                    if (value.includes('ano')) {
+                        hasCredit = true;
+                    } else if (value.includes('ne')) {
+                        hasCredit = false;
+                    }
+                } else {
+                    // Fallback: search cells
+                    for (let i = 0; i < cols.length; i++) {
+                        const cellText = cols[i].textContent?.toLowerCase() || '';
+                        if (cellText.includes('požadován') && cellText.includes('zápočet')) {
+                            const nextText = cols[i + 1]?.textContent?.trim().toLowerCase() || '';
+                            console.debug(`[parseExamData] Row ${rowIndex} Credit cell found, next cell: '${nextText}'`);
+                            if (nextText.includes('ano')) {
+                                hasCredit = true;
+                            } else if (nextText.includes('ne')) {
+                                hasCredit = false;
+                            }
+                            break;
+                        }
+                    }
+                }
+                console.debug(`[parseExamData] Row ${rowIndex}: hasCredit = ${hasCredit}`);
+            }
+
             const subject = getOrCreateSubject(code, name);
             const section = getOrCreateSection(subject, sectionName);
 
@@ -387,10 +419,11 @@ export function parseExamData(html: string): ExamSubject[] {
                 registrationStart: registrationStart || undefined,
                 registrationEnd: registrationEnd || undefined,
                 attemptType,
-                canRegisterNow
+                canRegisterNow,
+                hasCredit
             });
 
-            console.debug('[parseExamData] table_2 parsed available term:', code, sectionName, datePart, timePart, 'full:', isFull, 'canRegisterNow:', canRegisterNow, 'regEnd:', registrationEnd, 'attemptType:', attemptType);
+            console.debug('[parseExamData] table_2 parsed available term:', code, sectionName, datePart, timePart, 'full:', isFull, 'canRegisterNow:', canRegisterNow, 'regStart:', registrationStart, 'regEnd:', registrationEnd, 'attemptType:', attemptType, 'hasCredit:', hasCredit);
         });
     }
 

@@ -200,6 +200,17 @@ export function TermTile({ term, onSelect, isProcessing = false }: TermTileProps
                         </span>
                     </div>
                 </div>
+            ) : term.canRegisterNow !== true && term.registrationStart ? (
+                /* Show registration opening date for terms that can't be registered yet */
+                <div className="flex items-center gap-2 min-w-[140px] bg-info/10 px-2 py-1 rounded-md">
+                    <Clock size={14} className="text-info" />
+                    <div className="flex flex-col">
+                        <span className="text-[10px] text-info/70">Přihlášení od</span>
+                        <span className="text-xs font-medium text-info">
+                            {term.registrationStart}
+                        </span>
+                    </div>
+                </div>
             ) : (
                 /* Capacity */
                 capacity && (

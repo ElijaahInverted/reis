@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { X, ExternalLink, ChevronDown, ChevronUp, CheckCircle2, CalendarDays, Timer, Check, AlertCircle } from 'lucide-react';
+import { X, ExternalLink, ChevronDown, ChevronUp, CheckCircle2, CalendarDays, Timer, Check, AlertCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useExams } from '../hooks/data';
 import { fetchExamData, registerExam, unregisterExam } from '../api/exams';
@@ -513,25 +513,89 @@ export function ExamPanel({ onClose }: ExamPanelProps) {
 
                                                 {/* Available Terms Summary - only when collapsed */}
                                                 {!isRegistered && section.terms.length > 0 && expandedSectionId !== section.id && (
-                                                    <div className="flex items-center gap-3 mt-2">
-                                                        <span className="text-xs text-base-content/50">
-                                                            {section.terms.length} termín{section.terms.length > 1 ? 'ů' : ''}
-                                                        </span>
-                                                        {section.terms.slice(0, 3).map(term => (
-                                                            <div key={term.id} className="flex items-center gap-1">
-                                                                <span className="text-xs text-base-content/70">
-                                                                    {term.date.split('.').slice(0, 2).join('.')}
-                                                                </span>
-                                                                {term.capacity && (
-                                                                    <progress
-                                                                        className={`progress w-12 h-1.5 ${term.full ? 'progress-error' : 'progress-primary'
-                                                                            }`}
-                                                                        value={capacityToPercent(term.capacity)}
-                                                                        max="100"
-                                                                    />
-                                                                )}
-                                                            </div>
-                                                        ))}
+                                                    <div className="flex flex-col gap-1 mt-2">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-xs text-base-content/50">
+                                                                {section.terms.length} termín{section.terms.length > 1 ? 'ů' : ''}
+                                                            </span>
+                                                            {section.terms.slice(0, 3).map(term => (
+                                                                <div key={term.id} className="flex items-center gap-1">
+                                                                    <span className="text-xs text-base-content/70">
+                                                                        {term.date.split('.').slice(0, 2).join('.')}
+                                                                    </span>
+                                                                    {term.capacity && (
+                                                                        <progress
+                                                                            className={`progress w-12 h-1.5 ${term.full ? 'progress-error' : 'progress-primary'
+                                                                                }`}
+                                                                            value={capacityToPercent(term.capacity)}
+                                                                            max="100"
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        {/* Show info for terms that can't be registered yet (Otevírá se) */}
+                                                        {(() => {
+                                                            // Find terms that can't be registered
+                                                            const notOpenTerms = section.terms.filter(t => t.canRegisterNow !== true);
+                                                            if (notOpenTerms.length === 0) return null;
+
+                                                            // Check if any have registrationStart date
+                                                            const termsWithRegStart = notOpenTerms.filter(t => t.registrationStart);
+                                                            if (termsWithRegStart.length > 0) {
+                                                                // Get the earliest one
+                                                                const earliest = termsWithRegStart.reduce<string | null>((min, t) => {
+                                                                    if (!min) return t.registrationStart || null;
+                                                                    return (t.registrationStart && t.registrationStart < min) ? t.registrationStart : min;
+                                                                }, null);
+                                                                if (earliest) {
+                                                                    return (
+                                                                        <div className="flex items-center gap-1.5 text-xs text-warning">
+                                                                            <Clock size={12} />
+                                                                            <span>Přihlášení od: {earliest}</span>
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                            }
+
+                                                            // No registrationStart available - show generic message
+                                                            // Check if it's due to missing credit
+                                                            const hasMissingCredit = notOpenTerms.some(t => t.hasCredit === false);
+                                                            if (hasMissingCredit) {
+                                                                return (
+                                                                    <div className="flex items-center gap-1.5 text-xs text-error">
+                                                                        <AlertCircle size={12} />
+                                                                        <span>Nesplňujete podmínky pro přihlášení</span>
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            // Generic blocked message (unknown reason)
+                                                            return (
+                                                                <div className="flex items-center gap-1.5 text-xs text-warning">
+                                                                    <AlertCircle size={12} />
+                                                                    <span>Přihlašování zatím není otevřeno</span>
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                        {/* Show earliest registration end for available terms (Volné) */}
+                                                        {(() => {
+                                                            // Find earliest registrationEnd from terms that can be registered
+                                                            const openTerms = section.terms.filter(t => t.canRegisterNow === true && t.registrationEnd);
+                                                            if (openTerms.length === 0) return null;
+                                                            // Get the earliest one
+                                                            const earliest = openTerms.reduce<string | null>((min, t) => {
+                                                                if (!min) return t.registrationEnd || null;
+                                                                return (t.registrationEnd && t.registrationEnd < min) ? t.registrationEnd : min;
+                                                            }, null);
+                                                            if (!earliest) return null;
+                                                            return (
+                                                                <div className="flex items-center gap-1.5 text-xs text-warning">
+                                                                    <AlertCircle size={12} />
+                                                                    <span>Přihlašování do: {earliest}</span>
+                                                                </div>
+                                                            );
+                                                        })()}
                                                     </div>
                                                 )}
                                             </div>

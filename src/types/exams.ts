@@ -21,6 +21,7 @@ export interface ExamTerm {
     registrationEnd?: string;    // When registration closes
     attemptType?: 'regular' | 'retake1' | 'retake2' | 'retake3';  // Exam attempt type
     canRegisterNow?: boolean;  // True if registration link is available now
+    hasCredit?: boolean;  // True if user has the required credit (zápočet), false if missing
 }
 
 export interface ExamSection {
