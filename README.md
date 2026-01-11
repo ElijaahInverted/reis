@@ -37,8 +37,7 @@ REIS.mendelu je rozšíření prohlížeče, které zpřehledňuje a personalizu
 
 | Jméno | Role |
 |-------|------|
-| Dominik Holek | Vedoucí projektu, datová analýza |
-| Tomáš Vymazal | Technický vedoucí, designér |
+| Dominik Holek | Vedoucí projektu, hlavní vývojář |
 | Antonín Dědeček | Produktový a komunitní manažer |
 | Kryštof Janda | Výzkum a inovace |
 
@@ -57,62 +56,6 @@ REIS.mendelu je rozšíření prohlížeče, které zpřehledňuje a personalizu
 ## 🔒 Soukromí
 
 Rozšíření pracuje výhradně lokálně ve vašem prohlížeči. Žádná data neopouštějí váš počítač. Více v [PRIVACY.md](PRIVACY.md).
-
----
-
-## 🏗️ Architektura a Principy
-
-Projekt REIS je postaven na moderních principech agentního vývoje a čisté architektury:
-
-- **Iframe Isolation**: Celé UI běží v izolovaném iframe, což zabraňuje konfliktům s CSS/JS samotného IS MENDELU.
-- **Trinity Protocol**: Vývoj probíhá pod dohledem tří rolí: `@arch-guardian` (struktura), `@seymour-cash` (data) a `@safety-officer` (bezpečnost).
-- **250-Line Rule**: Žádný komponent nesmí přesáhnout 250 řádků. Pokud se tak stane, musí být dekomponován na menší části nebo hooky.
-- **Stale-While-Revalidate**: Data jsou zobrazena okamžitě z cache a následně asynchronně synchronizována.
-
-Podrobnější informace najdete v [architecture.md](architecture.md).
-
----
-
-## ⚡ Výkon (Bundle Optimization)
-
-Po optimalizaci v Phase 7 jsou velikosti balíčků následující:
-
-| Chunk | Velikost | Popis |
-|-------|----------|-------|
-| `index.js` | 486 kB | Hlavní kód aplikace |
-| `vendor-motion.js` | 57 kB | Animace (Framer Motion) |
-| `vendor-ui.js` | 55 kB | Lucide ikony a notifikace |
-| `vendor-react.js` | 12 kB | React Core |
-
-Celková velikost (gzipped) je přibližně **153 kB**.
-
----
-
-## 🧪 Testing
-
-This project uses **Vitest** for unit tests and **Playwright** for E2E testing of the Chrome extension.
-
-```bash
-# Unit tests
-npm run test              # Watch mode
-npm run test:run          # Single run
-
-# E2E tests (requires Xvfb on Linux)
-npm run build:quick       # Build extension first
-npm run test:e2e          # Run all E2E tests
-
-# Visual proof screenshots
-xvfb-run playwright test visual-proof.spec.ts
-```
-
-### Visual Feedback Loop
-
-The `/screenshot` workflow captures the extension UI state:
-- `proof-calendar.png` — Calendar view
-- `proof-exams.png` — Exam timeline
-- `proof-search.png` — Search results
-
-See [`e2e/README.md`](e2e/README.md) for detailed E2E documentation.
 
 ---
 
