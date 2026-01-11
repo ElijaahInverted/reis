@@ -31,5 +31,8 @@
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "../_figma_desing"
   ]
 }

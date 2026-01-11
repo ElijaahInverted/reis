@@ -37,7 +37,8 @@ REIS.mendelu je rozšíření prohlížeče, které zpřehledňuje a personalizu
 
 | Jméno | Role |
 |-------|------|
-| Dominik Holek | Vedoucí projektu, hlavní vývojář |
+| Dominik Holek | Vedoucí projektu, datová analýza |
+| Tomáš Vymazal | Technický vedoucí, designér |
 | Antonín Dědeček | Produktový a komunitní manažer |
 | Kryštof Janda | Výzkum a inovace |
 
@@ -56,6 +57,34 @@ REIS.mendelu je rozšíření prohlížeče, které zpřehledňuje a personalizu
 ## 🔒 Soukromí
 
 Rozšíření pracuje výhradně lokálně ve vašem prohlížeči. Žádná data neopouštějí váš počítač. Více v [PRIVACY.md](PRIVACY.md).
+
+---
+
+## 🧪 Testing
+
+This project uses **Vitest** for unit tests and **Playwright** for E2E testing of the Chrome extension.
+
+```bash
+# Unit tests
+npm run test              # Watch mode
+npm run test:run          # Single run
+
+# E2E tests (requires Xvfb on Linux)
+npm run build:quick       # Build extension first
+npm run test:e2e          # Run all E2E tests
+
+# Visual proof screenshots
+xvfb-run playwright test visual-proof.spec.ts
+```
+
+### Visual Feedback Loop
+
+The `/screenshot` workflow captures the extension UI state:
+- `proof-calendar.png` — Calendar view
+- `proof-exams.png` — Exam timeline
+- `proof-search.png` — Search results
+
+See [`e2e/README.md`](e2e/README.md) for detailed E2E documentation.
 
 ---
 

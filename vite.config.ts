@@ -28,19 +28,18 @@ export default defineConfig(() => {
   // Check if we're building the content script specifically
   const isContentBuild = process.env.BUILD_TARGET === 'content';
 
-  if (isContentBuild || process.env.BUILD_TARGET === 'background') {
-    const isBackground = process.env.BUILD_TARGET === 'background';
-    // Content script or Background script build configuration
+  if (isContentBuild) {
+    // Content script build configuration
     return {
       plugins: [],
       build: {
         outDir: 'dist',
         emptyOutDir: false,
         rollupOptions: {
-          input: resolve(__dirname, isBackground ? 'src/background.ts' : 'src/content-injector.ts'),
+          input: resolve(__dirname, 'src/content-injector.ts'),
           output: {
-            format: isBackground ? 'es' as const : 'iife' as const,
-            entryFileNames: isBackground ? 'background.js' : 'content.js',
+            format: 'iife' as const,
+            entryFileNames: 'content.js',
           },
         },
       },
@@ -59,13 +58,6 @@ export default defineConfig(() => {
           entryFileNames: 'assets/[name]-[hash].js',
           chunkFileNames: 'assets/[name]-[hash].js',
           assetFileNames: 'assets/[name]-[hash].[ext]',
-          manualChunks: {
-            // Split large vendor dependencies
-            'vendor-react': ['react', 'react-dom'],
-            'vendor-charts': ['recharts'],
-            'vendor-motion': ['motion'],
-            'vendor-ui': ['lucide-react', 'sonner'],
-          },
         },
       },
     },

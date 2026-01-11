@@ -20,59 +20,41 @@ export interface UseExamsResult {
 }
 
 export function useExams(): UseExamsResult {
-    const [state, setState] = useState<{
-        exams: ExamSubject[];
-        isLoaded: boolean;
-        error: string | null;
-        lastSync: number | null;
-    }>(() => {
-        try {
-            const storedData = StorageService.get<ExamSubject[]>(STORAGE_KEYS.EXAMS_DATA);
-            const storedLastSync = StorageService.get<number>(STORAGE_KEYS.LAST_SYNC);
-            return {
-                exams: storedData || [],
-                isLoaded: true,
-                error: null,
-                lastSync: storedLastSync,
-            };
-        } catch (err) {
-            console.error('[useExams] Failed to load from storage:', err);
-            return {
-                exams: [],
-                isLoaded: true,
-                error: 'Nepodařilo se načíst data zkoušek.',
-                lastSync: null,
-            };
-        }
-    });
+    const [exams, setExams] = useState<ExamSubject[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [lastSync, setLastSync] = useState<number | null>(null);
 
     const loadFromStorage = useCallback(() => {
         try {
             const storedData = StorageService.get<ExamSubject[]>(STORAGE_KEYS.EXAMS_DATA);
             const storedLastSync = StorageService.get<number>(STORAGE_KEYS.LAST_SYNC);
 
-            setState({
-                exams: storedData || [],
-                isLoaded: true,
-                error: null,
-                lastSync: storedLastSync,
-            });
+            if (storedData && storedData.length > 0) {
+                setExams(storedData);
+                setError(null);
+            } else {
+                // No data yet - not an error, just empty
+                setExams([]);
+            }
+            setLastSync(storedLastSync);
+            setIsLoaded(true);
         } catch (err) {
             console.error('[useExams] Failed to load from storage:', err);
-            setState(prev => ({
-                ...prev,
-                isLoaded: true,
-                error: 'Nepodařilo se načíst data zkoušek.',
-            }));
+            setError('Nepodařilo se načíst data zkoušek.');
+            setIsLoaded(true);
         }
     }, []);
 
     const retry = useCallback(() => {
-        setState(prev => ({ ...prev, isLoaded: false, error: null }));
+        setIsLoaded(false);
+        setError(null);
         loadFromStorage();
     }, [loadFromStorage]);
 
     useEffect(() => {
+        loadFromStorage();
+
         // Subscribe to sync updates
         const unsubscribe = syncService.subscribe(() => {
             loadFromStorage();
@@ -81,6 +63,6 @@ export function useExams(): UseExamsResult {
         return unsubscribe;
     }, [loadFromStorage]);
 
-    return { ...state, retry };
+    return { exams, isLoaded, error, lastSync, retry };
 }
 

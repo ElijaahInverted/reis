@@ -9,8 +9,6 @@
  * Use async methods (getAsync/setAsync) for extension-persistent data (survives page reload).
  */
 
-import { loggers } from '../../utils/logger';
-
 export const StorageService = {
     // ==========================================
     // SYNC METHODS (localStorage)
@@ -26,7 +24,7 @@ export const StorageService = {
             if (item === null) return null;
             return JSON.parse(item) as T;
         } catch (error) {
-            loggers.storage.warn('[StorageService] Failed to parse key:', key, error);
+            console.warn(`[StorageService] Failed to parse key "${key}":`, error);
             return null;
         }
     },
@@ -38,10 +36,10 @@ export const StorageService = {
         try {
             localStorage.setItem(key, JSON.stringify(value));
         } catch (error) {
-            loggers.storage.error('[StorageService] Failed to set key:', key, error);
+            console.error(`[StorageService] Failed to set key "${key}":`, error);
             // Could be quota exceeded - handle gracefully
             if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-                loggers.storage.warn('[StorageService] Storage quota exceeded. Consider clearing old data.');
+                console.warn('[StorageService] Storage quota exceeded. Consider clearing old data.');
             }
         }
     },
@@ -53,7 +51,7 @@ export const StorageService = {
         try {
             localStorage.removeItem(key);
         } catch (error) {
-            loggers.storage.warn('[StorageService] Failed to remove key:', key, error);
+            console.warn(`[StorageService] Failed to remove key "${key}":`, error);
         }
     },
 
@@ -86,7 +84,7 @@ export const StorageService = {
     clearAll(): void {
         const keysToRemove = this.getKeysWithPrefix('reis_');
         keysToRemove.forEach(key => localStorage.removeItem(key));
-        loggers.storage.info('[StorageService] Cleared keys count:', keysToRemove.length);
+        console.log(`[StorageService] Cleared ${keysToRemove.length} keys`);
     },
 
     // ==========================================
@@ -107,7 +105,7 @@ export const StorageService = {
      */
     async getAsync<T>(key: string): Promise<T | null> {
         if (!this.isChromeStorageAvailable()) {
-            loggers.storage.debug('[StorageService] chrome.storage unavailable, falling back to localStorage');
+            console.debug('[StorageService] chrome.storage unavailable, falling back to localStorage');
             return this.get<T>(key);
         }
 
@@ -115,7 +113,7 @@ export const StorageService = {
             const result = await chrome.storage.local.get(key);
             return (result[key] as T) ?? null;
         } catch (error) {
-            loggers.storage.warn('[StorageService] Failed to get async key:', key, error);
+            console.warn(`[StorageService] Failed to get async key "${key}":`, error);
             return null;
         }
     },
@@ -125,7 +123,7 @@ export const StorageService = {
      */
     async setAsync<T>(key: string, value: T): Promise<void> {
         if (!this.isChromeStorageAvailable()) {
-            loggers.storage.debug('[StorageService] chrome.storage unavailable, falling back to localStorage');
+            console.debug('[StorageService] chrome.storage unavailable, falling back to localStorage');
             this.set(key, value);
             return;
         }
@@ -133,7 +131,7 @@ export const StorageService = {
         try {
             await chrome.storage.local.set({ [key]: value });
         } catch (error) {
-            loggers.storage.error('[StorageService] Failed to set async key:', key, error);
+            console.error(`[StorageService] Failed to set async key "${key}":`, error);
         }
     },
 
@@ -149,19 +147,7 @@ export const StorageService = {
         try {
             await chrome.storage.local.remove(key);
         } catch (error) {
-            loggers.storage.warn('[StorageService] Failed to remove async key:', key, error);
+            console.warn(`[StorageService] Failed to remove async key "${key}":`, error);
         }
     },
-
-    /**
-     * Subscribe to changes in chrome.storage.local.
-     */
-    onChanged(callback: (changes: { [key: string]: chrome.storage.StorageChange }) => void): () => void {
-        if (!this.isChromeStorageAvailable()) return () => { };
-
-        chrome.storage.local.onChanged.addListener(callback);
-        return () => {
-            chrome.storage.local.onChanged.removeListener(callback);
-        };
-    }
 };

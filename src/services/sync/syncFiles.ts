@@ -4,7 +4,6 @@
 
 import { StorageService, STORAGE_KEYS } from '../storage';
 import { fetchFilesFromFolder } from '../../api/documents';
-import { loggers } from '../../utils/logger';
 import type { SubjectsData } from '../../types/documents';
 
 function getIdFromUrl(url: string): string | null {
@@ -13,17 +12,17 @@ function getIdFromUrl(url: string): string | null {
 }
 
 export async function syncFiles(): Promise<void> {
-    loggers.system.info('[syncFiles] Starting files sync...');
+    console.log('[syncFiles] Starting files sync...');
 
     const subjectsData = StorageService.get<SubjectsData>(STORAGE_KEYS.SUBJECTS_DATA);
 
     if (!subjectsData || !subjectsData.data) {
-        loggers.system.info('[syncFiles] No subjects data available, skipping file sync');
+        console.log('[syncFiles] No subjects data available, skipping file sync');
         return;
     }
 
     const subjects = Object.entries(subjectsData.data);
-    loggers.system.info('[syncFiles] Syncing files for subjects count:', subjects.length);
+    console.log(`[syncFiles] Syncing files for ${subjects.length} subjects`);
 
     let successCount = 0;
     let errorCount = 0;
@@ -32,7 +31,7 @@ export async function syncFiles(): Promise<void> {
         try {
             const folderId = getIdFromUrl(subject.folderUrl);
             if (!folderId) {
-                loggers.system.warn('[syncFiles] Could not extract folder ID for course:', courseCode);
+                console.warn(`[syncFiles] Could not extract folder ID for ${courseCode}`);
                 continue;
             }
 
@@ -46,13 +45,10 @@ export async function syncFiles(): Promise<void> {
                 successCount++;
             }
         } catch (error) {
-            loggers.system.error('[syncFiles] Failed to sync files for course:', courseCode, error);
+            console.error(`[syncFiles] Failed to sync files for ${courseCode}:`, error);
             errorCount++;
         }
     }
 
-    loggers.system.info('[syncFiles] Completed sync cycle.', {
-        success: successCount,
-        errors: errorCount
-    });
+    console.log(`[syncFiles] Completed: ${successCount} subjects synced, ${errorCount} errors`);
 }

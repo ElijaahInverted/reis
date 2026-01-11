@@ -41,8 +41,7 @@ export interface BlockLesson {
     courseCode: string;
     periodId: string; // <-- NEW, e.g., "801"
     isExam?: boolean;
-    examEvent?: any; 
-    sectionName?: string;
+    examEvent?: any; // Using any for now to avoid circular dependency or complex imports, or I can import ExamEvent
 }
 
 export interface FileObject {

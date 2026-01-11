@@ -8,7 +8,6 @@
  */
 
 import { StorageService, STORAGE_KEYS } from '../storage';
-import { loggers } from '../../utils/logger';
 import { syncExams } from './syncExams';
 import { syncSchedule } from './syncSchedule';
 import { syncSubjects } from './syncSubjects';
@@ -32,11 +31,11 @@ class SyncServiceClass {
      */
     start(): void {
         if (this.intervalId) {
-            loggers.system.warn('[SyncService] Already running');
+            console.warn('[SyncService] Already running');
             return;
         }
 
-        loggers.system.info('[SyncService] Starting background sync');
+        console.log('[SyncService] Starting background sync');
         this.syncAll();
         this.intervalId = setInterval(() => {
             this.syncAll();
@@ -50,7 +49,7 @@ class SyncServiceClass {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
-            loggers.system.info('[SyncService] Stopped');
+            console.log('[SyncService] Stopped');
         }
     }
 
@@ -59,14 +58,14 @@ class SyncServiceClass {
      */
     async syncAll(): Promise<void> {
         if (this.isSyncing) {
-            loggers.system.info('[SyncService] Sync already in progress, skipping');
+            console.log('[SyncService] Sync already in progress, skipping');
             return;
         }
 
         this.isSyncing = true;
         StorageService.set(STORAGE_KEYS.SYNC_IN_PROGRESS, true);
 
-        loggers.system.info('[SyncService] Starting sync...');
+        console.log('[SyncService] Starting sync...');
         const startTime = Date.now();
 
         try {
@@ -79,26 +78,26 @@ class SyncServiceClass {
             results.forEach((result, index) => {
                 const syncNames = ['schedule', 'exams', 'subjects'];
                 if (result.status === 'rejected') {
-                    loggers.system.error(`[SyncService] ${syncNames[index]} sync failed:`, result.reason);
+                    console.error(`[SyncService] ${syncNames[index]} sync failed:`, result.reason);
                 }
             });
 
             try {
                 await syncFiles();
             } catch (filesError) {
-                loggers.system.error('[SyncService] files sync failed:', filesError);
+                console.error('[SyncService] files sync failed:', filesError);
             }
 
             StorageService.set(STORAGE_KEYS.LAST_SYNC, Date.now());
             StorageService.remove(STORAGE_KEYS.SYNC_ERROR);
 
             const duration = Date.now() - startTime;
-            loggers.system.info(`[SyncService] Sync completed in ${duration}ms`);
+            console.log(`[SyncService] Sync completed in ${duration}ms`);
 
             this.notifyListeners();
 
         } catch (error) {
-            loggers.system.error('[SyncService] Sync failed:', error);
+            console.error('[SyncService] Sync failed:', error);
             StorageService.set(STORAGE_KEYS.SYNC_ERROR, error instanceof Error ? error.message : 'Unknown error');
         } finally {
             this.isSyncing = false;
@@ -122,7 +121,7 @@ class SyncServiceClass {
     }
 
     triggerRefresh(): void {
-        loggers.system.debug('[SyncService] triggerRefresh called, notifying listeners');
+        console.log('[SyncService] triggerRefresh called, notifying listeners');
         this.notifyListeners();
     }
 
@@ -131,7 +130,7 @@ class SyncServiceClass {
             try {
                 callback();
             } catch (error) {
-                loggers.system.error('[SyncService] Listener error:', error);
+                console.error('[SyncService] Listener error:', error);
             }
         });
     }

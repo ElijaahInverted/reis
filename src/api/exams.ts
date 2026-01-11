@@ -1,8 +1,7 @@
 import { parseExamData } from "../utils/examParser";
-import type { ExamSubject } from "../types/exams";
+import type { ExamSubject } from "../components/ExamDrawer";
 import { fetchWithAuth } from "./client";
 import { getUserParams } from "../utils/userParams";
-import { loggers } from "../utils/logger";
 
 /**
  * Result of exam registration/unregistration.
@@ -20,7 +19,7 @@ export interface ExamActionResult {
 async function getExamListUrl(): Promise<string> {
     const params = await getUserParams();
     if (!params?.studium) {
-        loggers.api.warn('[exams] No studium available, using base URL');
+        console.warn('[exams] No studium available, using base URL');
         return 'https://is.mendelu.cz/auth/student/terminy_seznam.pl?lang=cz';
     }
     return `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${params.studium};lang=cz`;
@@ -40,14 +39,14 @@ function verifyRegistrationSuccess(html: string, termId: string): boolean {
                      html.includes('nelze přihlásit') ||
                      html.includes('Chyba');
     
-    loggers.api.debug('[exams] Verification:', { termId, hasUnregisterLink, hasError });
+    console.debug('[exams] Verification:', { termId, hasUnregisterLink, hasError });
     return hasUnregisterLink && !hasError;
 }
 
 export async function fetchExamData(): Promise<ExamSubject[]> {
     try {
         const url = await getExamListUrl();
-        loggers.api.info('[exams] Fetching from:', url);
+        console.log('[exams] Fetching from:', url);
         const response = await fetchWithAuth(url);
         const html = await response.text();
         const data = parseExamData(html);
@@ -62,19 +61,19 @@ export async function registerExam(termId: string): Promise<ExamActionResult> {
     try {
         const params = await getUserParams();
         if (!params?.studium) {
-            loggers.api.error('[exams] Cannot register: no studium available');
+            console.error('[exams] Cannot register: no studium available');
             return { success: false, error: 'Chybí údaje o studiu. Zkuste obnovit stránku.' };
         }
         
         const url = `https://is.mendelu.cz/auth/student/terminy_seznam.pl?termin=${termId};studium=${params.studium};obdobi=${params.obdobi};prihlasit_ihned=1;lang=cz`;
-        loggers.api.info('[exams] Registering:', url);
+        console.log('[exams] Registering:', url);
         
         const response = await fetchWithAuth(url);
         const html = await response.text();
         
         // Verify the registration actually worked
         if (verifyRegistrationSuccess(html, termId)) {
-            loggers.api.info('[exams] Registration verified for term:', termId);
+            console.log('[exams] Registration verified for term:', termId);
             return { success: true };
         }
         
@@ -87,7 +86,7 @@ export async function registerExam(termId: string): Promise<ExamActionResult> {
         }
         
         // Generic failure
-        loggers.api.warn('[exams] Registration could not be verified for term:', termId);
+        console.warn('[exams] Registration could not be verified for term:', termId);
         return { success: false, error: 'Registrace se nepodařila ověřit. Zkontrolujte v IS.' };
         
     } catch (error) {
@@ -100,17 +99,17 @@ export async function unregisterExam(termId: string): Promise<ExamActionResult> 
     try {
         const params = await getUserParams();
         if (!params?.studium) {
-            loggers.api.error('[exams] Cannot unregister: no studium available');
+            console.error('[exams] Cannot unregister: no studium available');
             return { success: false, error: 'Chybí údaje o studiu. Zkuste obnovit stránku.' };
         }
         
         const url = `https://is.mendelu.cz/auth/student/terminy_seznam.pl?termin=${termId};studium=${params.studium};obdobi=${params.obdobi};odhlasit_ihned=1;lang=cz`;
-        loggers.api.info('[exams] Unregistering:', url);
+        console.log('[exams] Unregistering:', url);
         
         await fetchWithAuth(url);
         
         // Assume success if no HTTP error
-        loggers.api.info('[exams] Unregistration completed for term:', termId);
+        console.log('[exams] Unregistration completed for term:', termId);
         return { success: true };
         
     } catch (error) {

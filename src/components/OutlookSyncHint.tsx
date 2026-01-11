@@ -22,22 +22,11 @@ export function OutlookSyncHint({ navigationCount, isSyncEnabled, onSetup }: Out
     const [isVisible, setIsVisible] = useState(false);
     const [hasBeenDismissed, setHasBeenDismissed] = useState(false);
 
-    const handleDismiss = () => {
-        setIsVisible(false);
-        setHasBeenDismissed(true);
-        localStorage.setItem(OUTLOOK_HINT_STORAGE_KEY, 'true');
-    };
-
-    const handleSetup = () => {
-        handleDismiss();
-        onSetup();
-    };
-
     useEffect(() => {
         // Check if already seen
         const hasSeenHint = localStorage.getItem(OUTLOOK_HINT_STORAGE_KEY);
         if (hasSeenHint) {
-            queueMicrotask(() => setHasBeenDismissed(true));
+            setHasBeenDismissed(true);
             return;
         }
 
@@ -70,9 +59,20 @@ export function OutlookSyncHint({ navigationCount, isSyncEnabled, onSetup }: Out
     // Hide if sync gets enabled
     useEffect(() => {
         if (isSyncEnabled === true && isVisible) {
-            queueMicrotask(() => setIsVisible(false));
+            setIsVisible(false);
         }
     }, [isSyncEnabled, isVisible]);
+
+    const handleDismiss = () => {
+        setIsVisible(false);
+        setHasBeenDismissed(true);
+        localStorage.setItem(OUTLOOK_HINT_STORAGE_KEY, 'true');
+    };
+
+    const handleSetup = () => {
+        handleDismiss();
+        onSetup();
+    };
 
     return (
         <AnimatePresence>

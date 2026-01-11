@@ -11,9 +11,6 @@
 
 import type { FetchResultMessage, ActionResultMessage, ActionType } from '../types/messages';
 import { Messages } from '../types/messages';
-import { loggers } from '../utils/logger';
-
-const IS_ORIGIN = 'https://is.mendelu.cz';
 
 // =============================================================================
 // Pending Request Tracking
@@ -40,17 +37,16 @@ function initMessageListener() {
     if (listenerInitialized) return;
     listenerInitialized = true;
 
-    window.addEventListener('message', (event: MessageEvent<unknown>) => {
-        // Security check: Only process messages from parent (is.mendelu.cz)
-        if (event.origin !== IS_ORIGIN) return;
+    window.addEventListener('message', (event: MessageEvent) => {
+        // Only process messages from parent (Content Script)
         if (event.source !== window.parent) return;
 
-        const data = event.data as Record<string, unknown>;
+        const data = event.data;
         if (!data || typeof data !== 'object') return;
 
         // Handle fetch results
         if (data.type === 'REIS_FETCH_RESULT') {
-            const msg = data as unknown as FetchResultMessage;
+            const msg = data as FetchResultMessage;
             const pending = pendingFetches.get(msg.id);
 
             if (pending) {
@@ -60,7 +56,7 @@ function initMessageListener() {
                 if (msg.success && msg.data !== undefined) {
                     pending.resolve(msg.data);
                 } else {
-                    loggers.api.error('[ProxyClient] Fetch failed:', msg.error);
+                    console.error('[ProxyClient] Fetch failed:', msg.error);
                     pending.reject(new Error(msg.error || 'Fetch failed'));
                 }
             }
@@ -68,7 +64,7 @@ function initMessageListener() {
 
         // Handle action results
         if (data.type === 'REIS_ACTION_RESULT') {
-            const msg = data as unknown as ActionResultMessage;
+            const msg = data as ActionResultMessage;
             const pending = pendingActions.get(msg.id);
 
             if (pending) {
@@ -78,14 +74,14 @@ function initMessageListener() {
                 if (msg.success) {
                     pending.resolve(msg.data);
                 } else {
-                    loggers.api.error('[ProxyClient] Action failed:', msg.error);
+                    console.error('[ProxyClient] Action failed:', msg.error);
                     pending.reject(new Error(msg.error || 'Action failed'));
                 }
             }
         }
     });
 
-    loggers.api.info('[ProxyClient] Message listener initialized');
+    console.log('[ProxyClient] Message listener initialized');
 }
 
 // =============================================================================
@@ -111,16 +107,16 @@ export async function fetchViaProxy(
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
             pendingFetches.delete(message.id);
-            loggers.api.error('[ProxyClient] Request timeout:', url);
+            console.error('[ProxyClient] Request timeout:', url);
             reject(new Error(`Request timeout: ${url}`));
         }, REQUEST_TIMEOUT);
 
         pendingFetches.set(message.id, { resolve, reject, timeout });
 
         // Send to Content Script
-        window.parent.postMessage(message, IS_ORIGIN);
+        window.parent.postMessage(message, '*');
 
-        loggers.api.debug('[ProxyClient] Fetch request sent:', message.id, url);
+        console.debug('[ProxyClient] Fetch request sent:', message.id, url);
     });
 }
 
@@ -139,7 +135,7 @@ export async function fetchJsonViaProxy<T>(
     try {
         return JSON.parse(text) as T;
     } catch (e) {
-        loggers.api.error('[ProxyClient] JSON parse error:', e);
+        console.error('[ProxyClient] JSON parse error:', e);
         throw new Error('Invalid JSON response');
     }
 }
@@ -158,7 +154,7 @@ export async function executeAction<T = unknown>(
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
             pendingActions.delete(message.id);
-            loggers.api.error('[ProxyClient] Action timeout:', action);
+            console.error('[ProxyClient] Action timeout:', action);
             reject(new Error(`Action timeout: ${action}`));
         }, REQUEST_TIMEOUT);
 
@@ -169,9 +165,9 @@ export async function executeAction<T = unknown>(
         });
 
         // Send to Content Script
-        window.parent.postMessage(message, IS_ORIGIN);
+        window.parent.postMessage(message, '*');
 
-        loggers.api.debug('[ProxyClient] Action request sent:', message.id, action);
+        console.debug('[ProxyClient] Action request sent:', message.id, action);
     });
 }
 
@@ -180,8 +176,8 @@ export async function executeAction<T = unknown>(
  */
 export function requestData(dataType: 'schedule' | 'exams' | 'subjects' | 'files' | 'all'): void {
     const message = Messages.requestData(dataType);
-    window.parent.postMessage(message, IS_ORIGIN);
-    loggers.api.debug('[ProxyClient] Data request sent:', dataType);
+    window.parent.postMessage(message, '*');
+    console.debug('[ProxyClient] Data request sent:', dataType);
 }
 
 /**
@@ -189,8 +185,8 @@ export function requestData(dataType: 'schedule' | 'exams' | 'subjects' | 'files
  */
 export function signalReady(): void {
     const message = Messages.ready();
-    window.parent.postMessage(message, IS_ORIGIN);
-    loggers.api.info('[ProxyClient] Ready signal sent');
+    window.parent.postMessage(message, '*');
+    console.log('[ProxyClient] Ready signal sent');
 }
 
 // =============================================================================
