@@ -9,6 +9,7 @@ interface SearchBarProps {
   placeholder?: string;
   onSearch?: (query: string) => void;
   onOpenExamDrawer?: () => void;
+  onOpenSubject?: (courseCode: string, courseName?: string, courseId?: string) => void;
 }
 
 interface SearchResult {
@@ -20,13 +21,14 @@ interface SearchResult {
   personType?: 'student' | 'teacher' | 'staff' | 'unknown';
   category?: string;
   subjectCode?: string;
+  subjectId?: string; // predmet ID for syllabus link
 }
 
 // Removed mock data
 const MAX_RECENT_SEARCHES = 5;
 const STORAGE_KEY = 'reis_recent_searches';
 
-export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExamDrawer }: SearchBarProps) {
+export function SearchBar({ placeholder = "Hledej předměty, lidi, stránky...", onSearch, onOpenExamDrawer, onOpenSubject }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -110,7 +112,8 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
             type: 'subject' as const,
             detail: parts.join(' · '),
             link: s.link,
-            subjectCode: s.code
+            subjectCode: s.code,
+            subjectId: s.id // Pass through predmet ID for syllabus link
           };
         });
 
@@ -215,14 +218,25 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
-  const handleFocus = () => setIsOpen(true);
+  // Only open popover if there's already a query (don't pop on empty focus)
+  const handleFocus = () => {
+    if (query.trim().length > 0) {
+      setIsOpen(true);
+    }
+  };
 
   const handleSelect = (result: SearchResult) => {
     console.log('Selected:', result);
     saveToHistory(result);
 
-    // Check for exam registration pages - REMOVED to allow external redirect
-    // Use default behavior below
+    // For subject results, open the drawer instead of external link
+    if (result.type === 'subject' && onOpenSubject) {
+      onOpenSubject(result.subjectCode!, result.title, result.subjectId);
+      setQuery('');
+      setIsOpen(false);
+      setSelectedIndex(-1);
+      return;
+    }
 
     // For keyboard navigation, open the link programmatically
     if (result.link) {
@@ -346,9 +360,8 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
               <div className="h-px w-full bg-base-300" />
 
               {/* Section Title */}
-              <div className="px-4 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1 flex justify-between items-center">
+              <div className="px-4 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1">
                 <span>{query ? 'Výsledky' : 'Nedávná vyhledávání'}</span>
-                {isLoading && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-base-content/50"></div>}
               </div>
 
               {/* Results List */}
@@ -438,7 +451,7 @@ export function SearchBar({ placeholder = "Prohledej reIS", onSearch, onOpenExam
                         <span>Načítání výsledků...</span>
                       </div>
                     ) : query.trim() === '' ? (
-                      <span>Začněte psát pro vyhledávání...</span>
+                      <span>Hledejte předměty, vyučující nebo stránky IS...</span>
                     ) : (
                       'Nic nenalezeno'
                     )}

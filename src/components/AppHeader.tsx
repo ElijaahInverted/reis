@@ -10,6 +10,7 @@ interface AppHeaderProps {
   onNextWeek: () => void;
   onToday: () => void;
   onOpenExams: () => void;
+  onOpenSubject?: (courseCode: string, courseName?: string, courseId?: string) => void;
 }
 
 export function AppHeader({
@@ -19,6 +20,7 @@ export function AppHeader({
   onNextWeek,
   onToday,
   onOpenExams,
+  onOpenSubject,
 }: AppHeaderProps) {
   return (
     <div className="flex-shrink-0 z-30 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-4 py-2">
@@ -52,7 +54,8 @@ export function AppHeader({
           <NotificationFeed />
           <div className="w-[480px] mr-2">
             <SearchBar 
-              onOpenExamDrawer={onOpenExams} 
+              onOpenExamDrawer={onOpenExams}
+              onOpenSubject={onOpenSubject}
             />
           </div>
         </div>

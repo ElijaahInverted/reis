@@ -5,8 +5,9 @@
  * Integrates REIS logic: useSchedule, useExams, auto-skip, Czech holidays, EventPopover.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { CalendarEventCard } from './CalendarEventCard';
+import { CalendarHint } from './CalendarHint';
 import { SubjectFileDrawer } from './SubjectFileDrawer';
 import { useSchedule, useExams } from '../hooks/data';
 import { getCzechHoliday } from '../utils/holidays';
@@ -23,6 +24,7 @@ const DAYS = [
 
 const HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 const TOTAL_HOURS = 13; // 7:00 to 20:00 (13 hour slots)
+const CALENDAR_HINT_KEY = 'reis_calendar_click_hint_shown';
 
 // Convert time string to percentage from top (7:00 = 0%, 20:00 = 100%)
 function timeToPercent(time: string): number {
@@ -94,6 +96,7 @@ export function WeeklyCalendar({ initialDate = new Date() }: WeeklyCalendarProps
     const { exams: storedExams, isLoaded: _isExamsLoaded } = useExams();
 
     const [selected, setSelected] = useState<BlockLesson | null>(null);
+    const [showCalendarHint, setShowCalendarHint] = useState(false);
 
     // Calculate week dates (Mon-Fri)
     const weekDates = useMemo((): DateInfo[] => {
@@ -249,6 +252,58 @@ export function WeeklyCalendar({ initialDate = new Date() }: WeeklyCalendarProps
     // Determine if we should show skeleton loading state
     const showSkeleton = scheduleData.length === 0 && !isScheduleLoaded;
 
+    // Calculate position of first event for hint positioning
+    const firstEventPosition = useMemo(() => {
+        // Find the first event by checking each day column
+        for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
+            const dayLessons = lessonsByDay[dayIndex] || [];
+            if (dayLessons.length > 0) {
+                // Sort by start time to get the earliest
+                const sortedLessons = [...dayLessons].sort((a, b) => 
+                    a.startTime.localeCompare(b.startTime)
+                );
+                const firstLesson = sortedLessons[0];
+                
+                // Calculate position based on grid layout
+                // Each day column is 1/5 of the grid width (after time column)
+                const columnWidth = 100 / 5; // percentage
+                const left = dayIndex * columnWidth;
+                
+                // Calculate top position from time (7:00 = 0%, 20:00 = 100%)
+                const [hours, minutes] = firstLesson.startTime.split(':').map(Number);
+                const hoursFrom7 = hours - 7;
+                const totalMinutesFrom7 = hoursFrom7 * 60 + minutes;
+                const top = (totalMinutesFrom7 / (13 * 60)) * 100; // 13 hours total
+                
+                return {
+                    top, // percentage
+                    left, // percentage
+                    width: columnWidth,
+                    isPercentage: true
+                };
+            }
+        }
+        return null;
+    }, [lessonsByDay]);
+
+    // First-use hint for clicking calendar events
+    useEffect(() => {
+        if (showSkeleton || scheduleData.length === 0) return;
+        
+        const hasSeenHint = localStorage.getItem(CALENDAR_HINT_KEY);
+        if (hasSeenHint) return;
+        
+        localStorage.setItem(CALENDAR_HINT_KEY, 'true');
+        
+        const showTimer = setTimeout(() => setShowCalendarHint(true), 1000);
+        const hideTimer = setTimeout(() => setShowCalendarHint(false), 5000);
+        
+        return () => {
+            clearTimeout(showTimer);
+            clearTimeout(hideTimer);
+        };
+    }, [showSkeleton, scheduleData.length]);
+
     return (
         <div className="flex h-full overflow-hidden flex-col font-inter bg-base-100">
             {/* Day headers - compact */}
@@ -301,6 +356,15 @@ export function WeeklyCalendar({ initialDate = new Date() }: WeeklyCalendarProps
 
                     {/* Calendar grid */}
                     <div className="flex-1 relative flex">
+                        {/* Calendar click hint for first-time users */}
+                        <CalendarHint 
+                            show={showCalendarHint} 
+                            firstEventPosition={firstEventPosition ? {
+                                top: firstEventPosition.top,
+                                left: firstEventPosition.left,
+                                width: firstEventPosition.width
+                            } : undefined}
+                        />
                         {/* Grid lines */}
                         <div className="absolute inset-0 flex pointer-events-none">
                             {DAYS.map((_, dayIndex) => {

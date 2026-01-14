@@ -1,13 +1,14 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Moon } from 'lucide-react';
+import { Calendar, Moon, MessageSquarePlus } from 'lucide-react';
 import { useOutlookSync } from '../../hooks/data';
 import { useTheme } from '../../hooks/useTheme';
 
 interface ProfilePopupProps {
   isOpen: boolean;
+  onOpenFeedback?: () => void;
 }
 
-export function ProfilePopup({ isOpen }: ProfilePopupProps) {
+export function ProfilePopup({ isOpen, onOpenFeedback }: ProfilePopupProps) {
   const { isEnabled: outlookSyncEnabled, isLoading: outlookSyncLoading, toggle: toggleOutlookSync } = useOutlookSync();
   const { isDark, isLoading: themeLoading, toggle: toggleTheme } = useTheme();
 
@@ -24,6 +25,19 @@ export function ProfilePopup({ isOpen }: ProfilePopupProps) {
           <div className="px-1 py-1 border-b border-base-200 mb-3">
             <h3 className="font-semibold text-base-content">Nastavení</h3>
           </div>
+          
+          {/* Feedback Button */}
+          {onOpenFeedback && (
+            <button 
+              onClick={onOpenFeedback}
+              className="w-full flex items-center gap-3 px-1 py-2 text-left hover:bg-base-200 rounded-lg transition-colors mb-2"
+            >
+              <div className="flex items-center gap-2 flex-1">
+                 <MessageSquarePlus className="w-4 h-4 text-primary shrink-0" />
+                 <span className="text-xs font-medium text-base-content">Nahlásit chybu / Nápad</span>
+              </div>
+            </button>
+          )}
 
           {/* Outlook Sync Toggle */}
           <label className="flex items-center justify-between gap-3 px-1 py-2 cursor-pointer hover:bg-base-200 rounded-lg transition-colors">

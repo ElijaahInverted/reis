@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import { Sidebar } from './components/Sidebar'
 import { WeeklyCalendar } from './components/WeeklyCalendar'
 import { OutlookSyncHint } from './components/OutlookSyncHint'
+import { WelcomeModal } from './components/Onboarding/WelcomeModal'
 import { AppHeader } from './components/AppHeader'
 import { Toaster } from './components/ui/sonner'
 
@@ -15,22 +16,8 @@ import { signalReady, requestData, isInIframe } from './api/proxyClient'
 import type { SyncedData } from './types/messages'
 import { StorageService, STORAGE_KEYS } from './services/storage'
 import { syncService, outlookSyncService } from './services/sync'
-import { useSchedule, useExams, useOutlookSync } from './hooks/data'
-import { parseDate } from './utils/date'
-
-// Helper: Get week date strings (YYYYMMDD format) for a given week start date
-function getWeekDateStrings(weekStart: Date): string[] {
-  const dates: string[] = [];
-  for (let i = 0; i < 5; i++) {
-    const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    dates.push(`${year}${month}${day}`);
-  }
-  return dates;
-}
+import { useOutlookSync } from './hooks/data'
+import { FeedbackModal } from './components/Feedback/FeedbackModal'
 
 function App() {
   // Initialize Outlook sync service on startup
@@ -38,68 +25,27 @@ function App() {
     outlookSyncService.init();
   }, []);
   
-  // Access schedule and exams data at App level for week content checking
-  const { schedule: storedSchedule } = useSchedule();
-  const { exams: storedExams } = useExams();
-  
-  // Pre-compute exam date strings (registered exams only)
-  const examDateStrings = useMemo(() => {
-    if (!storedExams || storedExams.length === 0) return new Set<string>();
-    
-    const dateSet = new Set<string>();
-    storedExams.forEach(subject => {
-      subject.sections.forEach((section: { status: string; registeredTerm?: { date: string; time: string } }) => {
-        if (section.status === 'registered' && section.registeredTerm) {
-          const examDate = parseDate(section.registeredTerm.date, section.registeredTerm.time);
-          const dateStr = `${examDate.getFullYear()}${String(examDate.getMonth() + 1).padStart(2, '0')}${String(examDate.getDate()).padStart(2, '0')}`;
-          dateSet.add(dateStr);
-        }
-      });
-    });
-    return dateSet;
-  }, [storedExams]);
-  
-  // Check if a given week has any events (schedule or exams)
-  const weekHasContent = useCallback((weekStart: Date): boolean => {
-    const weekDates = getWeekDateStrings(weekStart);
-    
-    // Check schedule
-    if (storedSchedule && storedSchedule.length > 0) {
-      const hasScheduleEvent = storedSchedule.some(lesson => weekDates.includes(lesson.date));
-      if (hasScheduleEvent) return true;
-    }
-    
-    // Check exams
-    const hasExamEvent = weekDates.some(dateStr => examDateStrings.has(dateStr));
-    if (hasExamEvent) return true;
-    
-    return false;
-  }, [storedSchedule, examDateStrings]);
-  
-  // Find the next week with content in a given direction
-  const findNextWeekWithContent = useCallback((fromDate: Date, direction: 'next' | 'prev'): Date => {
-    const MAX_WEEKS_TO_SKIP = 52; // Maximum weeks to search (1 year)
-    let candidate = new Date(fromDate);
-    
-    for (let i = 0; i < MAX_WEEKS_TO_SKIP; i++) {
-      candidate = new Date(candidate);
-      candidate.setDate(candidate.getDate() + (direction === 'next' ? 7 : -7));
-      
-      if (weekHasContent(candidate)) {
-        return candidate;
+  const [currentDate, setCurrentDate] = useState(() => {
+    // Try to restore previously selected week from localStorage
+    const DATE_STORAGE_KEY = 'reis_current_week';
+    const stored = localStorage.getItem(DATE_STORAGE_KEY);
+    if (stored) {
+      const parsed = new Date(stored);
+      if (!isNaN(parsed.getTime())) {
+        console.debug('[App] Restoring week from storage:', stored);
+        return parsed;
       }
     }
-    
-    // If no content found within limit, just return one week in direction
-    const fallback = new Date(fromDate);
-    fallback.setDate(fallback.getDate() + (direction === 'next' ? 7 : -7));
-    return fallback;
-  }, [weekHasContent]);
-  
-  const [currentDate, setCurrentDate] = useState(() => {
+    // Fallback to smart week (current/next week based on day)
     const { start } = getSmartWeekRange();
     return start;
   });
+
+  // Persist selected week to localStorage
+  useEffect(() => {
+    const DATE_STORAGE_KEY = 'reis_current_week';
+    localStorage.setItem(DATE_STORAGE_KEY, currentDate.toISOString());
+  }, [currentDate]);
 
   // View state for main content area (persisted to localStorage)
   const VIEW_STORAGE_KEY = 'reis_current_view';
@@ -115,6 +61,25 @@ function App() {
   const handleSelectSubject = (subj: any) => {
     console.log('[App] Selected subject:', subj);
     setSelectedSubject(subj);
+  };
+
+  const handleOpenSubjectFromSearch = (courseCode: string, courseName?: string, courseId?: string) => {
+    console.log('[App] Opening subject from search:', courseCode, 'courseId:', courseId);
+    // Create a minimal lesson-like object for the drawer
+    const lessonObj = {
+      courseCode,
+      courseName: courseName || courseCode,
+      courseId: courseId || '', // Use provided ID from search result
+      id: `search-${courseCode}`,
+      date: '',
+      startTime: '',
+      endTime: '',
+      room: '',
+      teachers: [],
+      isExam: false,
+      isFromSearch: true, // Flag to indicate opened from search (for default tab)
+    };
+    setSelectedSubject(lessonObj);
   };
   
   // Persist view changes
@@ -133,6 +98,7 @@ function App() {
   const openSettingsRef = useRef<(() => void) | null>(null);
 
   const [syncData, setSyncData] = useState<SyncedData | null>(null);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   // Set up postMessage communication with Content Script
   useEffect(() => {
@@ -206,15 +172,15 @@ function App() {
   }, []);
 
   const handlePrevWeek = () => {
-    // Skip to previous week with content
-    const newDate = findNextWeekWithContent(currentDate, 'prev');
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() - 7);
     setCurrentDate(newDate);
     setWeekNavCount(prev => prev + 1);
   };
 
   const handleNextWeek = () => {
-    // Skip to next week with content
-    const newDate = findNextWeekWithContent(currentDate, 'next');
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + 7);
     setCurrentDate(newDate);
     setWeekNavCount(prev => prev + 1);
   };
@@ -261,6 +227,7 @@ function App() {
         currentView={currentView}
         onViewChange={setCurrentView}
         onOpenSettingsRef={openSettingsRef}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
       />
       <main className="flex-1 flex flex-col ml-0 md:ml-20 transition-all duration-300 overflow-hidden">
         <AppHeader 
@@ -270,6 +237,7 @@ function App() {
           onNextWeek={handleNextWeek}
           onToday={handleToday}
           onOpenExams={() => setCurrentView('exams')}
+          onOpenSubject={handleOpenSubjectFromSearch}
         />
 
         <div className="flex-1 pt-3 px-4 pb-1 overflow-hidden flex flex-col">
@@ -300,6 +268,15 @@ function App() {
         navigationCount={weekNavCount}
         isSyncEnabled={outlookSyncEnabled}
         onSetup={() => openSettingsRef.current?.()}
+      />
+      
+      {/* First-run Welcome Modal */}
+      <WelcomeModal />
+
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
       />
     </div>
   )

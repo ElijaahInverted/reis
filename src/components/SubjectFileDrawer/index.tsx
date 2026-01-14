@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { FileText } from 'lucide-react';
 import { loggers } from '../../utils/logger';
 import { useSubjects, useSchedule } from '../../hooks/data';
 import { getFilesForSubject } from '../../utils/apiUtils';
@@ -71,8 +72,8 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
     // Set default tab based on context when opening
     useEffect(() => {
         if (isOpen && lesson) {
-            // Default to 'stats' tab when opened from exams view (zkousky page)
-            setActiveTab(lesson.isExam ? 'stats' : 'files');
+            // Priority: search → stats, exam → stats, else → files
+            setActiveTab(lesson.isFromSearch ? 'stats' : lesson.isExam ? 'stats' : 'files');
         }
         if (!isOpen) {
             queueMicrotask(() => {
@@ -207,8 +208,20 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
                             {activeTab === 'files' && <DragHint show={showDragHint} />}
 
                             {activeTab === 'files' ? (
-                                !subjectsLoaded || !files ? (
+                                // Show skeleton only while waiting for subjects to load
+                                !subjectsLoaded ? (
                                     <FileListSkeleton />
+                                ) : !files || files.length === 0 ? (
+                                    // Empty state when no files available  
+                                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                                        <FileText className="w-12 h-12 text-base-content/20 mb-3" />
+                                        <p className="text-sm text-base-content/60">
+                                            {lesson?.isFromSearch 
+                                                ? "Soubory jsou dostupné pouze pro předměty ve vašem rozvrhu"
+                                                : "Žádné soubory nejsou k dispozici"
+                                            }
+                                        </p>
+                                    </div>
                                 ) : (
                                     <FileList
                                         groups={groupedFiles}

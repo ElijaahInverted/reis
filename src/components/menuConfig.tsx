@@ -14,7 +14,8 @@ import {
     Upload,
     FileText,
     PenTool,
-    Book
+    Book,
+    CalendarCheck
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -42,6 +43,11 @@ export const getMainMenuItems = (studiumId: string = '', obdobiId: string = ''):
         label: 'Domů',
         icon: <Home className="w-5 h-5" />,
         href: 'https://is.mendelu.cz/auth/'
+    },
+    {
+        id: 'exams',
+        label: 'Zkoušky',
+        icon: <CalendarCheck className="w-5 h-5" />,
     },
     {
         id: 'portal',

@@ -23,25 +23,27 @@ export interface RoomStructured {
 }
 
 export interface BlockLesson {
-    date: string; // e.g., "20251022"
-    isConsultation: string; // <-- NEW, e.g., "false" (or boolean if possible)
-    room: string;
-    roomStructured: RoomStructured; // <-- NEW, structured room data
-    studyId: string;
-    endTime: string; // e.g., "16:50"
-    facultyCode: string; // <-- NEW, e.g., "PEF"
     id: string;
-    startTime: string; // e.g., "15:00"
-    isDefaultCampus: string; // <-- NEW, e.g., "true" (or boolean if possible)
-    courseId: string;
+    date: string; // YYYYMMDD format, e.g., "20251022"
+    startTime: string; // HH:MM format, e.g., "15:00"
+    endTime: string; // HH:MM format, e.g., "16:50"
     courseName: string;
-    campus: string;
-    isSeminar: string; // <-- NEW, e.g., "false" (or boolean if possible)
-    teachers: Teacher[];
     courseCode: string;
-    periodId: string; // <-- NEW, e.g., "801"
+    courseId: string;
+    sectionName?: string;
+    room: string;
+    roomStructured: RoomStructured;
+    teachers: Teacher[];
+    periodId: string;
+    studyId: string;
+    campus: string;
+    isDefaultCampus: string;
+    facultyCode: string;
+    isSeminar: string; // 'true' or 'false' as string
+    isConsultation: string; // 'true' or 'false' as string
     isExam?: boolean;
-    examEvent?: any; // Using any for now to avoid circular dependency or complex imports, or I can import ExamEvent
+    examEvent?: any;
+    isFromSearch?: boolean; // Indicates drawer opened from search (not a calendar event)
 }
 
 export interface FileObject {
