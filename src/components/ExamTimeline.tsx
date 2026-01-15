@@ -163,7 +163,7 @@ export function ExamTimeline({ exams, onSelectExam }: ExamTimelineProps) {
     const ScoreIcon = scoreInfo.Icon;
 
     return (
-        <div className="px-4 py-3 bg-base-200 rounded-lg overflow-x-auto">
+        <div className="px-4 pt-3 pb-0 bg-base-200 rounded-lg overflow-x-auto">
             {/* Main Header */}
             <div className="flex items-center gap-2 mb-3">
                 <CalendarCheck size={18} className="text-primary" />

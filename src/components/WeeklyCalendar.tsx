@@ -323,10 +323,10 @@ export function WeeklyCalendar({ initialDate = new Date() }: WeeklyCalendarProps
                                        ${isToday ? 'bg-current-day-header' : ''}`}
                         >
                             <div className="flex flex-col items-center justify-center h-full">
-                                <div className={`text-base font-semibold leading-tight ${holiday ? 'text-error' : isToday ? 'text-current-day' : 'text-base-content'}`}>
+                                <div className={`text-lg font-semibold leading-tight ${holiday ? 'text-error' : isToday ? 'text-current-day' : 'text-base-content'}`}>
                                     {dateInfo?.day}
                                 </div>
-                                <div className={`text-xs leading-tight ${holiday ? 'text-error' : 'text-content-secondary'}`}>
+                                <div className={`text-[13px] leading-tight ${holiday ? 'text-error' : 'text-base-content'}`}>
                                     {day.full}
                                 </div>
                             </div>
@@ -343,7 +343,7 @@ export function WeeklyCalendar({ initialDate = new Date() }: WeeklyCalendarProps
                         {HOURS.map((hour, index) => (
                             <div
                                 key={hour}
-                                className="absolute left-0 right-0 text-xs text-content-secondary text-right pr-1"
+                                className="absolute left-0 right-0 text-xs text-base-content/80 text-right pr-1"
                                 style={{
                                     top: `${(index / TOTAL_HOURS) * 100}%`,
                                     height: `${100 / TOTAL_HOURS}%`,

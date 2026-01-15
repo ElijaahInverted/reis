@@ -144,6 +144,15 @@ function App() {
             }
             console.log('[App] Wrote files for', subjectCount, 'subjects to localStorage');
           }
+          if (receivedData.assessments && typeof receivedData.assessments === 'object') {
+            // Write assessments for each subject with prefix key
+            const assessmentsMap = receivedData.assessments as Record<string, unknown>;
+            for (const [courseCode, assessments] of Object.entries(assessmentsMap)) {
+              const key = `${STORAGE_KEYS.SUBJECT_ASSESSMENTS_PREFIX}${courseCode}`;
+              StorageService.set(key, assessments);
+            }
+            console.log('[App] Wrote assessments for', Object.keys(assessmentsMap).length, 'subjects to localStorage');
+          }
           if (receivedData.lastSync) {
             StorageService.set(STORAGE_KEYS.LAST_SYNC, receivedData.lastSync);
           }
@@ -200,12 +209,11 @@ function App() {
     const startMonth = currentDate.getMonth() + 1;
     const endDay = weekEnd.getDate();
     const endMonth = weekEnd.getMonth() + 1;
-    const year = weekEnd.getFullYear();
 
     if (startMonth === endMonth) {
-      return `${startDay}. - ${endDay}.${startMonth}. ${year}`;
+      return `${startDay}. - ${endDay}.${startMonth}.`;
     } else {
-      return `${startDay}.${startMonth}. - ${endDay}.${startMonth === 12 && endMonth === 1 ? endMonth + '.' + (year) : endMonth + '.'} ${year}`;
+      return `${startDay}.${startMonth}. - ${endDay}.${endMonth}.`;
     }
   };
 
@@ -217,6 +225,7 @@ function App() {
       hasSchedule: !!syncData.schedule,
       hasExams: !!syncData.exams,
       hasSubjects: !!syncData.subjects,
+      hasAssessments: !!syncData.assessments || Object.keys(localStorage).some(k => k.startsWith(STORAGE_KEYS.SUBJECT_ASSESSMENTS_PREFIX)),
       lastSync: syncData.lastSync
     });
   }

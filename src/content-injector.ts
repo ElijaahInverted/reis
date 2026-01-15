@@ -31,8 +31,10 @@ import { fetchWeekSchedule } from "./api/schedule";
 import { fetchExamData } from "./api/exams";
 import { fetchSubjects } from "./api/subjects";
 import { fetchFilesFromFolder } from "./api/documents";
+import { fetchAssessments } from "./api/assessments";
 import { registerExam, unregisterExam } from "./api/exams";
-import type { SubjectsData } from "./types/documents";
+import { getUserParams } from "./utils/userParams";
+import type { SubjectsData, Assessment } from "./types/documents";
 import type { ParsedFile } from "./types/documents";
 
 // =============================================================================
@@ -310,8 +312,8 @@ function startSyncService() {
 }
 
 async function syncAllData() {
+    console.log("[REIS Content] 🔄 Starting scraping/sync process...");
     console.log("[REIS Content] Syncing all data...");
-    const startTime = Date.now();
 
     try {
         const [schedule, exams, subjects] = await Promise.allSettled([
@@ -333,9 +335,32 @@ async function syncAllData() {
         if (subjects.status === "fulfilled" && subjects.value) {
             const subjectsData = subjects.value as SubjectsData;
             const files: Record<string, ParsedFile[]> = {};
+            const assessments: Record<string, Assessment[]> = {};
             const subjectEntries = Object.entries(subjectsData.data);
 
+            // Get user params for assessment sync
+            const userParams = await getUserParams();
+            let studium = userParams?.studium;
+            let obdobi = userParams?.obdobi;
+
+            // Fallback: Try to get from schedule data if missing
+            if (!studium || !obdobi) {
+                console.log('[REIS Content] Incomplete user params, trying fallback from schedule data...');
+                const scheduleArray = (schedule.status === "fulfilled" && Array.isArray(schedule.value)) ? schedule.value : null;
+                if (scheduleArray && scheduleArray.length > 0) {
+                    const firstEvent = scheduleArray[0];
+                    studium = studium || (firstEvent as any).studyId;
+                    obdobi = obdobi || (firstEvent as any).periodId;
+                    console.log(`[REIS Content] Fallback successful: studium=${studium}, obdobi=${obdobi}`);
+                }
+            }
+            
+            console.log(`[REIS Content] Starting loop for ${subjectEntries.length} subjects. Params: studium=${studium}, obdobi=${obdobi}`);
+
             for (const [courseCode, subject] of subjectEntries) {
+                console.log(`[REIS Content] Processing ${courseCode}: subjectId=${subject.subjectId}, folderUrl=${!!subject.folderUrl}`);
+                
+                // Fetch files
                 if (subject.folderUrl) {
                     try {
                         const subjectFiles = await fetchFilesFromFolder(subject.folderUrl);
@@ -344,9 +369,24 @@ async function syncAllData() {
                         console.warn(`[REIS Content] Failed to fetch files for ${courseCode}:`, e);
                     }
                 }
+
+                // Fetch assessments
+                if (studium && obdobi && subject.subjectId) {
+                    try {
+                        console.log(`[REIS Content] Fetching assessments for ${courseCode}...`);
+                        const subjectAssessments = await fetchAssessments(studium, obdobi, subject.subjectId);
+                        console.log(`[REIS Content] Result for ${courseCode}: ${subjectAssessments.length} assessments`);
+                        assessments[courseCode] = subjectAssessments;
+                    } catch (e) {
+                        console.warn(`[REIS Content] Failed to fetch assessments for ${courseCode}:`, e);
+                    }
+                } else {
+                    console.debug(`[REIS Content] Skipping assessments for ${courseCode}: studium=${!!studium}, obdobi=${!!obdobi}, subjectId=${!!subject.subjectId}`);
+                }
             }
 
             cachedData.files = files;
+            cachedData.assessments = assessments;
             cachedData.lastSync = Date.now();
             sendToIframe(Messages.syncUpdate(cachedData));
         }

@@ -28,6 +28,10 @@ export const STORAGE_KEYS = {
     LAST_SYNC: 'reis_last_sync',
     SYNC_ERROR: 'reis_sync_error',
     SYNC_IN_PROGRESS: 'reis_sync_in_progress',
+
+    // Assessment data (keyed by course code)
+    // Usage: SUBJECT_ASSESSMENTS_PREFIX + courseCode
+    SUBJECT_ASSESSMENTS_PREFIX: 'reis_assessments_',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

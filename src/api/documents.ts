@@ -27,6 +27,7 @@ export async function fetchDocumentsForSubject(subjectCode: string): Promise<Fil
 }
 
 export async function fetchFilesFromFolder(folderUrl: string, recursive: boolean = true, currentDepth: number = 0, maxDepth: number = 2): Promise<ParsedFile[]> {
+    console.log(`[REIS Files] 📂 Scraping folder: ${folderUrl} (depth: ${currentDepth})`);
     try {
         // Ensure lang=cz is present
         let urlToFetch = folderUrl;

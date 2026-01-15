@@ -8,8 +8,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { FileText } from 'lucide-react';
 import { loggers } from '../../utils/logger';
-import { useSubjects, useSchedule } from '../../hooks/data';
-import { getFilesForSubject } from '../../utils/apiUtils';
+import { useSubjects, useSchedule, useFiles, useSyncStatus } from '../../hooks/data';
 import { cleanFolderName } from '../../utils/fileUrl';
 import { useFileActions } from '../../hooks/ui/useFileActions';
 import { SuccessRateTab } from '../SuccessRateTab';
@@ -18,6 +17,7 @@ import type { ParsedFile } from '../../types/documents';
 
 import { DrawerHeader } from './DrawerHeader';
 import { FileList, FileListSkeleton } from './FileList';
+import { AssessmentTab } from './AssessmentTab';
 import { DragHint, SelectionBox } from './DragHint';
 import { useDragSelection } from './useDragSelection';
 import type { FileGroup } from './types';
@@ -33,13 +33,14 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
     const { isLoaded: subjectsLoaded } = useSubjects();
     const { schedule } = useSchedule();
     const { isDownloading, openFile, downloadZip } = useFileActions();
+    const { isSyncing, lastSync } = useSyncStatus();
 
     loggers.ui.info('[SubjectFileDrawer] Rendering. Open:', isOpen, 'Lesson:', lesson?.courseCode);
 
     // State
     // Default to 'stats' tab when opened from exams view (zkousky page)
-    const [activeTab, setActiveTab] = useState<'files' | 'stats'>(lesson?.isExam ? 'stats' : 'files');
-    const [files, setFiles] = useState<ParsedFile[] | null>(null);
+    const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments'>(lesson?.isExam ? 'stats' : 'files');
+    const { files } = useFiles(isOpen ? lesson?.courseCode : undefined);
     const [showDragHint, setShowDragHint] = useState(false);
 
     // Refs
@@ -62,12 +63,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
         fileRefs
     });
 
-    // Load files
-    useEffect(() => {
-        if (!isOpen || !lesson || !subjectsLoaded) return;
-        const cachedFiles = getFilesForSubject(lesson.courseCode);
-        queueMicrotask(() => setFiles(cachedFiles));
-    }, [isOpen, lesson, subjectsLoaded]);
+    // No manual file loading effect - handled by useFiles hook
 
     // Set default tab based on context when opening
     useEffect(() => {
@@ -208,8 +204,8 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
                             {activeTab === 'files' && <DragHint show={showDragHint} />}
 
                             {activeTab === 'files' ? (
-                                // Show skeleton only while waiting for subjects to load
-                                !subjectsLoaded ? (
+                                // Show skeleton while waiting for subjects to load OR during initial background sync
+                                (!subjectsLoaded || (files === null && isSyncing && !lastSync)) ? (
                                     <FileListSkeleton />
                                 ) : !files || files.length === 0 ? (
                                     // Empty state when no files available  
@@ -232,6 +228,8 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
                                         onOpenFile={openFile}
                                     />
                                 )
+                            ) : activeTab === 'assessments' ? (
+                                <AssessmentTab courseCode={lesson?.courseCode || ''} />
                             ) : (
                                 <SuccessRateTab courseCode={lesson?.courseCode || ''} />
                             )}

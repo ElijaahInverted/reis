@@ -11,7 +11,7 @@
 // =============================================================================
 
 /** Types of data that can be requested/synced */
-export type DataRequestType = 'schedule' | 'exams' | 'subjects' | 'files' | 'all';
+export type DataRequestType = 'schedule' | 'exams' | 'subjects' | 'files' | 'assessments' | 'all';
 
 /** Actions that can be triggered from iframe */
 export type ActionType =
@@ -26,6 +26,7 @@ export interface SyncedData {
     exams?: unknown;
     subjects?: unknown;
     files?: unknown;
+    assessments?: unknown; // Map of courseCode -> Assessment[]
     lastSync: number;
     error?: string;
 }

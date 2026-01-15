@@ -162,7 +162,7 @@ export function ExamPanel({ onSelectSubject }: ExamPanelProps) {
                 <ExamPanelHeader />
                 
                 {/* Timeline */}
-                <div className="px-4 py-2 border-b border-base-200">
+                <div className="px-4 pt-2 pb-0 border-b border-base-200">
                     <ExamTimeline 
                         exams={exams} 
                         onSelectExam={(exam) => onSelectSubject({

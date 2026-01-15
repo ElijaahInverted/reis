@@ -159,6 +159,12 @@ export function DrawerHeader({
                     Soubory
                 </button>
                 <button 
+                    onClick={() => onTabChange('assessments')}
+                    className={`text-sm font-bold pb-2 border-b-2 transition-all px-1 ${activeTab === 'assessments' ? 'border-primary text-primary' : 'border-transparent text-base-content/40 hover:text-base-content/60'}`}
+                >
+                    Hodnocení
+                </button>
+                <button 
                     onClick={() => onTabChange('stats')}
                     className={`text-sm font-bold pb-2 border-b-2 transition-all px-1 ${activeTab === 'stats' ? 'border-primary text-primary' : 'border-transparent text-base-content/40 hover:text-base-content/60'}`}
                     data-testid="tab-stats"

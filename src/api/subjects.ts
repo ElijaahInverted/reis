@@ -15,9 +15,14 @@ export async function fetchSubjects(): Promise<SubjectsData | null> {
     }
 }
 
-function parseSubjectFolders(htmlString: string): Record<string, string> {
+interface SubjectLinkData {
+    folderUrl: string;
+    subjectId?: string;
+}
+
+function parseSubjectFolders(htmlString: string): Record<string, SubjectLinkData> {
     console.debug('[parseSubjectFolders] Starting parse, HTML length:', htmlString.length);
-    const subjectMap: Record<string, string> = {};
+    const subjectMap: Record<string, SubjectLinkData> = {};
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
 
@@ -38,7 +43,16 @@ function parseSubjectFolders(htmlString: string): Record<string, string> {
             const relativeUrl = folderLinkElement.getAttribute('href') || '';
             const cleanUrl = relativeUrl.replace('../', '');
             const absoluteUrl = new URL(cleanUrl, `${BASE_URL}/auth/`).href;
-            subjectMap[subjectName] = absoluteUrl;
+            
+            // Extract numeric ID from syllabus link (predmet=12345)
+            const syllabusHref = subjectLinkElement.getAttribute('href') || '';
+            const idMatch = syllabusHref.match(/[?&;]predmet=(\d+)/);
+            const subjectId = idMatch ? idMatch[1] : undefined;
+
+            subjectMap[subjectName] = { 
+                folderUrl: absoluteUrl,
+                subjectId 
+            };
         }
     });
     console.debug('[parseSubjectFolders] Parsed', Object.keys(subjectMap).length, 'subjects with folders');
@@ -49,16 +63,17 @@ function extractSubjectCode(subjectName: string): string {
     return subjectName.split(" ")[0];
 }
 
-function showFullSubjects(subjectsObject: Record<string, string>): SubjectsData {
+function showFullSubjects(subjectsObject: Record<string, SubjectLinkData>): SubjectsData {
     const enrichedSubjects: Record<string, SubjectInfo> = {};
-    for (const [fullName, folderUrl] of Object.entries(subjectsObject)) {
+    for (const [fullName, data] of Object.entries(subjectsObject)) {
         const subjectCode = extractSubjectCode(fullName);
         const displayName = fullName.replace(/\s*\([^)]+\)\s*$/, '').trim();
         enrichedSubjects[subjectCode] = {
             displayName,
             fullName,
             subjectCode,
-            folderUrl,
+            subjectId: data.subjectId,
+            folderUrl: data.folderUrl,
             fetchedAt: new Date().toISOString()
         };
     }

@@ -12,6 +12,7 @@ import { syncExams } from './syncExams';
 import { syncSchedule } from './syncSchedule';
 import { syncSubjects } from './syncSubjects';
 import { syncFiles } from './syncFiles';
+import { syncAssessments } from './syncAssessments';
 
 const SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -81,6 +82,12 @@ class SyncServiceClass {
                     console.error(`[SyncService] ${syncNames[index]} sync failed:`, result.reason);
                 }
             });
+
+            try {
+                await syncAssessments();
+            } catch (error) {
+                console.error('[SyncService] assessments sync failed:', error);
+            }
 
             try {
                 await syncFiles();

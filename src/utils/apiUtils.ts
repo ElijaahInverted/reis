@@ -7,7 +7,7 @@
 
 import type { FileObject, StoredSubject } from "../types/calendarTypes";
 import { StorageService, STORAGE_KEYS } from "../services/storage";
-import type { SubjectsData } from "../types/documents";
+import type { SubjectsData, Assessment } from "../types/documents";
 
 /**
  * Get a stored subject by course code.
@@ -75,4 +75,20 @@ export async function getFilesFromId(folderId: string | null): Promise<FileObjec
 
     console.debug(`[getFilesFromId] No subject found with folder ID ${folderId}`);
     return null;
+}
+
+/**
+ * Get assessments for a subject by course code.
+ * Reads directly from storage (populated by syncAssessments).
+ */
+export function getAssessmentsForSubject(courseCode: string): Assessment[] | null {
+    const storageKey = `${STORAGE_KEYS.SUBJECT_ASSESSMENTS_PREFIX}${courseCode}`;
+    const assessments = StorageService.get<Assessment[]>(storageKey);
+
+    if (!assessments) {
+        console.debug(`[getAssessmentsForSubject] No assessments in storage for ${courseCode}`);
+        return null;
+    }
+
+    return assessments;
 }

@@ -34,13 +34,13 @@ export function ExamSectionCard({
 
     return (
         <div className="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow">
-            <div className="card-body p-4">
-                <div className="flex items-start justify-between gap-4">
+            <div className="p-2">
+                <div className="flex flex-wrap items-start justify-between gap-2">
                     {/* Left: Subject + Section Info */}
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
+                    <div className="flex-1 min-w-[200px]">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
                             <span 
-                                className="badge badge-sm font-bold bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 active:scale-95 transition-all"
+                                className="badge badge-sm font-bold bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 active:scale-95 transition-all h-auto whitespace-normal text-left py-1 inline-block"
                                 onClick={() => onSelectSubject({ 
                                     ...subject, 
                                     courseCode: subject.code,
@@ -52,7 +52,7 @@ export function ExamSectionCard({
                             >
                                 {subject.name}
                             </span>
-                            <span className="text-sm font-bold text-base-content/80 truncate">
+                            <span className="text-sm font-bold text-base-content/80">
                                 {section.name}
                             </span>
                             {isRegistered && (
@@ -143,8 +143,8 @@ function RegisteredTermDetails({ section }: { section: ExamSection }) {
     if (!term) return null;
 
     return (
-        <div className="text-xs text-base-content/60 flex flex-col gap-1.5 mt-1">
-            <div className="flex items-center gap-3 flex-wrap">
+        <div className="text-xs text-base-content/60 flex flex-col gap-1 mt-1">
+            <div className="flex items-center gap-2 flex-wrap">
                 <span className="flex items-center gap-1.5">
                     <Calendar size={13} className="text-base-content/40" />
                     <span className="text-base-content/80 font-medium">{term.date}</span>

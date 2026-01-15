@@ -182,7 +182,7 @@ export function DatePickerPopup({
                     {/* Month Header */}
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-semibold text-slate-700 capitalize">
-                            {format(currentDate, 'LLLL yyyy', { locale: cs })}
+                            {format(currentDate, 'LLLL', { locale: cs })}
                         </span>
                         <div className="flex gap-0.5">
                             <button

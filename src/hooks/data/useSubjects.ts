@@ -24,11 +24,10 @@ export function useSubjects(): UseSubjectsResult {
         // 1. Immediately load from storage
         const loadFromStorage = () => {
             const storedData = StorageService.get<SubjectsData>(STORAGE_KEYS.SUBJECTS_DATA);
-
             if (storedData) {
                 setSubjects(storedData);
-                setIsLoaded(true);
             }
+            setIsLoaded(true);
         };
 
         loadFromStorage();

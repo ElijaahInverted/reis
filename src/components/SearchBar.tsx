@@ -1,5 +1,5 @@
 import { Search, X, ChevronUp, ChevronDown, Clock, FileText, GraduationCap, Briefcase, BookOpen } from 'lucide-react';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { searchGlobal } from '../api/search';
 import { pagesData, injectUserParams } from '../data/pagesData';
 import type { PageItem, PageCategory } from '../data/pagesData';
@@ -38,10 +38,7 @@ export function SearchBar({ placeholder = "Hledej předměty, lidi, stránky..."
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Detect Mac vs Windows/Linux for keyboard shortcut display
-  const isMac = useMemo(() => {
-    return typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-  }, []);
+
 
   const [recentSearches, setRecentSearches] = useState<SearchResult[]>([]);
 
@@ -205,18 +202,7 @@ export function SearchBar({ placeholder = "Hledej předměty, lidi, stránky..."
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Global Ctrl+K handler
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        inputRef.current?.focus();
-        setIsOpen(true);
-      }
-    };
-    document.addEventListener('keydown', handleGlobalKeyDown);
-    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+
 
   // Only open popover if there's already a query (don't pop on empty focus)
   const handleFocus = () => {
@@ -323,7 +309,7 @@ export function SearchBar({ placeholder = "Hledej předměty, lidi, stránky..."
               />
 
               {/* Right side icons */}
-              {query ? (
+              {query && (
                 <button
                   onClick={() => {
                     setQuery('');
@@ -334,16 +320,6 @@ export function SearchBar({ placeholder = "Hledej předměty, lidi, stránky..."
                 >
                   <X className="w-4 h-4 text-base-content/50" />
                 </button>
-              ) : (
-                !isOpen && (
-                  <kbd className="hidden sm:inline-flex items-center gap-0.5 text-xs text-base-content/50 bg-base-200 border border-base-300 rounded px-1.5 py-0.5 font-sans">
-                    {isMac ? (
-                      <><span className="text-[10px]">⌘</span>K</>
-                    ) : (
-                      <><span className="text-[10px]">⌃</span>K</>
-                    )}
-                  </kbd>
-                )
               )}
             </div>
           </div>

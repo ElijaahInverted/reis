@@ -2,6 +2,7 @@ export interface SubjectInfo {
     displayName: string;
     fullName: string;
     subjectCode: string;
+    subjectId?: string; // Numeric ID (from predmet=...)
     folderUrl: string;
     fetchedAt: string;
 }
@@ -56,4 +57,14 @@ export interface SubjectSuccessRate {
 export interface SuccessRateData {
     lastUpdated: string; // Global sync timestamp
     data: Record<string, SubjectSuccessRate>; // Keyed by course code
+}
+
+export interface Assessment {
+    name: string;
+    score: number;
+    maxScore: number;
+    successRate: number;
+    submittedDate: string;
+    teacher: string;
+    detailUrl?: string; // Relative URL for details
 }

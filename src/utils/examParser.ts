@@ -71,7 +71,10 @@ export function parseExamData(html: string): ExamSubject[] {
     };
 
     // Helper to get or create section within a subject
-    const getOrCreateSection = (subject: ExamSubject, sectionName: string) => {
+    const getOrCreateSection = (subject: ExamSubject, rawSectionName: string) => {
+        // Capitalize first letter (e.g. "zkouška" -> "Zkouška")
+        const sectionName = rawSectionName.charAt(0).toUpperCase() + rawSectionName.slice(1);
+
         let section = subject.sections.find(s => s.name === sectionName);
         if (!section) {
             section = {

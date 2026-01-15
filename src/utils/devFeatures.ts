@@ -24,8 +24,7 @@ export const isDevFeaturesEnabled = () => {
 
 export const isNotificationsEnabled = () => {
     try {
-        // 🎯 TEMPORARY: Force enabled for demo (remove after spolky launch)
-        return true;
+
         
         // 1. URL Parameter (highest priority - perfect for demos)
         if (typeof window !== 'undefined' && window.location.search.includes('show_notifications=1')) {

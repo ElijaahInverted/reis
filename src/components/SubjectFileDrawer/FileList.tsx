@@ -59,7 +59,7 @@ export function FileList({
                                             <div 
                                                 className={`
                                                     w-5 h-5 rounded border flex items-center justify-center transition-colors interactive
-                                                    ${isSelected ? 'bg-primary border-primary' : 'border-base-300 group-hover:border-primary/50'}
+                                                    ${isSelected ? 'bg-primary border-primary' : 'border-base-content/30 group-hover:border-primary/50'}
                                                 `}
                                                 onClick={(e) => onToggleSelect(subFile.link, e)}
                                             >
