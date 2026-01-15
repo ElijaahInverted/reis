@@ -14,6 +14,7 @@ import type { ExamSubject, RegisteredExam } from '../types/exams';
 
 interface ExamTimelineProps {
     exams: ExamSubject[];
+    onSelectExam?: (exam: RegisteredExam) => void;
 }
 
 /**
@@ -89,7 +90,7 @@ function getExamUrgency(dateStr: string): { colorClass: string; pulse: boolean }
     return result;
 }
 
-export function ExamTimeline({ exams }: ExamTimelineProps) {
+export function ExamTimeline({ exams, onSelectExam }: ExamTimelineProps) {
     // Extract registered exams from all subjects
     const registeredExams = useMemo<RegisteredExam[]>(() => {
         const registered: RegisteredExam[] = [];
@@ -232,7 +233,11 @@ export function ExamTimeline({ exams }: ExamTimelineProps) {
                     return (
                         <li key={`exam-${exam.code}-${exam.date}`}>
                             {!isFirst && <hr className="bg-primary" />}
-                            <div className="timeline-start timeline-box bg-base-100 shadow-md border-l-2 border-current" style={{ borderColor: 'currentColor' }}>
+                            <div 
+                                className={`timeline-start timeline-box bg-base-100 shadow-md border-l-2 border-current ${onSelectExam ? 'cursor-pointer hover:scale-105 active:scale-95 transition-transform hover:shadow-lg' : ''}`} 
+                                style={{ borderColor: 'currentColor' }}
+                                onClick={() => onSelectExam?.(exam)}
+                            >
                                 <div className={`font-bold text-sm ${activeColorClass} whitespace-nowrap`} title={exam.name}>{exam.name}</div>
                                 <div className="text-xs text-base-content/60">{formatShortDate(exam.date)}</div>
                             </div>

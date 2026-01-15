@@ -41,7 +41,13 @@ export function ExamSectionCard({
                         <div className="flex items-center gap-2 mb-1.5">
                             <span 
                                 className="badge badge-sm font-bold bg-primary/10 text-primary border-primary/20 cursor-pointer hover:bg-primary/20 active:scale-95 transition-all"
-                                onClick={() => onSelectSubject({ ...subject, sectionName: section.name })}
+                                onClick={() => onSelectSubject({ 
+                                    ...subject, 
+                                    courseCode: subject.code,
+                                    courseName: subject.name,
+                                    sectionName: section.name,
+                                    isExam: true
+                                })}
                                 title="Klikněte pro zobrazení souborů a statistik předmětu"
                             >
                                 {subject.name}

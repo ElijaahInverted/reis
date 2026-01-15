@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
 
     // Exam data
     EXAMS_DATA: 'reis_exams',
+    EXAMS_LAST_MODIFIED: 'reis_exams_modified', // Timestamp for optimistic update tracking
 
     // Subject data (folder links, metadata)
     SUBJECTS_DATA: 'reis_subjects',

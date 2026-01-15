@@ -1,14 +1,35 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { fetchExamData, registerExam, unregisterExam } from '../../api/exams';
+import { registerExam, unregisterExam } from '../../api/exams';
+import { StorageService, STORAGE_KEYS } from '../../services/storage';
 import type { ExamSubject, ExamSection } from '../../types/exams';
 
 interface UseExamActionsProps {
+    exams: ExamSubject[]; // Current exam state
     setExams: (exams: ExamSubject[]) => void;
     setExpandedSectionId: (id: string | null) => void;
 }
 
-export function useExamActions({ setExams, setExpandedSectionId }: UseExamActionsProps) {
+/**
+ * Update exam data optimistically without refetching from server.
+ * This prevents the "registration disappears" bug caused by stale server data.
+ */
+function updateExamOptimistically(
+    currentExams: ExamSubject[],
+    sectionId: string,
+    update: Partial<ExamSection>
+): ExamSubject[] {
+    return currentExams.map(subject => ({
+        ...subject,
+        sections: subject.sections.map(section =>
+            section.id === sectionId
+                ? { ...section, ...update }
+                : section
+        )
+    }));
+}
+
+export function useExamActions({ exams, setExams, setExpandedSectionId }: UseExamActionsProps) {
     const [processingSectionId, setProcessingSectionId] = useState<string | null>(null);
     const [pendingAction, setPendingAction] = useState<{
         type: 'register' | 'unregister';
@@ -29,6 +50,7 @@ export function useExamActions({ setExams, setExpandedSectionId }: UseExamAction
         setPendingAction(null);
 
         try {
+            // Step 1: Unregister from previous term if needed
             if (section.status === 'registered' && section.registeredTerm?.id) {
                 const unregResult = await unregisterExam(section.registeredTerm.id);
                 if (!unregResult.success) {
@@ -38,11 +60,40 @@ export function useExamActions({ setExams, setExpandedSectionId }: UseExamAction
                 }
             }
 
+            // Step 2: Register for new term
             const regResult = await registerExam(termId);
+            
             if (regResult.success) {
                 toast.success('Úspěšně přihlášeno na termín!');
-                const data = await fetchExamData();
-                setExams(data);
+                
+                // Step 3: OPTIMISTIC UPDATE - immediately update local state
+                const selectedTerm = section.terms.find(t => t.id === termId);
+                const updatedExams = updateExamOptimistically(
+                    exams,
+                    section.id,
+                    {
+                        status: 'registered',
+                        registeredTerm: selectedTerm ? {
+                            id: selectedTerm.id,
+                            date: selectedTerm.date,
+                            time: selectedTerm.time,
+                            room: selectedTerm.room,
+                            teacher: selectedTerm.teacher,
+                            teacherId: selectedTerm.teacherId,
+                            deregistrationDeadline: selectedTerm.registrationEnd
+                        } : undefined
+                    }
+                );
+                
+                // Step 4: Update parent state immediately
+                setExams(updatedExams);
+                
+                // Step 5: Persist to localStorage
+                StorageService.set(STORAGE_KEYS.EXAMS_DATA, updatedExams);
+                
+                // Step 6: Update last modified timestamp for merge strategy
+                StorageService.set(STORAGE_KEYS.EXAMS_LAST_MODIFIED, Date.now());
+                
                 setExpandedSectionId(null);
             } else {
                 toast.error(regResult.error || 'Registrace selhala.');
@@ -65,10 +116,23 @@ export function useExamActions({ setExams, setExpandedSectionId }: UseExamAction
 
         try {
             const result = await unregisterExam(section.registeredTerm.id);
+            
             if (result.success) {
                 toast.success('Úspěšně odhlášeno z termínu.');
-                const data = await fetchExamData();
-                setExams(data);
+                
+                // OPTIMISTIC UPDATE - immediately update local state
+                const updatedExams = updateExamOptimistically(
+                    exams,
+                    section.id,
+                    {
+                        status: 'available',
+                        registeredTerm: undefined
+                    }
+                );
+                
+                setExams(updatedExams);
+                StorageService.set(STORAGE_KEYS.EXAMS_DATA, updatedExams);
+                StorageService.set(STORAGE_KEYS.EXAMS_LAST_MODIFIED, Date.now());
             } else {
                 toast.error(result.error || 'Odhlášení selhalo.');
             }

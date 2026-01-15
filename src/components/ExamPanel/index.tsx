@@ -12,7 +12,7 @@ import { useExamActions } from './useExamActions';
 import { ExamPanelHeader } from './ExamPanelHeader';
 
 interface ExamPanelProps {
-    onSelectSubject: (subj: { code: string; name: string; sectionName?: string; date?: string; time?: string; room?: string }) => void;
+    onSelectSubject: (subj: { code: string; name: string; courseCode?: string; courseName?: string; isExam?: boolean; sectionName?: string; date?: string; time?: string; room?: string }) => void;
 }
 
 const FILTER_STORAGE_KEY = 'exam_panel_filters';
@@ -47,7 +47,7 @@ export function ExamPanel({ onSelectSubject }: ExamPanelProps) {
         handleRegisterRequest,
         handleUnregisterRequest,
         handleConfirmAction,
-    } = useExamActions({ setExams, setExpandedSectionId });
+    } = useExamActions({ exams, setExams, setExpandedSectionId });
 
     // Filter state with localStorage persistence
     const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => {
@@ -163,7 +163,15 @@ export function ExamPanel({ onSelectSubject }: ExamPanelProps) {
                 
                 {/* Timeline */}
                 <div className="px-4 py-2 border-b border-base-200">
-                    <ExamTimeline exams={exams} />
+                    <ExamTimeline 
+                        exams={exams} 
+                        onSelectExam={(exam) => onSelectSubject({
+                            ...exam,
+                            courseCode: exam.code,
+                            courseName: exam.name,
+                            isExam: true
+                        })}
+                    />
                 </div>
 
                 <ExamFilterBar

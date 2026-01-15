@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import css from './index.css?inline';
+import './utils/devFeatures'; // Register window.toggleDevFeatures & window.toggleNotifications
 import App from './App';
 
 // ⚡ IMMEDIATELY hide the original page to prevent flash

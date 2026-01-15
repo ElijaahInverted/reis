@@ -24,7 +24,14 @@ export const isDevFeaturesEnabled = () => {
 
 export const isNotificationsEnabled = () => {
     try {
-        // Defaults to FALSE currently
+        // 🎯 TEMPORARY: Force enabled for demo (remove after spolky launch)
+        return true;
+        
+        // 1. URL Parameter (highest priority - perfect for demos)
+        if (typeof window !== 'undefined' && window.location.search.includes('show_notifications=1')) {
+            return true;
+        }
+        // 2. localStorage
         return localStorage.getItem('reis_notifications_enabled') === 'true';
     } catch {
         return false;
@@ -42,10 +49,21 @@ export const toggleDevFeatures = (enable?: boolean) => {
     }, 100);
 };
 
+export const toggleNotifications = (enable?: boolean) => {
+    const newState = enable ?? !isNotificationsEnabled();
+    localStorage.setItem('reis_notifications_enabled', String(newState));
+    loggers.system.info('[REIS] Notifications changed. Reloading...', newState ? 'ENABLED' : 'DISABLED');
+    
+    setTimeout(() => {
+        window.location.reload();
+    }, 100);
+};
+
 // Type definition for window
 declare global {
     interface Window {
         toggleDevFeatures: typeof toggleDevFeatures;
+        toggleNotifications: typeof toggleNotifications;
     }
 }
 
@@ -53,6 +71,7 @@ declare global {
 if (typeof window !== 'undefined') {
     // Explicitly cast to any to ensure runtime assignment works despite TS
     window.toggleDevFeatures = toggleDevFeatures;
+    window.toggleNotifications = toggleNotifications;
 
     const handleMessage = () => {
         loggers.system.info('[REIS] Dev toggle command received!');
