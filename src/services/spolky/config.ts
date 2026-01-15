@@ -56,4 +56,4 @@ export const ASSOCIATION_PROFILES: Record<string, AssociationProfile> = {
 /**
  * API endpoint for spolky notifications
  */
-export const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbyp3oXBJ8Nm6hSJcK1d6anoQq-jkzuUmvy1HkLwDPqfLn7S2zFL96eneIGxrNPHzOE9/exec';
+export const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzUtemlg_o8GmFKYJLt8SWnc5SRElMWzhlbS9YVKsEKuEglnn0pAfrgh2eNg0lrBk1q/exec';
