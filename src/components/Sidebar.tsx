@@ -76,6 +76,8 @@ export const Sidebar = ({ currentView, onViewChange, onOpenSettingsRef, onOpenFe
     }, 300);
   };
 
+
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -136,7 +138,7 @@ export const Sidebar = ({ currentView, onViewChange, onOpenSettingsRef, onOpenFe
           {/* Divider */}
           <div className="h-px bg-base-300 w-full my-1" />
 
-          {/* Profile / Settings Button */}
+           {/* Profile / Settings Button */}
            <div 
              className="relative"
              onMouseEnter={handleProfileMouseEnter}

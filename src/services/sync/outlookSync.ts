@@ -65,27 +65,52 @@ class OutlookSyncServiceClass {
     }
 
     /**
-     * Toggle sync status.
+     * Set sync status explicitly.
      */
-    async toggle(): Promise<void> {
-        const newStatus = !this.currentStatus;
-        logger.info(`Toggling sync to: ${newStatus ? 'ENABLED' : 'DISABLED'}`);
+    async setStatus(enabled: boolean): Promise<void> {
+        if (this.currentStatus === enabled) {
+            logger.debug(`Status already ${enabled}, skipping update`);
+            return;
+        }
+
+        logger.info(`Setting sync to: ${enabled ? 'ENABLED' : 'DISABLED'}`);
 
         // Optimistic update
-        this.currentStatus = newStatus;
-        StorageService.set(STORAGE_KEYS.OUTLOOK_SYNC, newStatus);
+        this.currentStatus = enabled;
+        StorageService.set(STORAGE_KEYS.OUTLOOK_SYNC, enabled);
         this.notifyListeners();
 
         // Apply to server
-        const success = await setOutlookSyncStatus(newStatus);
+        const success = await setOutlookSyncStatus(enabled);
 
         if (!success) {
             logger.warn('Server update failed, reverting optimistic update');
             // Revert on failure
-            this.currentStatus = !newStatus;
-            StorageService.set(STORAGE_KEYS.OUTLOOK_SYNC, !newStatus);
+            this.currentStatus = !enabled;
+            StorageService.set(STORAGE_KEYS.OUTLOOK_SYNC, !enabled);
             this.notifyListeners();
         }
+    }
+
+    /**
+     * Toggle sync status.
+     */
+    async toggle(): Promise<void> {
+        await this.setStatus(!this.currentStatus);
+    }
+
+    /**
+     * Enable sync.
+     */
+    async enable(): Promise<void> {
+        await this.setStatus(true);
+    }
+
+    /**
+     * Disable sync.
+     */
+    async disable(): Promise<void> {
+        await this.setStatus(false);
     }
 
     /**

@@ -15,6 +15,10 @@ export interface UseOutlookSyncResult {
     isLoading: boolean;
     /** Toggle sync on/off */
     toggle: () => Promise<void>;
+    /** Enable sync explicitly */
+    enable: () => Promise<void>;
+    /** Disable sync explicitly */
+    disable: () => Promise<void>;
 }
 
 export function useOutlookSync(): UseOutlookSyncResult {
@@ -63,5 +67,28 @@ export function useOutlookSync(): UseOutlookSyncResult {
         }
     }, []);
 
-    return { isEnabled, isLoading, toggle };
+    const enable = useCallback(async () => {
+        if (outlookSyncService.getStatus()) return; // Already enabled
+        setIsLoading(true);
+        await outlookSyncService.enable();
+        setIsLoading(false);
+        
+        toast.success('Do 15 minut uvidíš své hodiny a zkoušky v Outlooku', {
+            duration: 6000,
+            icon: '📅',
+        });
+    }, []);
+
+    const disable = useCallback(async () => {
+        if (!outlookSyncService.getStatus()) return; // Already disabled
+        setIsLoading(true);
+        await outlookSyncService.disable();
+        setIsLoading(false);
+        
+        toast.info('Synchronizace s Outlookem vypnuta', {
+            duration: 4000,
+        });
+    }, []);
+
+    return { isEnabled, isLoading, toggle, enable, disable };
 }

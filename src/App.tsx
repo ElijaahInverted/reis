@@ -17,6 +17,7 @@ import type { SyncedData } from './types/messages'
 import { StorageService, STORAGE_KEYS } from './services/storage'
 import { syncService, outlookSyncService } from './services/sync'
 import { useOutlookSync } from './hooks/data'
+
 import { FeedbackModal } from './components/Feedback/FeedbackModal'
 
 function App() {
@@ -263,13 +264,14 @@ function App() {
         onClose={() => setSelectedSubject(null)}
       />
       
+      
       {/* Outlook Sync Tutorial Hint */}
       <OutlookSyncHint
         navigationCount={weekNavCount}
         isSyncEnabled={outlookSyncEnabled}
         onSetup={() => openSettingsRef.current?.()}
       />
-      
+
       {/* First-run Welcome Modal */}
       <WelcomeModal />
 
