@@ -45,6 +45,8 @@ export function SuccessRateTab({ courseCode }: SuccessRateTabProps) {
     // Ensure activeIndex is within bounds (if data changes)
     const safeIndex = Math.min(activeIndex, sortedStats.length - 1);
     const activeSemester = sortedStats[safeIndex];
+    const totalStudents = activeSemester.totalPass + activeSemester.totalFail;
+
     // Determine evaluation type and grade set for the current semester
     const isCredit = activeSemester.type === 'credit';
     
@@ -101,7 +103,11 @@ export function SuccessRateTab({ courseCode }: SuccessRateTabProps) {
             <div className="text-center mb-6 flex items-center justify-center gap-2 relative z-10">
                 <span className="text-sm text-base-content/50 font-bold uppercase tracking-wider">
                     {totalStudents} studentů
-                    {isCredit && <span className="ml-2 badge badge-xs badge-ghost">Zápočet</span>}
+                    {isCredit ? (
+                        <span className="ml-2 badge badge-xs badge-ghost">Zápočet</span>
+                    ) : (
+                        <span className="ml-2 badge badge-xs badge-ghost">Zkouška</span>
+                    )}
                 </span>
                 {activeSemester.sourceUrl && (
                     <a 

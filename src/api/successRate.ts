@@ -12,7 +12,7 @@ import type { SubjectSuccessRate, SuccessRateData } from "../types/documents";
 // JSDelivr CDN for GitHub-hosted data
 // In development, you can run a local server: npx serve server/dist-data -l 8080
 // and set CDN_BASE_URL = "http://localhost:8080"
-const CDN_BASE_URL = "https://raw.githubusercontent.com/darksoothingshadow/reis-data/main";
+const CDN_BASE_URL = "https://raw.githubusercontent.com/reis-mendelu/reis-data/main";
 const CACHE_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 /**
@@ -68,8 +68,13 @@ export async function fetchSubjectSuccessRates(targetCodes: string[]): Promise<S
         const hasCached = cached && cached.stats && cached.stats.length > 0;
         const cacheValid = isCacheValid(code);
         
-        // Force re-fetch if data is missing the new sourceUrl metadata (Legacy data)
-        const isLegacy = hasCached && cached.stats.some(s => !s.sourceUrl);
+        // Force re-fetch if data is legacy or missing new schema fields
+        const isLegacy = hasCached && (
+            // Check 1: Missing sourceUrl (Old legacy)
+            cached.stats.some(s => !s.sourceUrl) ||
+            // Check 2: Missing 'type' field (New schema requirement)
+            cached.stats.some(s => !s.type)
+        );
         
         return !hasCached || !cacheValid || isLegacy;
     });
