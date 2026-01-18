@@ -1,22 +1,14 @@
-
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { ExternalLink, Trophy } from 'lucide-react';
-import { getAssessmentsForSubject } from '../../utils/apiUtils';
-import type { Assessment } from '../../types/documents';
+import { useAssessments } from '../../hooks/data';
+import { AssessmentSkeleton } from './AssessmentSkeleton';
 
 interface AssessmentTabProps {
     courseCode: string;
 }
 
 export function AssessmentTab({ courseCode }: AssessmentTabProps) {
-    const [assessments, setAssessments] = useState<Assessment[] | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const data = getAssessmentsForSubject(courseCode);
-        setAssessments(data);
-        setLoading(false);
-    }, [courseCode]);
+    const { assessments, isLoading } = useAssessments(courseCode);
 
     // Derived state for sorted assessments
     const sortedAssessments = useMemo(() => {
@@ -41,9 +33,12 @@ export function AssessmentTab({ courseCode }: AssessmentTabProps) {
         });
     }, [assessments]);
 
-    if (loading) return <div className="p-6 text-center text-base-content/50">Načítám...</div>;
+    // Show loading if hook says loading OR if assessments is null (initial state before sync)
+    if (isLoading || assessments === null) {
+        return <AssessmentSkeleton />;
+    }
 
-    if (!assessments || assessments.length === 0) {
+    if (assessments.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-full p-6 text-center text-base-content/40">
                 <Trophy className="w-12 h-12 opacity-20 mb-3" />

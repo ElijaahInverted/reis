@@ -38,7 +38,9 @@ export async function syncFiles(): Promise<void> {
             const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
             const files = await fetchFilesFromFolder(folderUrl);
 
-            if (files && files.length > 0) {
+            if (files) {
+                // files can be [] if folder is empty, or [...] if has files. 
+                // We want to store it even if empty, so UI knows it's "0 files" vs "loading"
                 const storageKey = `${STORAGE_KEYS.SUBJECT_FILES_PREFIX}${courseCode}`;
                 StorageService.set(storageKey, files);
                 await StorageService.setAsync(storageKey, files);

@@ -1,7 +1,8 @@
-export { useSchedule, type UseScheduleResult } from './useSchedule';
-export { useExams, type UseExamsResult } from './useExams';
-export { useSubjects, type UseSubjectsResult } from './useSubjects';
-export { useFiles, type UseFilesResult } from './useFiles';
-export { useSyncStatus } from './useSyncStatus';
-export { useOutlookSync, type UseOutlookSyncResult } from './useOutlookSync';
-export { useSuccessRate, type UseSuccessRateResult } from './useSuccessRate';
+export * from './useSubjects';
+export * from './useSchedule';
+export * from './useFiles';
+export * from './useSyncStatus';
+export * from './useSuccessRate';
+export * from './useOutlookSync';
+export * from './useAssessments';
+export * from './useExams';

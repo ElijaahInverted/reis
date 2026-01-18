@@ -16,6 +16,7 @@ export interface UserParams {
     username: string;
     studentId: string;
     fullName: string;
+    isErasmus: boolean;
 }
 
 /**
@@ -92,13 +93,17 @@ export async function getUserParams(): Promise<UserParams | null> {
             console.warn('[getUserParams] Username not found in certifikat.pl');
         }
 
+        // 4. Detect Erasmus+ status from studium.pl
+        const isErasmus = studHtml.includes('Erasmus +') || studHtml.includes('Erasmus+');
+
         const params: UserParams = {
             studium,
             obdobi,
             facultyId,
             username,
             studentId,
-            fullName
+            fullName,
+            isErasmus
         };
 
         console.debug('[getUserParams] Parsed and stored params:', params);
@@ -125,5 +130,10 @@ export function getStudiumSync(): string | null {
 export function getFacultySync(): string | null {
     const cached = StorageService.get<UserParams>(STORAGE_KEYS.USER_PARAMS);
     return cached?.facultyId ?? null;
+}
+
+export function getErasmusSync(): boolean {
+    const cached = StorageService.get<UserParams>(STORAGE_KEYS.USER_PARAMS);
+    return cached?.isErasmus ?? false;
 }
 

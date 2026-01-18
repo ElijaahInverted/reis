@@ -1,23 +1,71 @@
 import type { SpolekNotification, AssociationProfile } from './types';
-import { FACULTY_TO_ASSOCIATION, ASSOCIATION_PROFILES, API_BASE_URL } from './config';
+import { FACULTY_TO_ASSOCIATION, ASSOCIATION_PROFILES } from './config';
+import { supabase } from './supabaseClient';
+
+// ... rest of imports
 
 /**
- * Fetch all active notifications from the backend
+ * Track that notifications were viewed (when bell icon opened)
+ * @param notificationIds - IDs of notifications that were viewed
+ */
+export async function trackNotificationsViewed(notificationIds: string[]): Promise<void> {
+  try {
+    // Call Supabase RPC to increment view counts
+    // Note: Requires 'increment_view_count' function in Supabase
+    await Promise.all(
+      notificationIds.map((id) =>
+        supabase.rpc('increment_view_count', { notification_id: id })
+      )
+    );
+  } catch (error) {
+    // Fail silently if analytics fail (or if RPC function is missing)
+    console.error('[SpolkyService] Failed to track views:', error);
+  }
+}
+
+/**
+ * Track that a notification was clicked
+ * @param notificationId - ID of the notification that was clicked
+ */
+export async function trackNotificationClick(notificationId: string): Promise<void> {
+  try {
+    // Call Supabase RPC to increment click count
+    // Note: Requires 'increment_click_count' function in Supabase
+    await supabase.rpc('increment_click_count', { notification_id: notificationId });
+  } catch (error) {
+    console.error('[SpolkyService] Failed to track click:', error);
+  }
+}
+
+/**
+ * Fetch all active notifications from Supabase
  */
 export async function fetchNotifications(): Promise<SpolekNotification[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}?action=get_notifications`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch notifications: ${response.statusText}`);
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[SpolkyService] Supabase error:', error);
+      return [];
     }
-    const notifications: SpolekNotification[] = await response.json();
-    
-    // Filter out expired notifications (client-side failsafe)
-    const now = new Date();
-    return notifications.filter((n) => new Date(n.expiresAt) > now);
+
+    return (data || []).map((n: any) => ({
+      id: n.id,
+      associationId: n.association_id,
+      title: n.title,
+      body: n.body || n.title,
+      link: n.link || undefined,
+      createdAt: n.created_at,
+      expiresAt: n.expires_at,
+      priority: n.priority as 'normal' | 'high'
+    }));
   } catch (error) {
     console.error('[SpolkyService] Failed to fetch notifications:', error);
-    return []; // Graceful degradation
+    return [];
   }
 }
 
@@ -39,46 +87,35 @@ export function getUserAssociation(facultyId: string | null): AssociationProfile
  * Filter notifications relevant to user's faculty
  * @param notifications - All notifications
  * @param facultyId - User's faculty ID
+ * @param isErasmus - Whether user is Erasmus+ student
+ * @param optedInAssociations - List of manually subscribed association IDs
  * @returns Filtered notifications
  */
 export function filterNotificationsByFaculty(
   notifications: SpolekNotification[],
-  facultyId: string | null
+  facultyId: string | null,
+  isErasmus: boolean = false,
+  optedInAssociations: string[] = []
 ): SpolekNotification[] {
-  if (!facultyId) return [];
+  // If no faculty ID and no opt-ins, return empty (unless e.g. public notifications exist, but logic implies affiliation)
+  if (!facultyId && optedInAssociations.length === 0) return [];
   
-  const associationId = FACULTY_TO_ASSOCIATION[facultyId];
-  if (!associationId) return [];
+  const homeAssociationId = facultyId ? FACULTY_TO_ASSOCIATION[facultyId] : null;
   
-  return notifications.filter((n) => n.associationId === associationId);
+  return notifications.filter((n) => {
+    const assocId = n.associationId;
+
+    // 1. Home Faculty (Always show)
+    if (homeAssociationId && assocId === homeAssociationId) return true;
+
+    // 2. Opted-in Associations (Always show)
+    if (optedInAssociations.includes(assocId)) return true;
+
+    // 3. ESN (Show if Erasmus OR manually opted in - covered by #2)
+    if (assocId === 'esn' && isErasmus) return true;
+    
+    return false;
+  });
 }
 
-/**
- * Track that notifications were viewed (when bell icon opened)
- * @param notificationIds - IDs of notifications that were viewed
- */
-export async function trackNotificationsViewed(notificationIds: string[]): Promise<void> {
-  try {
-    await Promise.all(
-      // Tracking disabled for Serverless Sheets backend
-      // notificationIds.map((id) =>
-      //   fetch(`${API_BASE_URL}/api/notifications/${id}/view`, { method: 'POST' })
-      // )
-    );
-  } catch (error) {
-    console.error('[SpolkyService] Failed to track views:', error);
-  }
-}
 
-/**
- * Track that a notification was clicked
- * @param notificationId - ID of the notification that was clicked
- */
-export async function trackNotificationClick(notificationId: string): Promise<void> {
-  try {
-    // Tracking disabled for Serverless Sheets backend
-    // await fetch(`${API_BASE_URL}/api/notifications/${notificationId}/click`, { method: 'POST' });
-  } catch (error) {
-    console.error('[SpolkyService] Failed to track click:', error);
-  }
-}

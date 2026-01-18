@@ -51,6 +51,12 @@ export const ASSOCIATION_PROFILES: Record<string, AssociationProfile> = {
     websiteUrl: 'https://icv.mendelu.cz',
     facultyIds: ['ICV'],
   },
+  esn: {
+    id: 'esn',
+    name: 'ESN Mendelu',
+    websiteUrl: 'https://esn.mendelu.cz',
+    facultyIds: [], // Cross-faculty - for Erasmus students
+  },
 };
 
 /**

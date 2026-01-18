@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { FileText } from 'lucide-react';
 import { loggers } from '../../utils/logger';
-import { useSubjects, useSchedule, useFiles, useSyncStatus } from '../../hooks/data';
+import { useSchedule, useFiles } from '../../hooks/data';
 import { cleanFolderName } from '../../utils/fileUrl';
 import { useFileActions } from '../../hooks/ui/useFileActions';
 import { SuccessRateTab } from '../SuccessRateTab';
@@ -30,10 +30,8 @@ interface SubjectFileDrawerProps {
 }
 
 export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawerProps) {
-    const { isLoaded: subjectsLoaded } = useSubjects();
     const { schedule } = useSchedule();
     const { isDownloading, openFile, downloadZip } = useFileActions();
-    const { isSyncing, lastSync } = useSyncStatus();
 
     loggers.ui.info('[SubjectFileDrawer] Rendering. Open:', isOpen, 'Lesson:', lesson?.courseCode);
 
@@ -204,11 +202,12 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
                             {activeTab === 'files' && <DragHint show={showDragHint} />}
 
                             {activeTab === 'files' ? (
-                                // Show skeleton while waiting for subjects to load OR during initial background sync
-                                (!subjectsLoaded || (files === null && isSyncing && !lastSync)) ? (
+                                // Show skeleton if files are null (initial load/unknown state)
+                                // We rely on syncFiles setting [] for empty folders to distinguish "empty" from "loading"
+                                files === null ? (
                                     <FileListSkeleton />
-                                ) : !files || files.length === 0 ? (
-                                    // Empty state when no files available  
+                                ) : files.length === 0 ? (
+                                    // Empty state when no files available (files is valid empty array)
                                     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
                                         <FileText className="w-12 h-12 text-base-content/20 mb-3" />
                                         <p className="text-sm text-base-content/60">
