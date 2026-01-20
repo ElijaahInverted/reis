@@ -16,7 +16,7 @@ export async function trackNotificationsViewed(notificationIds: string[]): Promi
     // We use Promise.all to run them in parallel
     await Promise.all(
       notificationIds.map((id) =>
-        supabase.rpc('increment_view_count', { notification_id: id })
+        supabase.rpc('increment_notification_view', { row_id: id })
       )
     );
   } catch (error) {
@@ -34,7 +34,7 @@ export async function trackNotificationClick(notificationId: string): Promise<vo
 
   try {
     // Call Supabase RPC to increment click count
-    await supabase.rpc('increment_click_count', { notification_id: notificationId });
+    await supabase.rpc('increment_notification_click', { row_id: notificationId });
   } catch (error) {
     console.error('[SpolkyService] Failed to track click:', error);
   }

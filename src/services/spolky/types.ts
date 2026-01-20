@@ -11,6 +11,8 @@ export interface SpolekNotification {
   createdAt: string; // ISO timestamp
   expiresAt: string; // ISO timestamp
   priority: 'normal' | 'high';
+  viewCount?: number;
+  clickCount?: number;
 }
 
 export interface AssociationProfile {

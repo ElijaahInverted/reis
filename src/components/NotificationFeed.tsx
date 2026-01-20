@@ -9,7 +9,7 @@ interface NotificationFeedProps {
   isSidebarCollapsed?: boolean;
 }
 
-export function NotificationFeed({ className = '', isSidebarCollapsed = false }: NotificationFeedProps) {
+export function NotificationFeed({ className = '' }: NotificationFeedProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<SpolekNotification[]>([]);
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,6 @@ export function NotificationFeed({ className = '', isSidebarCollapsed = false }:
     return new Set(saved ? JSON.parse(saved) : []);
   });
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const hasTrackedViews = useRef(false);
   const { subscribedAssociations } = useSpolkySettings();
 
   const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -104,29 +103,39 @@ export function NotificationFeed({ className = '', isSidebarCollapsed = false }:
     };
   }, [isOpen]);
 
+  const [viewedIds, setViewedIds] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('reis_viewed_notifications_analytics');
+    return new Set(saved ? JSON.parse(saved) : []);
+  });
+
+  const handleNotificationVisible = (id: string) => {
+    if (!viewedIds.has(id)) {
+      trackNotificationsViewed([id]);
+      setViewedIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(id);
+        localStorage.setItem('reis_viewed_notifications_analytics', JSON.stringify(Array.from(newSet)));
+        return newSet;
+      });
+    }
+  };
+
   const handleOpen = () => {
     const newIsOpen = !isOpen;
     setIsOpen(newIsOpen);
     
     if (newIsOpen && notifications.length > 0) {
-      // Mark all current as read locally
+      // Mark all current as read locally (visual state)
       const newReadIds = new Set(readIds);
       notifications.forEach(n => newReadIds.add(n.id));
       setReadIds(newReadIds);
       localStorage.setItem('reis_read_notifications', JSON.stringify(Array.from(newReadIds)));
-
-      // Track views (analytics)
-      if (!hasTrackedViews.current) {
-         hasTrackedViews.current = true;
-         const spolkyNotifications = notifications.filter(n => !n.associationId?.startsWith('academic_'));
-         if (spolkyNotifications.length > 0) {
-           trackNotificationsViewed(spolkyNotifications.map(n => n.id));
-         }
-      }
     }
   };
 
   const handleNotificationClick = (notification: SpolekNotification) => {
+    // Track click regardless of view status, but checking if academic to be safe as per original logic if needed
+    // Original logic: if (!notification.associationId?.startsWith('academic_')) trackNotificationClick(date)
     if (!notification.associationId?.startsWith('academic_')) {
       trackNotificationClick(notification.id);
     }
@@ -190,6 +199,7 @@ export function NotificationFeed({ className = '', isSidebarCollapsed = false }:
                       key={notification.id}
                       notification={notification}
                       onClick={() => handleNotificationClick(notification)}
+                      onVisible={() => handleNotificationVisible(notification.id)}
                     />
                   ))}
                 </div>
@@ -204,9 +214,36 @@ export function NotificationFeed({ className = '', isSidebarCollapsed = false }:
 interface NotificationItemProps {
   notification: SpolekNotification;
   onClick: () => void;
+  onVisible?: () => void;
 }
 
-function NotificationItem({ notification, onClick }: NotificationItemProps) {
+function NotificationItem({ notification, onClick, onVisible }: NotificationItemProps) {
+  const itemRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!onVisible || !itemRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            onVisible();
+            if (itemRef.current) {
+                observer.unobserve(itemRef.current);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(itemRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [onVisible]);
+
   // Icon rendering logic
   const assocId = notification.associationId || 'admin';
   const isAcademic = assocId.startsWith('academic_');
@@ -233,6 +270,7 @@ function NotificationItem({ notification, onClick }: NotificationItemProps) {
 
   return (
     <button
+      ref={itemRef}
       onClick={onClick}
       className="w-full p-4 hover:bg-base-200 transition-colors text-left flex items-center gap-3"
     >
