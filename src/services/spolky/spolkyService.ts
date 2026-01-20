@@ -49,7 +49,8 @@ export async function fetchNotifications(): Promise<SpolekNotification[]> {
       .from('notifications')
       .select('*')
       .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(50);
 
     if (error) {
       console.error('[SpolkyService] Supabase error:', error);

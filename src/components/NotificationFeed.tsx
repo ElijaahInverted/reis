@@ -168,7 +168,7 @@ export function NotificationFeed({ className = '' }: NotificationFeedProps) {
       {isOpen && (
         <div 
           ref={dropdownRef}
-          className="absolute right-0 top-12 z-50 w-96 bg-base-100 border border-base-300 rounded-lg shadow-xl max-h-[500px] overflow-hidden flex flex-col"
+          className="absolute right-0 top-12 z-50 w-96 bg-base-100 border border-base-300 rounded-lg shadow-xl max-h-[320px] overflow-hidden flex flex-col"
         >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-base-300">
