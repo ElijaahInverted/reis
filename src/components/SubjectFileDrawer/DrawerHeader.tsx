@@ -4,7 +4,8 @@
  * Renders the header section with course info, meta, and tabs.
  */
 
-import { X, Download, Loader2, ExternalLink, User, Map as MapIcon, Clock } from 'lucide-react';
+import { X, Download, Loader2, ExternalLink, User, Map as MapIcon, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 import type { DrawerHeaderProps } from './types';
 import { SubjectNote } from './SubjectNote';
 
@@ -45,8 +46,14 @@ export function DrawerHeader({
     onDownload,
     onTabChange
 }: DrawerHeaderProps) {
+    const [isTeachersExpanded, setIsTeachersExpanded] = useState(false);
     const eventType = getEventType(lesson);
     const isSearchContext = lesson?.isFromSearch;
+
+    const displayedTeachers = isTeachersExpanded 
+        ? courseInfo?.teachers 
+        : courseInfo?.teachers?.slice(0, 3);
+    const hasMoreTeachers = (courseInfo?.teachers?.length || 0) > 3;
 
     return (
         <div className="px-6 py-4 border-b border-base-300 bg-base-100 z-20">
@@ -179,14 +186,26 @@ export function DrawerHeader({
                         )}
                         {courseInfo?.teachers && courseInfo.teachers.length > 0 && (
                             <div className="flex items-start gap-2">
-                                <span className="text-[13px] whitespace-nowrap text-base-content/40 italic font-bold">Vyučující:</span>
+                                <span className="text-[13px] whitespace-nowrap text-base-content/40 italic font-bold mt-0.5">Vyučující:</span>
                                 <div className="flex flex-col gap-1.5 flex-1">
-                                    {courseInfo.teachers.map((t, idx) => (
-                                        <div key={idx} className="flex flex-col gap-0.5">
-                                            <span className="text-[13px] font-bold text-base-content/70 leading-none">{t.name}</span>
-                                            {t.roles && <span className="text-[11px] text-base-content/40 font-medium lowercase">({t.roles})</span>}
+                                    {displayedTeachers?.map((t, idx) => (
+                                        <div key={idx} className="flex items-center gap-2 leading-none">
+                                            <span className="text-[13px] font-bold text-base-content/70">{t.name}</span>
+                                            {t.roles && <span className="text-[11px] text-base-content/40 font-medium">({t.roles.toLowerCase()})</span>}
                                         </div>
                                     ))}
+                                    {hasMoreTeachers && (
+                                        <button 
+                                            onClick={() => setIsTeachersExpanded(!isTeachersExpanded)}
+                                            className="flex items-center gap-1 text-[11px] font-bold text-primary hover:text-primary-focus transition-colors mt-0.5"
+                                        >
+                                            {isTeachersExpanded ? (
+                                                <><span>Zobrazit méně</span><ChevronUp size={12} /></>
+                                            ) : (
+                                                <><span>Zobrazit více ({courseInfo.teachers.length - 3})</span><ChevronDown size={12} /></>
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         )}
