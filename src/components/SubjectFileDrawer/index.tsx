@@ -84,8 +84,8 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
     // Set default tab based on context when opening
     useEffect(() => {
         if (isOpen && lesson) {
-            // Priority: search → stats, exam → stats, else → files
-            setActiveTab(lesson.isFromSearch ? 'stats' : lesson.isExam ? 'stats' : 'files');
+            // Default to 'files' for search/sidebar and normal lessons, 'stats' for exams
+            setActiveTab(lesson.isExam ? 'stats' : 'files');
         }
         if (!isOpen) {
             queueMicrotask(() => {

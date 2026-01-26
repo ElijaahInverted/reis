@@ -133,7 +133,8 @@ export const Sidebar = ({
                 subtitle: s.subjectCode,
                 icon: <Layers className="w-4 h-4" />,
                 isSubject: true,
-                courseCode: s.subjectCode
+                courseCode: s.subjectCode,
+                subjectId: s.subjectId
               }));
             }
 

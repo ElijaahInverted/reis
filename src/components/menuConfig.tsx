@@ -38,6 +38,7 @@ export interface MenuItem {
         tutorial?: Tutorial; // The actual tutorial object
         isSubject?: boolean; // true = this is a subject entry
         courseCode?: string; // The course code for subjects
+        subjectId?: string; // The numeric subject ID
     }[];
     danger?: boolean;
     onClick?: () => void;

@@ -82,7 +82,7 @@ function App() {
     const lessonObj = {
       courseCode,
       courseName: courseName || courseCode,
-      courseId: courseId || '', // Use provided ID from search result
+      courseId: courseId || '', // Use provided ID from search result or sidebar
       id: `search-${courseCode}`,
       date: '',
       startTime: '',
@@ -90,7 +90,7 @@ function App() {
       room: '',
       teachers: [],
       isExam: false,
-      isFromSearch: true, // Flag to indicate opened from search (for default tab)
+      isFromSearch: true, // Flag to indicate opened from search/sidebar (for default tab)
     };
     setSelectedSubject(lessonObj);
   };

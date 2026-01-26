@@ -13,7 +13,7 @@ interface NavItemProps {
   onClick: () => void;
   onViewChange: (view: AppView) => void;
   onSelectTutorial?: (tutorial: Tutorial) => void;
-  onOpenSubject?: (courseCode: string, courseName?: string) => void;
+  onOpenSubject?: (courseCode: string, courseName?: string, courseId?: string) => void;
 }
 
 export function NavItem({ item, isActive, isHovered, onMouseEnter, onMouseLeave, onClick, onViewChange, onSelectTutorial, onOpenSubject }: NavItemProps) {
@@ -75,7 +75,7 @@ export function NavItem({ item, isActive, isHovered, onMouseEnter, onMouseLeave,
                     } else if (child.isSubject && child.courseCode) {
                       e.preventDefault();
                       console.log(`[NavItem] Opening subject drawer: ${child.courseCode}`);
-                      onOpenSubject?.(child.courseCode, child.label);
+                      onOpenSubject?.(child.courseCode, child.label, child.subjectId);
                     } else if (child.isFeature) {
                        console.log(`[NavItem] Feature clicked but no specific handler: ${child.id}`);
                        e.preventDefault();
