@@ -72,12 +72,12 @@ export function DrawerHeader({
                         /* Search/Sidebar Context: Metadata badges */
                         <div className="flex items-center gap-2">
                              {courseInfo?.status && (
-                                <span className="px-2 py-0.5 rounded text-xs font-bold bg-base-300 text-base-content/80 uppercase tracking-tight">
+                                <span className="px-2 py-0.5 rounded text-xs font-bold bg-base-300 text-base-content/80 tracking-tight">
                                     {courseInfo.status}
                                 </span>
                              )}
                              {courseInfo?.credits && (
-                                <span className="px-2 py-0.5 rounded text-xs font-bold bg-primary/10 text-primary uppercase tracking-tight">
+                                <span className="px-2 py-0.5 rounded text-xs font-bold bg-primary/10 text-primary tracking-tight">
                                     {courseInfo.credits}
                                 </span>
                              )}
@@ -173,13 +173,13 @@ export function DrawerHeader({
                     <div className="flex flex-col gap-1 w-full">
                         {courseInfo?.garant && (
                             <div className="flex items-center gap-1.5" title="Garant předmětu">
-                                <User size={14} className="flex-shrink-0 text-base-content/60" />
-                                <span className="text-[13px] text-base-content/60">Garant: <span className="font-bold text-base-content/90 ml-0.5">{courseInfo.garant}</span></span>
+                                <User size={14} className="flex-shrink-0 text-base-content/40" />
+                                <span className="text-[13px] text-base-content/60 italic font-bold">Garant: <span className="font-bold text-base-content/90 ml-0.5 not-italic">{courseInfo.garant}</span></span>
                             </div>
                         )}
                         {courseInfo?.teachers && courseInfo.teachers.length > 0 && (
                             <div className="flex items-start gap-1.5 mt-0.5">
-                                <span className="text-[13px] whitespace-nowrap text-base-content/60">Vyučující:</span>
+                                <span className="text-[13px] whitespace-nowrap text-base-content/60 italic font-bold">Vyučující:</span>
                                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                                     {courseInfo.teachers.map((t, idx) => (
                                         <div key={idx} className="inline-flex items-baseline gap-1 text-[13px]">
@@ -196,7 +196,7 @@ export function DrawerHeader({
             </div>
 
             {/* Subject Note */}
-            <SubjectNote subjectCode={courseId} />
+            {/* <SubjectNote subjectCode={courseId} /> */}
 
             {/* Tabs */}
             <div className="flex items-center gap-8 mt-4">
