@@ -30,7 +30,7 @@ export class ExtensionCast implements Cast {
         };
 
         return actor.whoCan(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             
             BrowseTheWebWithPlaywright.using(mockBrowser as any),
             TakeNotes.usingAnEmptyNotepad(),
         );

@@ -76,6 +76,7 @@ class SyncServiceClass {
 
             // 2. Migrate chrome.storage.local if available
             if (StorageService.isChromeStorageAvailable()) {
+                // eslint-disable-next-line no-restricted-syntax
                 const allChrome = await chrome.storage.local.get(null);
                 const chromeKeys = Object.keys(allChrome).filter(k => k.startsWith('reis_'));
                 
@@ -94,11 +95,13 @@ class SyncServiceClass {
             });
 
             if (StorageService.isChromeStorageAvailable()) {
+                // eslint-disable-next-line no-restricted-syntax
                 const allChrome = await chrome.storage.local.get(null);
                 const chromeKeys = Object.keys(allChrome).filter(k => 
                     lsPrefixes.some(p => k.startsWith(p))
                 );
                 if (chromeKeys.length > 0) {
+                    // eslint-disable-next-line no-restricted-syntax
                     await chrome.storage.local.remove(chromeKeys);
                 }
             }

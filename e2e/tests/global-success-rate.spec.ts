@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 import { test, expect } from '../fixtures/extension';
 
 const MOCK_GLOBAL_DATA = {

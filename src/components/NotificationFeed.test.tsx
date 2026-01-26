@@ -39,10 +39,10 @@ const localStorageMock = (() => {
 vi.stubGlobal('localStorage', localStorageMock);
 
 // Mock IntersectionObserver
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const observers = new Map<Element, any>();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const mockIntersectionObserver = vi.fn(function(this: any, callback: IntersectionObserverCallback) {
   this.callback = callback;
   this.observe = vi.fn((element: Element) => {
@@ -109,7 +109,7 @@ vi.mock('../services/storage', () => ({
 
   it('should track views when notification becomes visible', async () => {
     // Mock user has NOT viewed anything yet
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (IndexedDBService.get as any).mockImplementation((_store: string, key: string) => {
         if (key === 'viewed_notifications_analytics') return Promise.resolve(null);
         return Promise.resolve(null);
@@ -143,7 +143,7 @@ vi.mock('../services/storage', () => ({
 
   it('should NOT track views again if notifications are locally marked as VIEWED (analytics)', async () => {
     // Setup IDB as viewed
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (IndexedDBService.get as any).mockImplementation((_store: string, key: string) => {
         if (key === 'viewed_notifications_analytics') return Promise.resolve(['1']);
         return Promise.resolve(null);

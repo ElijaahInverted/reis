@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 /**
  * Component Isolation Tests for Success Rate Tab
  * 
