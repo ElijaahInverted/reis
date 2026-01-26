@@ -199,6 +199,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: SubjectFileDrawer
                     <DrawerHeader
                         lesson={lesson}
                         courseId={resolvedCourseId || syllabusResult.syllabus?.courseId || ''}
+                        courseInfo={syllabusResult.syllabus?.courseInfo}
                         selectedCount={selectedIds.length}
                         isDownloading={isDownloading}
                         activeTab={activeTab}

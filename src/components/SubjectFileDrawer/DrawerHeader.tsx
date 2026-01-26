@@ -37,6 +37,7 @@ function getEventType(lesson: { isExam?: boolean; isSeminar?: string; sectionNam
 export function DrawerHeader({
     lesson,
     courseId,
+    courseInfo,
     selectedCount,
     isDownloading,
     activeTab,
@@ -45,23 +46,42 @@ export function DrawerHeader({
     onTabChange
 }: DrawerHeaderProps) {
     const eventType = getEventType(lesson);
+    const isSearchContext = lesson?.isFromSearch;
 
     return (
         <div className="px-6 py-4 border-b border-base-300 bg-base-100 z-20">
             {/* Top row: Badge + Date + Actions */}
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                    {/* Event Type Badge */}
-                    {eventType.label && (
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${eventType.bgColor} ${eventType.textColor}`}>
-                            {eventType.label}
-                        </span>
-                    )}
-                    {/* Date */}
-                    {lesson?.date && (
-                        <span className="text-sm text-base-content/60">
-                            {formatDate(lesson.date)}
-                        </span>
+                    {!isSearchContext ? (
+                        <>
+                            {/* Event Type Badge */}
+                            {eventType.label && (
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${eventType.bgColor} ${eventType.textColor}`}>
+                                    {eventType.label}
+                                </span>
+                            )}
+                            {/* Date */}
+                            {lesson?.date && (
+                                <span className="text-sm text-base-content/60">
+                                    {formatDate(lesson.date)}
+                                </span>
+                            )}
+                        </>
+                    ) : (
+                        /* Search/Sidebar Context: Metadata badges */
+                        <div className="flex items-center gap-2">
+                             {courseInfo?.status && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-base-200 text-base-content/60 uppercase tracking-tight">
+                                    {courseInfo.status}
+                                </span>
+                             )}
+                             {courseInfo?.credits && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary uppercase tracking-tight">
+                                    {courseInfo.credits}
+                                </span>
+                             )}
+                        </div>
                     )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -106,44 +126,63 @@ export function DrawerHeader({
             
             {/* Meta row: Teacher + Room + Time */}
             <div className="flex items-center gap-4 text-sm text-base-content/60 flex-wrap">
-                {/* Teacher */}
-                {lesson?.teachers && lesson.teachers.length > 0 && (
-                    lesson.teachers[0].id ? (
-                        <a
-                            href={`https://is.mendelu.cz/auth/lide/clovek.pl?;id=${lesson.teachers[0].id};lang=cz`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="clickable-link flex items-center gap-1"
-                        >
-                            <User size={14} className="flex-shrink-0" />
-                            <span>{lesson.teachers[0].fullName}</span>
-                        </a>
-                    ) : (
-                        <span className="flex items-center gap-1">
-                            <User size={14} className="flex-shrink-0" />
-                            <span>{lesson.teachers.map(t => t.fullName).join(', ')}</span>
-                        </span>
-                    )
-                )}
-                
-                {/* Room (Q-buildings only, with map) */}
-                {lesson?.room?.startsWith('Q') && (
-                    <button
-                        onClick={() => window.open(`https://mm.mendelu.cz/mapwidget/embed?placeName=${lesson.room}`, '_blank')}
-                        className="flex items-center gap-1 hover:text-emerald-600 transition-colors"
-                        title="Zobrazit na mapě"
-                    >
-                        <MapIcon size={14} />
-                        <span>{lesson.room}</span>
-                    </button>
-                )}
-                
-                {/* Time */}
-                {lesson?.startTime && lesson?.endTime && (
-                    <span className="flex items-center gap-1">
-                        <Clock size={14} />
-                        <span>{lesson.startTime} - {lesson.endTime}</span>
-                    </span>
+                {!isSearchContext ? (
+                    <>
+                        {/* Teacher */}
+                        {lesson?.teachers && lesson.teachers.length > 0 && (
+                            lesson.teachers[0].id ? (
+                                <a
+                                    href={`https://is.mendelu.cz/auth/lide/clovek.pl?;id=${lesson.teachers[0].id};lang=cz`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="clickable-link flex items-center gap-1"
+                                >
+                                    <User size={14} className="flex-shrink-0" />
+                                    <span>{lesson.teachers[0].fullName}</span>
+                                </a>
+                            ) : (
+                                <span className="flex items-center gap-1">
+                                    <User size={14} className="flex-shrink-0" />
+                                    <span>{lesson.teachers.map(t => t.fullName).join(', ')}</span>
+                                </span>
+                            )
+                        )}
+                        
+                        {/* Room (Q-buildings only, with map) */}
+                        {lesson?.room?.startsWith('Q') && (
+                            <button
+                                onClick={() => window.open(`https://mm.mendelu.cz/mapwidget/embed?placeName=${lesson.room}`, '_blank')}
+                                className="flex items-center gap-1 hover:text-emerald-600 transition-colors"
+                                title="Zobrazit na mapě"
+                            >
+                                <MapIcon size={14} />
+                                <span>{lesson.room}</span>
+                            </button>
+                        )}
+                        
+                        {/* Time */}
+                        {lesson?.startTime && lesson?.endTime && (
+                            <span className="flex items-center gap-1">
+                                <Clock size={14} />
+                                <span>{lesson.startTime} - {lesson.endTime}</span>
+                            </span>
+                        )}
+                    </>
+                ) : (
+                    /* Search/Sidebar Context: General Metadata */
+                    <>
+                        {courseInfo?.garant && (
+                            <span className="flex items-center gap-1" title="Garant předmětu">
+                                <User size={14} className="flex-shrink-0" />
+                                <span>Garant: <span className="font-medium">{courseInfo.garant}</span></span>
+                            </span>
+                        )}
+                        {courseInfo?.teachers && courseInfo.teachers.length > 0 && (
+                            <span className="flex items-center gap-1 text-[12px] opacity-75">
+                                <span>Vyučující: {courseInfo.teachers.map(t => t.name).slice(0, 3).join(', ')}{courseInfo.teachers.length > 3 ? '...' : ''}</span>
+                            </span>
+                        )}
+                    </>
                 )}
             </div>
 

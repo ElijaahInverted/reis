@@ -5,11 +5,12 @@
  */
 
 import type { BlockLesson } from '../../types/calendarTypes';
-import type { ParsedFile } from '../../types/documents';
+import type { ParsedFile, CourseMetadata } from '../../types/documents';
 
 export interface DrawerHeaderProps {
     lesson: BlockLesson | null;
     courseId: string;
+    courseInfo?: CourseMetadata; // New: metadata for search/sidebar view
     selectedCount: number;
     isDownloading: boolean;
     activeTab: 'files' | 'stats' | 'assessments' | 'syllabus';

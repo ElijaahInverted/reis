@@ -1,4 +1,4 @@
-import type { SyllabusRequirements } from '../../types/documents';
+import type { SyllabusRequirements, CourseMetadata } from '../../types/documents';
 
 /**
  * Parses the raw HTML string of the syllabus page to extract requirements.
@@ -106,10 +106,64 @@ export function parseSyllabusOffline(htmlString: string): SyllabusRequirements {
         }
     }
 
+    // --- EXTRACTION 3: Course Metadata (New) ---
+    const courseInfo: CourseMetadata = {
+        credits: null,
+        garant: null,
+        teachers: [],
+        status: null
+    };
+
+    const infoRows = Array.from(doc.querySelectorAll('table tbody tr'));
+    infoRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 2) return;
+        
+        const label = cells[0].textContent?.trim() || '';
+        const valueCell = cells[1];
+        
+        // Credits & Completion
+        if (label.includes('Způsob ukončení') && label.includes('počet kreditů')) {
+            const boldText = valueCell.querySelector('b');
+            if (boldText) {
+                courseInfo.credits = boldText.textContent?.trim() || null;
+            }
+        }
+        
+        // Garant
+        if (label.includes('Garant předmětu')) {
+            const link = valueCell.querySelector('a');
+            if (link) {
+                courseInfo.garant = link.textContent?.trim() || null;
+            }
+        }
+        
+        // All Teachers
+        if (label.includes('Vyučující')) {
+            const links = valueCell.querySelectorAll('a');
+            links.forEach(link => {
+                const name = link.textContent?.trim() || '';
+                const parent = link.parentNode;
+                if (parent) {
+                    const text = parent.textContent || '';
+                    const roleMatch = text.match(/\(([^)]+)\)/);
+                    const roles = roleMatch ? roleMatch[1] : '';
+                    courseInfo.teachers.push({ name, roles });
+                }
+            });
+        }
+        
+        // Status (Typ předmětu)
+        if (label.includes('Typ předmětu')) {
+            courseInfo.status = valueCell.textContent?.trim() || null;
+        }
+    });
+
     // --- RETURN OBJECT ---
     const result: SyllabusRequirements = {
         requirementsText,
-        requirementsTable
+        requirementsTable,
+        courseInfo
     };
 
     console.debug('[parseSyllabusOffline] Parsed result:', {

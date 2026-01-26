@@ -67,6 +67,13 @@ export interface SuccessRateData {
     data: Record<string, SubjectSuccessRate>; // Keyed by course code
 }
 
+export interface CourseMetadata {
+    credits: string | null;
+    garant: string | null;
+    teachers: { name: string; roles: string }[];
+    status: string | null;
+}
+
 export interface Assessment {
     name: string;
     score: number;
@@ -81,4 +88,5 @@ export interface SyllabusRequirements {
     courseId?: string; // Resolved IS Subject ID
     requirementsText: string; // Textual description of requirements
     requirementsTable: string[][]; // Grading breakdown table (rows of cells)
+    courseInfo?: CourseMetadata; // New: General course info (credits, garant, etc.)
 }
