@@ -93,7 +93,7 @@ interface WeeklyCalendarProps {
 export function WeeklyCalendar({ initialDate = new Date() }: WeeklyCalendarProps) {
     // Get stored semester data from hooks
     const { schedule: storedSchedule, isLoaded: isScheduleLoaded } = useSchedule();
-    const { exams: storedExams, isLoaded: _isExamsLoaded } = useExams();
+    const { exams: storedExams, isLoaded: isExamsLoaded } = useExams();
 
     const [selected, setSelected] = useState<BlockLesson | null>(null);
     const [showCalendarHint, setShowCalendarHint] = useState(false);
@@ -250,7 +250,7 @@ export function WeeklyCalendar({ initialDate = new Date() }: WeeklyCalendarProps
     }, [weekDates]);
 
     // Determine if we should show skeleton loading state
-    const showSkeleton = scheduleData.length === 0 && !isScheduleLoaded;
+    const showSkeleton = scheduleData.length === 0 && (!isScheduleLoaded || !isExamsLoaded);
 
     // Calculate position of first event for hint positioning
     const firstEventPosition = useMemo(() => {

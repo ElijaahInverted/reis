@@ -59,8 +59,20 @@ export async function fetchWeekSchedule(specific?: { start: Date, end: Date }): 
             body: body,
         });
 
-        const data: ScheduleData = await response.json();
-        return data.blockLessons;
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            console.log("[fetchWeekSchedule] Received non-JSON response, assuming no schedule available");
+            return [];
+        }
+
+        const text = await response.text();
+        try {
+            const data: ScheduleData = JSON.parse(text);
+            return data.blockLessons || [];
+        } catch (parseError) {
+            console.warn("[fetchWeekSchedule] Failed to parse schedule JSON:", parseError);
+            return [];
+        }
     } catch (error) {
         console.error("Failed to fetch schedule:", error);
         return null;

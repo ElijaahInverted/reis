@@ -41,6 +41,7 @@ export async function syncSchedule(): Promise<void> {
         await IndexedDBService.set('meta', 'schedule_week_start', start.toISOString());
         console.log(`[syncSchedule] Stored ${data.length} lessons for semester`);
     } else {
-        console.log('[syncSchedule] No schedule data to store');
+        console.log('[syncSchedule] No schedule data found, clearing stale data');
+        await IndexedDBService.delete('schedule', 'current');
     }
 }
