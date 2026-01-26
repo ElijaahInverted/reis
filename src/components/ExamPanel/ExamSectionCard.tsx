@@ -189,7 +189,7 @@ function TermsSummary({ terms }: { terms: ExamSection['terms'] }) {
                     {terms.slice(0, 3).map(term => (
                         <div 
                             key={term.id} 
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${term.full ? 'bg-base-200 text-base-content/30' : 'bg-primary/5 text-primary/70'}`}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${term.full || (term.capacity && term.capacity.occupied >= term.capacity.total) ? 'bg-base-200 text-base-content/30' : 'bg-primary/5 text-primary/70'}`}
                         >
                             {term.date.split('.').slice(0, 2).join('.')}
                         </div>

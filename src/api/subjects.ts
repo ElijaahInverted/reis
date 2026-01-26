@@ -1,5 +1,6 @@
 import { fetchWithAuth, BASE_URL } from "./client";
 import type { SubjectInfo, SubjectsData } from "../types/documents";
+import { SubjectsDataSchema } from "../schemas/subjectSchema";
 
 const STUDENT_LIST_URL = `${BASE_URL}/auth/student/list.pl`;
 
@@ -8,7 +9,17 @@ export async function fetchSubjects(): Promise<SubjectsData | null> {
         const response = await fetchWithAuth(`${STUDENT_LIST_URL}?lang=cz`);
         const html = await response.text();
         const subjectsMap = parseSubjectFolders(html);
-        return showFullSubjects(subjectsMap);
+        const subjectsData = showFullSubjects(subjectsMap);
+
+        // Validation Firewall
+        const result = SubjectsDataSchema.safeParse(subjectsData);
+        if (result.success) {
+            console.log("[fetchSubjects] ✅ Subject data validated successfully");
+            return result.data;
+        } else {
+            console.error("[fetchSubjects] ❌ Subject data validation failed:", result.error.issues);
+            return subjectsData; // Fallback to raw data for now, or return null based on strictness
+        }
     } catch (error) {
         console.error("Failed to fetch subjects:", error);
         return null;
@@ -78,6 +89,7 @@ function showFullSubjects(subjectsObject: Record<string, SubjectLinkData>): Subj
         };
     }
     return {
+        version: 1,
         lastUpdated: new Date().toISOString(),
         data: enrichedSubjects
     };

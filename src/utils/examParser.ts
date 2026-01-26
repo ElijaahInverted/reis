@@ -1,4 +1,23 @@
 import type { ExamSubject } from '../types/exams';
+import { ExamSubjectSchema } from '../schemas/examSchema';
+
+// Intermediate types for scraping phase before Zod validation
+interface ScrapedExamSection {
+    id: string;
+    name: string;
+    type: string;
+    status: string;
+    registeredTerm?: Record<string, unknown>;
+    terms: Record<string, unknown>[];
+}
+
+interface ScrapedExamSubject {
+    version: number;
+    id: string;
+    name: string;
+    code: string;
+    sections: ScrapedExamSection[];
+}
 
 /**
  * Validate that the HTML structure matches expected format.
@@ -47,10 +66,10 @@ export function parseExamData(html: string): ExamSubject[] {
     // Validate structure before parsing
     validateHtmlStructure(doc);
 
-    const subjectsMap = new Map<string, ExamSubject>();
+    const subjectsMap = new Map<string, ScrapedExamSubject>();
 
     // Helper to get or create subject
-    const getOrCreateSubject = (code: string, rawName: string) => {
+    const getOrCreateSubject = (code: string, rawName: string): ScrapedExamSubject => {
         // Clean name: Remove "ZS 202X/202X - FACULTY" prefix/suffix
         // Example: "ZS 2025/2026 - PEF Algoritmizace" or "Algoritmizace ZS 2025/2026 - PEF"
         // Usually it's "ZS 2025/2026 - PEF <Name>"
@@ -61,6 +80,7 @@ export function parseExamData(html: string): ExamSubject[] {
 
         if (!subjectsMap.has(code)) {
             subjectsMap.set(code, {
+                version: 1,
                 id: code,
                 name,
                 code,
@@ -71,11 +91,11 @@ export function parseExamData(html: string): ExamSubject[] {
     };
 
     // Helper to get or create section within a subject
-    const getOrCreateSection = (subject: ExamSubject, rawSectionName: string) => {
+    const getOrCreateSection = (subject: ScrapedExamSubject, rawSectionName: string): ScrapedExamSection => {
         // Capitalize first letter (e.g. "zkouška" -> "Zkouška")
         const sectionName = rawSectionName.charAt(0).toUpperCase() + rawSectionName.slice(1);
 
-        let section = subject.sections.find(s => s.name === sectionName);
+        let section = subject.sections.find((s) => s.name === sectionName);
         if (!section) {
             section = {
                 id: `${subject.id}-${sectionName.replace(/\s+/g, '-').toLowerCase()}`,
@@ -398,9 +418,22 @@ export function parseExamData(html: string): ExamSubject[] {
     }
 
     // Convert Map to Array
-    const results = Array.from(subjectsMap.values());
-    console.debug('[parseExamData] Completed. Returning', results.length, 'subjects with',
-        results.reduce((acc, s) => acc + s.sections.length, 0), 'total sections');
+    const rawResults = Array.from(subjectsMap.values());
+    console.debug('[parseExamData] Completed scraping. Validating with Zod:', rawResults.length, 'subjects');
 
-    return results;
+    // Validation Firewall
+    const validatedResults: ExamSubject[] = [];
+    rawResults.forEach((subject) => {
+        const result = ExamSubjectSchema.safeParse(subject);
+        if (result.success) {
+            validatedResults.push(result.data);
+        } else {
+            console.error(`[parseExamData] ❌ Validation failed for subject ${subject.code}:`, result.error.issues);
+            // Optionally we could push the raw data anyway if we want to be permissive, 
+            // but the goal is "Data Integrity". For now we drop bad data.
+        }
+    });
+
+    console.debug('[parseExamData] Validation complete. Returning', validatedResults.length, 'validated subjects');
+    return validatedResults;
 }

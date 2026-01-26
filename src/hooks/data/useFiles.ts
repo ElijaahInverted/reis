@@ -1,12 +1,6 @@
-/**
- * useFiles - Hook to access subject files from storage.
- * 
- * Returns stored files immediately and subscribes to sync updates.
- */
-
-import { useState, useEffect } from 'react';
-import { syncService } from '../../services/sync';
-import { IndexedDBService } from '../../services/storage';
+import { useEffect } from 'react';
+import { useAppStore } from '../../store/useAppStore';
+import { useSyncStatus } from './useSyncStatus';
 import type { ParsedFile } from '../../types/documents';
 
 export interface UseFilesResult {
@@ -14,42 +8,32 @@ export interface UseFilesResult {
     isLoading: boolean;
 }
 
+/**
+ * useFiles - Hook to access subject files from store.
+ * 
+ * Selects filtered files from central store.
+ * Combines local store loading with global sync status.
+ */
 export function useFiles(courseCode: string | undefined): UseFilesResult {
-    const [files, setFiles] = useState<ParsedFile[] | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const filesMap = useAppStore(state => state.files);
+    const loadingMap = useAppStore(state => state.filesLoading);
+    const fetchFiles = useAppStore(state => state.fetchFiles);
+    const { isSyncing } = useSyncStatus();
+
+    const subjectFiles = courseCode ? filesMap[courseCode] : null;
+    const isSubjectLoading = courseCode ? !!loadingMap[courseCode] : false;
 
     useEffect(() => {
-        if (!courseCode) {
-            setFiles(null);
-            setIsLoading(false);
-            return;
+        if (courseCode) {
+            fetchFiles(courseCode);
         }
+    }, [courseCode, fetchFiles]);
 
-        const loadData = async () => {
-             setIsLoading(true);
-             try {
-                 // Load from IndexedDB
-                 const data = await IndexedDBService.get('files', courseCode);
-                 
-                 setFiles(data || []);
-             } catch (error) {
-                 console.error('[useFiles] Failed to load files:', error);
-                 setFiles(null); 
-             } finally {
-                 setIsLoading(false);
-             }
-        };
+    // Final loading state: Store is fetching from IDB OR Global Sync is active (on first load)
+    const isLoading = isSubjectLoading || (isSyncing && (!subjectFiles || subjectFiles.length === 0));
 
-        // Initial load
-        loadData();
-
-        // Subscribe to sync updates
-        const unsubscribe = syncService.subscribe(() => {
-            loadData();
-        });
-
-        return unsubscribe;
-    }, [courseCode]);
-
-    return { files, isLoading };
+    return { 
+        files: subjectFiles || null, 
+        isLoading 
+    };
 }

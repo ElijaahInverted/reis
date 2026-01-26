@@ -10,7 +10,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
-import { useSubjectNote } from './useSubjectNote';
+import { useSubjectNote } from '../useSubjectNote';
 
 // Access the global chrome mock from setup.ts
 const mockStorage: Record<string, unknown> = {};

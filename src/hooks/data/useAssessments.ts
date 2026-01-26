@@ -1,12 +1,6 @@
-/**
- * useAssessments - Hook to access assessment data from storage.
- * 
- * Returns stored data immediately and subscribes to sync updates.
- */
-
-import { useState, useEffect } from 'react';
-import { syncService } from '../../services/sync';
-import { IndexedDBService } from '../../services/storage';
+import { useEffect } from 'react';
+import { useAppStore } from '../../store/useAppStore';
+import { useSyncStatus } from './useSyncStatus';
 import type { Assessment } from '../../types/documents';
 
 export interface UseAssessmentsResult {
@@ -14,42 +8,32 @@ export interface UseAssessmentsResult {
     isLoading: boolean;
 }
 
+/**
+ * useAssessments - Hook to access assessment data from store.
+ * 
+ * Selects filtered assessments from central store.
+ * Combines local store loading with global sync status.
+ */
 export function useAssessments(courseCode: string | undefined): UseAssessmentsResult {
-    const [assessments, setAssessments] = useState<Assessment[] | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const assessmentsMap = useAppStore(state => state.assessments);
+    const loadingMap = useAppStore(state => state.assessmentsLoading);
+    const fetchAssessments = useAppStore(state => state.fetchAssessments);
+    const { isSyncing } = useSyncStatus();
+
+    const subjectAssessments = courseCode ? assessmentsMap[courseCode] : null;
+    const isSubjectLoading = courseCode ? !!loadingMap[courseCode] : false;
 
     useEffect(() => {
-        if (!courseCode) {
-            setAssessments(null);
-            setIsLoading(false);
-            return;
+        if (courseCode) {
+            fetchAssessments(courseCode);
         }
+    }, [courseCode, fetchAssessments]);
 
-        const loadData = async () => {
-             setIsLoading(true);
-             try {
-                 // Load from IndexedDB
-                 const data = await IndexedDBService.get('assessments', courseCode);
-                 
-                 setAssessments(data || []);
-             } catch (error) {
-                 console.error('[useAssessments] Failed to load data:', error);
-                 setAssessments(null); // Keep as null on error
-             } finally {
-                 setIsLoading(false);
-             }
-        };
+    // Final loading state: Store is fetching from IDB OR Global Sync is active (on first load)
+    const isLoading = isSubjectLoading || (isSyncing && (!subjectAssessments || subjectAssessments.length === 0));
 
-        // Initial load
-        loadData();
-
-        // Subscribe to sync updates
-        const unsubscribe = syncService.subscribe(() => {
-            loadData();
-        });
-
-        return unsubscribe;
-    }, [courseCode]);
-
-    return { assessments, isLoading };
+    return { 
+        assessments: subjectAssessments || null, 
+        isLoading 
+    };
 }

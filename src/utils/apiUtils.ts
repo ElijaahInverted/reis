@@ -7,7 +7,7 @@
 
 import type { FileObject, StoredSubject } from "../types/calendarTypes";
 import { IndexedDBService } from "../services/storage";
-import type { SubjectsData, Assessment } from "../types/documents";
+import type { Assessment } from "../types/documents";
 
 /**
  * Get a stored subject by course code.

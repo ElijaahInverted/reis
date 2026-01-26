@@ -23,7 +23,7 @@ import { TutorialModal } from './components/Tutorials'
 import { fetchTutorials } from './services/tutorials'
 import type { Tutorial } from './services/tutorials'
 import { useSpolkySettings } from './hooks/useSpolkySettings'
-import { initializeStore } from './store/useAppStore';
+import { useAppStore, initializeStore } from './store/useAppStore';
 import { useSchedule } from './hooks/data';
 
 function App() {
@@ -212,7 +212,12 @@ function App() {
             IndexedDBService.set('meta', 'last_sync', receivedData.lastSync);
           }
 
-          // Trigger hooks to re-read from localStorage
+          // Handle real-time sync status
+          if (typeof receivedData.isSyncing === 'boolean') {
+            useAppStore.getState().setSyncStatus({ isSyncing: receivedData.isSyncing });
+          }
+
+          // Trigger hooks to re-read from localStorage/IDB
           syncService.triggerRefresh();
 
           console.log('[App] Data processing complete');

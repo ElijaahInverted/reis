@@ -30,6 +30,7 @@ export interface SyncedData {
     assessments?: unknown; // Map of courseCode -> Assessment[]
     syllabuses?: unknown; // Map of courseCode -> SyllabusRequirements
     studyProgram?: unknown; // StudyProgramData
+    isSyncing?: boolean;
     lastSync: number;
     error?: string;
 }

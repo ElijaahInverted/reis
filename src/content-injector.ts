@@ -322,9 +322,22 @@ function startSyncService() {
     }, SYNC_INTERVAL);
 }
 
+let isSyncing = false;
+
 async function syncAllData() {
+    if (isSyncing) {
+        console.log("[REIS Content] Sync already in process, skipping");
+        return;
+    }
+
     console.log("[REIS Content] 🔄 Starting scraping/sync process...");
-    console.log("[REIS Content] Syncing all data...");
+    isSyncing = true;
+    
+    // Notify iframe that sync has started
+    sendToIframe(Messages.syncUpdate({ 
+        isSyncing: true, 
+        lastSync: cachedData.lastSync 
+    }));
 
     try {
         const [schedule, exams, subjects] = await Promise.allSettled([
@@ -342,27 +355,26 @@ async function syncAllData() {
             lastSync: Date.now(),
         };
 
-        // Notify iframe about basic data immediately
-        sendToIframe(Messages.syncUpdate(cachedData));
+        // Notify iframe about basic data immediately (while still syncing subjects)
+        sendToIframe(Messages.syncUpdate({
+            ...cachedData,
+            isSyncing: true
+        }));
 
         if (subjects.status === "fulfilled" && subjects.value) {
             const subjectsData = subjects.value as SubjectsData;
             const subjectEntries = Object.entries(subjectsData.data);
 
-            // Get user params for assessment sync
             const userParams = await getUserParams();
             let studium = userParams?.studium;
             let obdobi = userParams?.obdobi;
 
-            // Fallback: Try to get from schedule data if missing
             if (!studium || !obdobi) {
-                console.log('[REIS Content] Incomplete user params, trying fallback from schedule data...');
                 const scheduleArray = (schedule.status === "fulfilled" && Array.isArray(schedule.value)) ? schedule.value : null;
                 if (scheduleArray && scheduleArray.length > 0) {
                     const firstEvent = scheduleArray[0] as any;
                     studium = studium || (firstEvent.studyId);
                     obdobi = obdobi || (firstEvent.periodId);
-                    console.log(`[REIS Content] Fallback successful: studium=${studium}, obdobi=${obdobi}`);
                 }
             }
             
@@ -370,49 +382,38 @@ async function syncAllData() {
 
             const subjectTasks = subjectEntries.map(([courseCode, subject]) => {
                 return limit(async () => {
-                    console.log(`[REIS Content] Processing ${courseCode}: subjectId=${subject.subjectId}`);
-                    
                     const subTasks = [];
 
-                    // Fetch files
                     if (subject.folderUrl) {
                         subTasks.push((async () => {
                             try {
                                 const subjectFiles = await fetchFilesFromFolder(subject.folderUrl);
-                                // Update cachedData
                                 if (!cachedData.files) cachedData.files = {};
-                                const filesMap = cachedData.files as Record<string, any>;
-                                filesMap[courseCode] = subjectFiles;
+                                (cachedData.files as Record<string, any>)[courseCode] = subjectFiles;
                             } catch (e) {
                                 console.warn(`[REIS Content] Failed to fetch files for ${courseCode}:`, e);
                             }
                         })());
                     }
 
-                    // Fetch assessments
                     if (studium && obdobi && subject.subjectId) {
                         subTasks.push((async () => {
                             try {
                                 const subjectAssessments = await fetchAssessments(studium, obdobi, subject.subjectId as string);
-                                // Update cachedData
                                 if (!cachedData.assessments) cachedData.assessments = {};
-                                const assessmentsMap = cachedData.assessments as Record<string, any>;
-                                assessmentsMap[courseCode] = subjectAssessments;
+                                (cachedData.assessments as Record<string, any>)[courseCode] = subjectAssessments;
                             } catch (e) {
                                 console.warn(`[REIS Content] Failed to fetch assessments for ${courseCode}:`, e);
                             }
                         })());
                     }
                     
-                    // Fetch syllabus
                     if (subject.subjectId) {
                         subTasks.push((async () => {
                             try {
                                 const subjectSyllabus = await fetchSyllabus(subject.subjectId as string);
-                                // Update cachedData
                                 if (!cachedData.syllabuses) cachedData.syllabuses = {};
-                                const syllabusesMap = cachedData.syllabuses as Record<string, any>;
-                                syllabusesMap[courseCode] = subjectSyllabus;
+                                (cachedData.syllabuses as Record<string, any>)[courseCode] = subjectSyllabus;
                             } catch (e) {
                                 console.warn(`[REIS Content] Failed to fetch syllabus for ${courseCode}:`, e);
                             }
@@ -423,41 +424,36 @@ async function syncAllData() {
                 });
             });
 
-            // Sync Study Program (Independent / Parallel)
+            // Parallel Study Program fetch
             limit(async () => {
                 try {
-                    console.log("[REIS Content] 🔍 Starting Study Program fetch (Independent)...");
                     const programData = await fetchStudyProgram();
-                    
                     if (programData) {
-                        console.log(`[REIS Content] ✅ Study Program fetched. Programs: ${programData.programs.length}, Rows: ${programData.finalTable.length}`);
-                        // Update cache
                         cachedData.studyProgram = programData;
-                        // Send IMMEDIATE update for this specific data
                         sendToIframe(Messages.syncUpdate({
                             studyProgram: programData,
+                            isSyncing: true,
                             lastSync: Date.now()
                         }));
-                    } else {
-                        console.warn("[REIS Content] ⚠️ fetchStudyProgram returned null");
                     }
                 } catch (e) {
-                    console.error("[REIS Content] ❌ Failed to sync study program:", e);
+                    console.error("[REIS Content] Failed to sync study program:", e);
                 }
             });
 
             await Promise.all(subjectTasks);
-            
-            console.log("[REIS Content] ✅ All subject details synced (ready to send)");
-            
-            // Final update
-            cachedData.lastSync = Date.now();
-            console.log("[REIS Content] 📤 Sending sync update to iframe. Has studyProgram?", !!cachedData.studyProgram);
-            sendToIframe(Messages.syncUpdate(cachedData));
         }
+        
+        console.log("[REIS Content] ✅ Sync complete");
+        cachedData.lastSync = Date.now();
+        sendToIframe(Messages.syncUpdate({ ...cachedData, isSyncing: false }));
+
     } catch (error) {
         console.error("[REIS Content] Sync failed:", error);
         cachedData.error = String(error);
+        sendToIframe(Messages.syncUpdate({ isSyncing: false, error: String(error), lastSync: cachedData.lastSync }));
+    } finally {
+        isSyncing = false;
     }
 }
 

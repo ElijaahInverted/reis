@@ -7,11 +7,17 @@
  * - DatePickerPopup
  */
 
+export interface ExamCapacity {
+    occupied: number;
+    total: number;
+    raw: string; // "10/20"
+}
+
 export interface ExamTerm {
     id: string;
     date: string;         // Format: "DD.MM.YYYY"
     time: string;         // Format: "HH:MM"
-    capacity?: string;    // e.g., "18/20"
+    capacity?: ExamCapacity;
     full?: boolean;
     room?: string;
     teacher?: string;
@@ -40,6 +46,7 @@ export interface ExamSection {
 }
 
 export interface ExamSubject {
+    version: number;
     id: string;
     name: string;         // Full subject name
     code: string;         // e.g., "EBC-ALG"

@@ -1,5 +1,5 @@
-
 import type { Assessment } from '../../types/documents';
+import { AssessmentSchema } from '../../schemas/assessmentSchema';
 
 /**
  * Parse assessment table from IS Mendelu.
@@ -55,14 +55,8 @@ export function parseAssessmentTable(html: string): Assessment[] {
         // Safety check - minimal length (previously 7, but let's be flexible)
         if (cells.length < 6) return;
         
-        // Dynamic Offset Detection per row (or globally, but per row is safer if mixed)
-        // Check cell[1]. If it's a number, then Name is at [0].
-        // If it's text, then Name is at [1] (and [0] is likely row number).
         const c1Text = cells[1]?.textContent?.trim() || '';
-        
-        // If cell[1] looks like a score (number), then shift is 0 (Name is at 0).
-        // Otherwise shift is 1.
-        let shift = isScoreLike(c1Text) ? 0 : 1;
+        const shift = isScoreLike(c1Text) ? 0 : 1;
         
         // Extract data using shift
         const name = cells[0 + shift]?.textContent?.trim() || '';
@@ -84,7 +78,7 @@ export function parseAssessmentTable(html: string): Assessment[] {
         const detailLink = cells[7 + shift]?.querySelector('a');
         const detailUrl = detailLink?.getAttribute('href') || undefined;
         
-        results.push({
+        const assessmentRaw = {
             name,
             score,
             maxScore,
@@ -92,7 +86,17 @@ export function parseAssessmentTable(html: string): Assessment[] {
             submittedDate,
             teacher,
             detailUrl
-        });
+        };
+
+        // Validation Firewall
+        const result = AssessmentSchema.safeParse(assessmentRaw);
+        if (result.success) {
+            results.push(result.data);
+        } else {
+            console.error(`[parseAssessmentTable] ❌ Validation failed for assessment "${name}":`, result.error.issues);
+            // Optionally we could push the raw data anyway if we want to be permissive, 
+            // but the goal is "Data Integrity". For now we drop bad data.
+        }
     });
     
     console.debug(`[parseAssessmentTable] Parsed ${results.length} assessments`);

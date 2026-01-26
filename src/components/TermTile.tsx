@@ -16,15 +16,8 @@ interface TermTileProps {
     isProcessing?: boolean;
 }
 
-/**
- * Parse capacity string to get occupied/total numbers.
- */
-function parseCapacity(capacity?: string): { occupied: number; total: number; percent: number } | null {
-    if (!capacity) return null;
-    const [occupied, total] = capacity.split('/').map(Number);
-    if (isNaN(occupied) || isNaN(total) || total === 0) return null;
-    return { occupied, total, percent: Math.min(100, (occupied / total) * 100) };
-}
+// Deprecated: No longer needed as Zod handles this via transform
+// function parseCapacity(capacity?: string): { occupied: number; total: number; percent: number } | null { ... }
 
 /**
  * Get day of week from DD.MM.YYYY string.
@@ -76,7 +69,8 @@ function formatCountdown(ms: number): string {
 }
 
 export function TermTile({ term, onSelect, isProcessing = false }: TermTileProps) {
-    const capacity = parseCapacity(term.capacity);
+    const capacity = term.capacity;
+    const capacityPercent = capacity ? Math.min(100, (capacity.occupied / capacity.total) * 100) : 0;
     const isFull = term.full || (capacity && capacity.occupied >= capacity.total);
 
     // Countdown state for future-opening terms
@@ -209,11 +203,11 @@ export function TermTile({ term, onSelect, isProcessing = false }: TermTileProps
                             <progress
                                 className={`progress w-12 h-1.5 ${(isFull || isRegistrationClosed || isBlocked) ? 'progress-error' : 'progress-primary'
                                     }`}
-                                value={capacity.percent}
+                                value={capacityPercent}
                                 max="100"
                             />
                             <span className={`text-xs ${(isFull || isRegistrationClosed || isBlocked) ? 'text-error font-medium' : 'text-base-content/50'}`}>
-                                {isFull ? 'PLNÝ' : (isRegistrationClosed || isBlocked) ? 'UZAVŘENO' : `${capacity.occupied}/${capacity.total}`}
+                                {isFull ? 'PLNÝ' : (isRegistrationClosed || isBlocked) ? 'UZAVŘENO' : capacity.raw}
                             </span>
                         </div>
                     </div>

@@ -1,63 +1,26 @@
-import { useState, useEffect } from 'react';
-import { IndexedDBService } from '../services/storage';
-import type { StudyProgramData } from '../api/studyProgram';
-import { syncService } from '../services/sync';
+import { useAppStore } from '../store/useAppStore';
+import { useSyncStatus } from './data/useSyncStatus';
 
+/**
+ * useStudyProgram - Centralized hook for study program data.
+ * 
+ * Replaces local fetching logic with Zustand store selectors.
+ * Aggregates store loading with global sync status for robust UI.
+ */
 export function useStudyProgram() {
-    const [data, setData] = useState<StudyProgramData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const data = useAppStore(state => state.studyProgram);
+    const storeLoading = useAppStore(state => state.studyProgramLoading);
+    const { isSyncing } = useSyncStatus();
+    const fetchStudyProgram = useAppStore(state => state.fetchStudyProgram);
 
-    useEffect(() => {
-        console.log('[useStudyProgram] Hook mounted, loading data...');
-        loadData();
-        
-        // Listen for sync updates
-        const handleSyncUpdate = (action?: string) => {
-            if (action === 'STUDY_PROGRAM_UPDATE') {
-                console.log('[useStudyProgram] Received update signal, reloading...');
-                loadData();
-            }
-        };
+    // Final loading state: Store is fetching from IDB OR Global Sync is active (on first load)
+    const isLoading = storeLoading || (isSyncing && !data);
 
-        // Subscribe to synchronous updates
-        const unsubscribe = syncService.subscribe(handleSyncUpdate);
-        
-        return () => {
-            unsubscribe();
-        };
-    }, []);
-
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            console.log('[useStudyProgram] Fetching from IndexedDB...');
-            let programData: StudyProgramData | null | undefined = await IndexedDBService.get('study_program', 'current');
-            
-            if (programData) {
-                console.log('[useStudyProgram] ✅ Data found');
-                setData(programData);
-            } else {
-                console.warn('[useStudyProgram] ⚠️ No data found in any storage');
-            }
-        } catch (err) {
-            console.error("[useStudyProgram] ❌ Failed to load study program:", err);
-            setError("Failed to load study program data.");
-        } finally {
-            setLoading(false);
-        }
+    return { 
+        data, 
+        loading: isLoading, 
+        error: null, // Error handling moved to slice
+        reload: fetchStudyProgram, 
+        sync: fetchStudyProgram // In new architecture, sync triggers reload via subscriber
     };
-
-    const sync = async () => {
-        try {
-            setLoading(true);
-            await syncService.triggerSync();
-        } catch (err) {
-            console.error("[useStudyProgram] ❌ Background sync failed:", err);
-        } finally {
-            // Loading will be finished by the loadData call or the update signal
-        }
-    };
-
-    return { data, loading, error, reload: loadData, sync };
 }

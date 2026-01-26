@@ -262,6 +262,14 @@ class SyncServiceClass {
         };
     }
 
+    /**
+     * Set external sync status (e.g. from content script)
+     */
+    setIsSyncing(val: boolean): void {
+        this.isSyncing = val;
+        this.notifyListeners();
+    }
+
     triggerSync(): void {
         console.log('[SyncService] triggerSync triggered (manual)');
         window.parent.postMessage({

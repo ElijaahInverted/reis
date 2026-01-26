@@ -1,9 +1,12 @@
 import type { StateCreator } from 'zustand';
 import type { BlockLesson } from '../types/calendarTypes';
 import type { ExamSubject } from '../types/exams';
-import type { SyllabusRequirements } from '../types/documents';
+import type { SyllabusRequirements, ParsedFile, Assessment, SubjectsData } from '../types/documents';
+import type { StudyProgramData } from '../api/studyProgram';
+import type { SyncStatus } from '../services/sync';
 
 export type Status = 'idle' | 'loading' | 'success' | 'error';
+export type Theme = "mendelu" | "mendelu-dark";
 
 export interface ScheduleSlice {
   schedule: {
@@ -33,6 +36,51 @@ export interface SyllabusSlice {
   fetchSyllabus: (courseCode: string, courseId?: string, subjectName?: string) => Promise<void>;
 }
 
-export type AppState = ScheduleSlice & ExamSlice & SyllabusSlice;
+export interface StudyProgramSlice {
+    studyProgram: StudyProgramData | null;
+    studyProgramLoading: boolean;
+    fetchStudyProgram: () => Promise<void>;
+}
+
+export interface FilesSlice {
+    files: Record<string, ParsedFile[]>;
+    filesLoading: Record<string, boolean>;
+    fetchFiles: (courseCode: string) => Promise<void>;
+}
+
+export interface AssessmentsSlice {
+    assessments: Record<string, Assessment[]>;
+    assessmentsLoading: Record<string, boolean>;
+    fetchAssessments: (courseCode: string) => Promise<void>;
+}
+
+export interface SubjectsSlice {
+    subjects: SubjectsData | null;
+    subjectsLoading: boolean;
+    fetchSubjects: () => Promise<void>;
+}
+
+export interface SyncSlice {
+    syncStatus: SyncStatus;
+    fetchSyncStatus: () => Promise<void>;
+    setSyncStatus: (status: Partial<SyncStatus>) => void;
+}
+
+export interface ThemeSlice {
+    theme: Theme;
+    isThemeLoading: boolean;
+    setTheme: (theme: Theme) => Promise<void>;
+    loadTheme: () => Promise<void>;
+}
+
+export interface UseThemeResult {
+  theme: Theme;
+  isDark: boolean;
+  isLoading: boolean;
+  toggle: () => void;
+  setTheme: (theme: Theme) => void;
+}
+
+export type AppState = ScheduleSlice & ExamSlice & SyllabusSlice & StudyProgramSlice & FilesSlice & AssessmentsSlice & SubjectsSlice & SyncSlice & ThemeSlice;
 
 export type AppSlice<T> = StateCreator<AppState, [], [], T>;

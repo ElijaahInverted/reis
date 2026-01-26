@@ -8,6 +8,7 @@ export interface SubjectInfo {
 }
 
 export interface SubjectsData {
+    version: number;
     lastUpdated: string;
     data: Record<string, SubjectInfo>;
 }
@@ -85,6 +86,7 @@ export interface Assessment {
 }
 
 export interface SyllabusRequirements {
+    version?: number;
     courseId?: string; // Resolved IS Subject ID
     requirementsText: string; // Textual description of requirements
     requirementsTable: string[][]; // Grading breakdown table (rows of cells)

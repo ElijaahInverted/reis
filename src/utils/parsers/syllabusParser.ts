@@ -1,4 +1,5 @@
 import type { SyllabusRequirements, CourseMetadata } from '../../types/documents';
+import { SyllabusRequirementsSchema } from '../../schemas/syllabusSchema';
 
 /**
  * Parses the raw HTML string of the syllabus page to extract requirements.
@@ -160,16 +161,20 @@ export function parseSyllabusOffline(htmlString: string): SyllabusRequirements {
     });
 
     // --- RETURN OBJECT ---
-    const result: SyllabusRequirements = {
+    const resultRaw = {
+        version: 1,
         requirementsText,
         requirementsTable,
         courseInfo
     };
 
-    console.debug('[parseSyllabusOffline] Parsed result:', {
-        textLength: result.requirementsText.length,
-        tableRows: result.requirementsTable.length
-    });
-
-    return result;
+    // Validation Firewall
+    const validationResult = SyllabusRequirementsSchema.safeParse(resultRaw);
+    if (validationResult.success) {
+        console.debug('[parseSyllabusOffline] ✅ Syllabus data validated successfully');
+        return validationResult.data;
+    } else {
+        console.error('[parseSyllabusOffline] ❌ Syllabus data validation failed:', validationResult.error.issues);
+        return resultRaw as SyllabusRequirements; // Fallback
+    }
 }

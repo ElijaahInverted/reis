@@ -11,11 +11,7 @@ import * as path from 'path';
 const HARDCODED_STUDIUM = '149707';
 const HARDCODED_OBDOBI = 'obdobi=801';
 
-// Files that should be checked for hardcoded values
-const API_FILES = [
-    'src/api/exams.ts',
-    'src/api/schedule.ts',
-];
+// Hardcoded user values should not appear in API files
 
 describe('No Hardcoded User IDs', () => {
     it('should not have hardcoded studium in exams.ts', () => {
