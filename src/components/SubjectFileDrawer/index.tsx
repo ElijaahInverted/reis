@@ -7,7 +7,6 @@ import { useSubjectFileDrawerState } from './useSubjectFileDrawerState';
 import { SubjectFileDrawerContent } from './SubjectFileDrawerContent';
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { ParsedFile } from '../../types/documents';
-import type { FileGroup } from './types';
 
 export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLesson | null; isOpen: boolean; onClose: () => void }) {
     const state = useSubjectFileDrawerState(lesson, isOpen);
@@ -55,7 +54,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
                         onMouseDown={state.activeTab === 'files' ? state.handleMouseDown : undefined}
                         style={{ cursor: state.activeTab === 'files' ? 'crosshair' : 'default' }}>
                         <div ref={state.contentRef} className="min-h-full pb-20 relative">
-                            <SubjectFileDrawerContent {...state} showDragHint={showDragHint} groupedFiles={groupedFiles} openFile={openFile} />
+                            <SubjectFileDrawerContent {...state} lesson={lesson} showDragHint={showDragHint} groupedFiles={groupedFiles} openFile={openFile} />
                         </div>
                     </div>
                 </div>

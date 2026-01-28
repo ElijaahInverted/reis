@@ -1,4 +1,4 @@
-import { FileText, ExternalLink } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { FileList, FileListSkeleton } from './FileList';
 import { AssessmentTab } from './AssessmentTab';
 import { SyllabusTab } from './SyllabusTab';
@@ -20,7 +20,7 @@ interface SubjectFileDrawerContentProps {
     selectedIds: string[];
     fileRefs: any;
     ignoreClickRef: any;
-    toggleSelect: (id: string) => void;
+    toggleSelect: (id: string, e: React.MouseEvent) => void;
     openFile: (file: any) => void;
     resolvedCourseId: string;
     syllabusResult: any;

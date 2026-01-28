@@ -1,4 +1,4 @@
-export const CDN_BASE_URL = "https://raw.githubusercontent.com/darksoothingshadow/reis-data/main";
+export const CDN_BASE_URL = "https://cdn.jsdelivr.net/gh/reis-mendelu/reis-data@main";
 
 export async function checkCDNAvailability(code: string) {
     const url = `${CDN_BASE_URL}/subjects/${code}.json`;

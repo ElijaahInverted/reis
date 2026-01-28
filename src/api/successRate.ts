@@ -11,10 +11,8 @@ import { STORAGE_KEYS, IndexedDBService } from "../services/storage";
 import { loggers } from "../utils/logger";
 import type { SubjectSuccessRate, SuccessRateData } from "../types/documents";
 
-// JSDelivr CDN for GitHub-hosted data
-// In development, you can run a local server: npx serve server/dist-data -l 8080
-// and set CDN_BASE_URL = "http://localhost:8080"
-const CDN_BASE_URL = "https://raw.githubusercontent.com/reis-mendelu/reis-data/main";
+// CDN for GitHub-hosted data
+const CDN_BASE_URL = "https://cdn.jsdelivr.net/gh/reis-mendelu/reis-data@main";
 const CACHE_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 /**
@@ -61,7 +59,7 @@ async function markAsSynced(courseCodes: string[]): Promise<void> {
  * Returns a SuccessRateData object and saves it to storage.
  */
 export async function fetchSubjectSuccessRates(targetCodes: string[]): Promise<SuccessRateData> {
-    loggers.api.info('[SuccessRate] Fetching from CDN...', targetCodes.length);
+    loggers.api.info('[SuccessRate] Fetching from CDN...', targetCodes.length, targetCodes);
     
     // 1. Check cache for each code
     const existing = await getStoredSuccessRates();
@@ -96,6 +94,7 @@ export async function fetchSubjectSuccessRates(targetCodes: string[]): Promise<S
     // 2. Fetch each course from CDN (parallel)
     const fetchPromises = codesToFetch.map(async (code) => {
         const url = `${CDN_BASE_URL}/subjects/${code}.json`;
+        loggers.api.info('[SuccessRate] Fetching URL:', url);
         try {
             const response = await fetch(url);
             if (!response.ok) {

@@ -19,9 +19,16 @@ export default defineConfig({
       128: 'mendelu_logo_128.png',
     },
     permissions: ['storage', 'unlimitedStorage'],
-    host_permissions: ['https://is.mendelu.cz/*'],
+    host_permissions: [
+      'https://is.mendelu.cz/*',
+      'https://raw.githubusercontent.com/reis-mendelu/reis-data/*',
+      'https://cdn.jsdelivr.net/gh/reis-mendelu/reis-data@main/*'
+    ],
     action: {
       default_popup: 'main.html',
+    },
+    content_security_policy: {
+      extension_pages: "script-src 'self'; object-src 'self'",
     },
     web_accessible_resources: [
       {
