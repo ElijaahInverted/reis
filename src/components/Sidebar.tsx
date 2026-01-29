@@ -25,7 +25,14 @@ export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, tutorials =
     }
     if (item.id === 'subjects' && subjects) {
       p.expandable = true;
-      p.children = Object.values(subjects.data).map((s: any) => ({ id: `subject-${s.subjectCode}`, label: s.displayName, subtitle: s.subjectCode, icon: <Layers className="w-4 h-4" />, isSubject: true, courseCode: s.subjectCode, subjectId: s.subjectId }));
+      p.children = Object.values(subjects.data).map((s: any) => ({ 
+        id: `subject-${s.subjectCode}`, 
+        label: s.displayName.replace(s.subjectCode, '').trim(), 
+        icon: <Layers className="w-4 h-4" />, 
+        isSubject: true, 
+        courseCode: s.subjectCode, 
+        subjectId: s.subjectId 
+      }));
     }
     return p;
   });
