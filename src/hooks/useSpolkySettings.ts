@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { IndexedDBService } from '../services/storage'; 
 import { FACULTY_TO_ASSOCIATION } from '../services/spolky/config';
+import { getUserParams } from '../utils/userParams';
 
 // New key for full list
 const STORAGE_KEY = 'reis_subscribed_associations';
@@ -12,30 +13,34 @@ export function useSpolkySettings() {
   const loadSettings = useCallback(async () => {
       try {
           // 1. Try to get new full list
-          let saved = await IndexedDBService.get('meta', STORAGE_KEY) as string[];
+          let saved = await IndexedDBService.get('meta', STORAGE_KEY) as string[] | undefined;
           
           if (!saved) {
               // Determine defaults
-              const defaults: string[] = [];
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const userParams = await IndexedDBService.get('meta', 'reis_user_params') as any;
-              const facultyId = userParams?.facultyId;
-              const erasmus = userParams?.isErasmus;
+              const userParams = await getUserParams();
+              
+              if (userParams) {
+                  const defaults: string[] = [];
+                  const facultyId = userParams.facultyId;
+                  const erasmus = userParams.isErasmus;
 
-              if (facultyId && FACULTY_TO_ASSOCIATION[facultyId]) {
-                defaults.push(FACULTY_TO_ASSOCIATION[facultyId]);
+                  if (facultyId && FACULTY_TO_ASSOCIATION[facultyId]) {
+                    defaults.push(FACULTY_TO_ASSOCIATION[facultyId]);
+                  }
+                  
+                  if (erasmus) {
+                    defaults.push('esn');
+                  }
+                  
+                  saved = defaults;
+                  // Save defaults only if we had userParams to determine them
+                  await IndexedDBService.set('meta', STORAGE_KEY, saved);
               }
-              
-              if (erasmus) {
-                defaults.push('esn');
-              }
-              
-              saved = defaults;
-              // Save defaults
-              await IndexedDBService.set('meta', STORAGE_KEY, saved);
           }
           
-          setSubscribedAssociations(saved);
+          if (saved) {
+              setSubscribedAssociations(saved);
+          }
       } catch (err) {
           console.error('[useSpolkySettings] Failed to load settings:', err);
       } finally {
@@ -62,7 +67,7 @@ export function useSpolkySettings() {
 
   const toggleAssociation = async (associationId: string) => {
     const newSettings = subscribedAssociations.includes(associationId)
-      ? subscribedAssociations.filter(id => id !== associationId)
+      ? subscribedAssociations.filter((id: string) => id !== associationId)
       : [...subscribedAssociations, associationId];
     
     setSubscribedAssociations(newSettings);
