@@ -60,8 +60,14 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
             const vUrl = validateUrl(href.startsWith('http') ? href : (href.startsWith('/') ? href : `/auth/dok_server/${href.replace(/^\.\//, '')}`), 'is.mendelu.cz');
             if (!vUrl || /Všechny moje složky|Nadřazená složka/.test(file_name)) return;
 
+            // Filter out unwanted links (teacher profiles, info pages)
+            if (vUrl.includes('clovek.pl') || vUrl.includes('dokumenty_ct.pl')) return;
+
             const sysid = l.querySelector('img[sysid]')?.getAttribute('sysid') || '';
+            if (sysid === 'mime-prohlizeni-info') return;
+
             const type = sysid ? sysid.replace('mime-', '') : 'unknown';
+            if (type === 'prohlizeni-info') return;
             
             const existing = extractedFiles.find(f => f.link === vUrl);
             if (existing) {

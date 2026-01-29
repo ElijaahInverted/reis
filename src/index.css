@@ -12,7 +12,7 @@ html, body, #root {
 
 /* Enable both light and dark Mendelu themes */
 @plugin "daisyui" {
-  themes: mendelu, mendelu-dark --default;
+  themes: mendelu-dark --default, mendelu;
 }
 
 /* Safelist DaisyUI toggle component (not auto-detected by JIT scanner) */
@@ -25,7 +25,7 @@ html, body, #root {
 /* Custom Mendelu light theme for REIS extension */
 @plugin "daisyui/theme" {
   name: "mendelu";
-  default: true;
+  default: false;
   color-scheme: light;
 
   /* Base colors */
@@ -66,7 +66,7 @@ html, body, #root {
 /* Custom Mendelu dark theme for REIS extension */
 @plugin "daisyui/theme" {
   name: "mendelu-dark";
-  default: false;
+  default: true;
   color-scheme: dark;
 
   /* Base colors - dark */

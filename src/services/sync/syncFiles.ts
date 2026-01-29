@@ -37,9 +37,9 @@ export async function syncFiles(): Promise<void> {
             const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
             const files = await fetchFilesFromFolder(folderUrl);
 
-            if (files) {
+            if (Array.isArray(files)) {
                 // files can be [] if folder is empty, or [...] if has files. 
-                // We want to store it even if empty, so UI knows it's "0 files" vs "loading"
+                // We want to store it even if empty (but ONLY if fetch succeeded, handled by try/catch above)
                 await IndexedDBService.set('files', courseCode, files);
                 successCount++;
             }

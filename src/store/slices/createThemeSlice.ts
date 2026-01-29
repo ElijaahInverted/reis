@@ -3,7 +3,7 @@ import { IndexedDBService } from '../../services/storage';
 import { syncService } from '../../services/sync';
 
 const STORAGE_KEY = "reis_theme";
-const DEFAULT_THEME: Theme = "mendelu";
+const DEFAULT_THEME: Theme = "mendelu-dark";
 
 export const createThemeSlice: AppSlice<ThemeSlice> = (set) => ({
     theme: DEFAULT_THEME,

@@ -19,7 +19,7 @@ export function useSpolkySettings() {
               const defaults: string[] = [];
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const userParams = await IndexedDBService.get('meta', 'reis_user_params') as any;
-              const facultyId = userParams?.faculty;
+              const facultyId = userParams?.facultyId;
               const erasmus = userParams?.isErasmus;
 
               if (facultyId && FACULTY_TO_ASSOCIATION[facultyId]) {

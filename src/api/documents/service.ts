@@ -2,6 +2,7 @@ import { fetchWithAuth, BASE_URL } from "../client";
 import { requestQueue, processWithDelay } from "../../utils/requestQueue";
 import { parseServerFiles } from "./parser";
 import { fetchSubjects } from "../subjects";
+import { validateUrl } from "../../utils/validation/index";
 import type { ParsedFile, FileAttachment } from "../../types/documents";
 
 export async function fetchDocumentsForSubject(subjectCode: string): Promise<FileAttachment[]> {
@@ -18,29 +19,71 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive = true, 
         if (!url.includes('lang=')) url += (url.includes('?') ? ';' : '?') + 'lang=cz';
 
         const response = await fetchWithAuth(url);
-        const { files, paginationLinks } = parseServerFiles(await response.text());
+        const respText = await response.text();
+        const { files: initialFiles, paginationLinks } = parseServerFiles(respText);
+        let allFiles = [...initialFiles];
 
-        for (const link of paginationLinks) {
-            const pageUrl = link.startsWith('http') ? link : `${BASE_URL}/auth/dok_server/${link.replace(/^\//, '')}`;
-            const pageResult = await requestQueue.add(async () => parseServerFiles(await (await fetchWithAuth(pageUrl)).text()));
-            files.push(...pageResult.files);
-        }
+        console.log(`[fetchFilesFromFolder] ${folderUrl} - Page 1: Found ${initialFiles.length} files, ${paginationLinks.length} pagination links`);
+
+        // Use Promise.allSettled for pagination to be resilient
+        const pageRequests = paginationLinks.map(async (link) => {
+            const pageUrl = link.startsWith('http') ? link : validateUrl(link.startsWith('/') ? link : `/auth/dok_server/${link.replace(/^\.\//, '')}`, 'is.mendelu.cz');
+            if (!pageUrl) return [];
+            
+            try {
+                const pageResp = await requestQueue.add(async () => fetchWithAuth(pageUrl));
+                const { files: pageFiles } = parseServerFiles(await pageResp.text());
+                console.log(`[fetchFilesFromFolder]   - Paged ${pageUrl}: Found ${pageFiles.length} files`);
+                return pageFiles;
+            } catch (err) {
+                console.warn(`[fetchFilesFromFolder]   - Paged ${pageUrl} failed, skipping:`, err);
+                return [];
+            }
+        });
+
+        const extraResults = await Promise.all(pageRequests);
+        allFiles.push(...extraResults.flat());
 
         if (recursive && currentDepth < maxDepth) {
-            const folders = files.filter(f => f.files.some(fi => fi.link.includes('slozka.pl') && !fi.link.includes('download')))
-                .map(f => ({ url: f.files[0].link.startsWith('http') ? f.files[0].link : `${BASE_URL}/auth/dok_server/${f.files[0].link.replace(/^\//, '')}`, name: f.file_name }));
+            const folders = allFiles.filter(f => f.files.some(fi => fi.link.includes('slozka.pl') && !fi.link.includes('download')))
+                .map(f => ({ 
+                    url: f.files[0].link, // Already absolute from parser
+                    name: f.file_name 
+                }));
+
+            console.log(`[fetchFilesFromFolder] ${folderUrl} - Found ${folders.length} subfolders to recurse (Depth ${currentDepth})`);
 
             const subResults = await processWithDelay(folders, async f => {
-                const results = await fetchFilesFromFolder(f.url, true, currentDepth + 1, maxDepth);
-                results.forEach(r => r.subfolder = f.name);
-                return results;
+                try {
+                    const results = await fetchFilesFromFolder(f.url, true, currentDepth + 1, maxDepth);
+                    results.forEach(r => r.subfolder = f.name);
+                    return results;
+                } catch (err) {
+                    console.warn(`[fetchFilesFromFolder] Subfolder ${f.name} failed (recurse depth ${currentDepth}), skipping:`, err);
+                    return [];
+                }
             }, 200);
 
-            const all = [...files, ...subResults.flat()];
-            const unique = new Map();
-            all.forEach(f => { if (f.files.length > 0) unique.set(f.files[0].link, f); });
-            return Array.from(unique.values()).filter(f => f.files.some(fi => fi.link.includes('download') || !fi.link.includes('slozka.pl')));
+            allFiles.push(...subResults.flat());
         }
-        return files;
-    } catch (e) { return []; }
+
+        // Final Deduplication using a more robust key (link + filename)
+        const unique = new Map<string, ParsedFile>();
+        allFiles.forEach(f => {
+            if (f.files.length > 0) {
+                const key = `${f.files[0].link}_${f.file_name}`;
+                unique.set(key, f);
+            }
+        });
+
+        const finalResults = Array.from(unique.values()).filter(f => 
+            f.files.some(fi => fi.link.includes('download') || !fi.link.includes('slozka.pl'))
+        );
+
+        console.log(`[fetchFilesFromFolder] ${folderUrl} - Done. Total unique files: ${finalResults.length}`);
+        return finalResults;
+    } catch (e) {
+        console.error(`[fetchFilesFromFolder] Failed to fetch folder ${folderUrl}:`, e);
+        throw e;
+    }
 }
