@@ -27,6 +27,7 @@ export const initializeStore = () => {
     useAppStore.getState().fetchSchedule();
     useAppStore.getState().fetchExams();
     useAppStore.getState().fetchSubjects();
+    useAppStore.getState().fetchAllFiles();
     useAppStore.getState().fetchSyncStatus();
     useAppStore.getState().loadTheme();
 

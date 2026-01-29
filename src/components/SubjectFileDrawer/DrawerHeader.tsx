@@ -19,7 +19,7 @@ function getBadge(l: any) {
     return l.isSeminar === 'true' ? { label: 'Cvičení', cls: 'bg-emerald-100 text-emerald-700' } : { label: 'Přednáška', cls: 'bg-blue-100 text-blue-700' };
 }
 
-export function DrawerHeader({ lesson, courseId, courseInfo, selectedCount, isDownloading, activeTab, onClose, onDownload, onTabChange }: DrawerHeaderProps) {
+export function DrawerHeader({ lesson, courseId, courseInfo, selectedCount, isDownloading, downloadProgress, activeTab, onClose, onDownload, onTabChange }: DrawerHeaderProps) {
     const badge = getBadge(lesson), isSearch = lesson?.isFromSearch;
 
     return (
@@ -29,7 +29,7 @@ export function DrawerHeader({ lesson, courseId, courseInfo, selectedCount, isDo
                     {!isSearch ? (<>{badge && <span className={`px-2 py-0.5 rounded text-xs font-medium ${badge.cls}`}>{badge.label}</span>}{lesson?.date && <span className="text-sm text-base-content/60">{formatDate(lesson.date)}</span>}</>)
                     : (<div className="flex items-center gap-2">{courseInfo?.status && <span className="px-2 py-0.5 rounded text-xs font-bold bg-base-300 text-base-content/70 capitalize">{courseInfo.status.toLowerCase()}</span>}{courseInfo?.credits && <span className="px-2 py-0.5 rounded text-xs font-bold bg-primary/10 text-primary capitalize">{courseInfo.credits.toLowerCase()}</span>}</div>)}
                 </div>
-                <HeaderActions selectedCount={selectedCount} isDownloading={isDownloading} onDownload={onDownload} onClose={onClose} />
+                <HeaderActions selectedCount={selectedCount} isDownloading={isDownloading} downloadProgress={downloadProgress} onDownload={onDownload} onClose={onClose} />
             </div>
             <div className="mb-2">
                 {courseId ? <a href={`https://is.mendelu.cz/auth/katalog/syllabus.pl?predmet=${courseId};lang=cz`} target="_blank" rel="noopener noreferrer" className="clickable-link text-xl font-bold flex items-center gap-1"><span>{lesson?.courseName}</span><ExternalLink size={14} className="opacity-50" /></a>

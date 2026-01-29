@@ -7,17 +7,25 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { normalizeFileUrl } from '../../utils/fileUrl';
 import { createLogger } from '../../utils/logger';
+import { requestQueue } from '../../utils/requestQueue';
 
 const log = createLogger('useFileActions');
 
+interface DownloadProgress {
+    completed: number;
+    total: number;
+}
+
 interface UseFileActionsResult {
     isDownloading: boolean;
+    downloadProgress: DownloadProgress | null;
     openFile: (link: string) => Promise<void>;
     downloadZip: (fileLinks: string[], zipFileName: string) => Promise<void>;
 }
 
 export function useFileActions(): UseFileActionsResult {
     const [isDownloading, setIsDownloading] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
 
     const openFile = useCallback(async (link: string) => {
         log.debug(`Opening file: ${link}`);
@@ -51,6 +59,7 @@ export function useFileActions(): UseFileActionsResult {
         if (fileLinks.length < 2) return;
 
         setIsDownloading(true);
+        setDownloadProgress({ completed: 0, total: fileLinks.length });
         log.debug(`Downloading ZIP with ${fileLinks.length} files`);
         console.log('[useFileActions] Starting ZIP download process for:', zipFileName);
 
@@ -58,39 +67,49 @@ export function useFileActions(): UseFileActionsResult {
 
         try {
             const downloadPromises = fileLinks.map(async (link) => {
-                try {
-                    const fullUrl = normalizeFileUrl(link);
-                    console.log(`[useFileActions] Fetching file: ${fullUrl}`);
-                    const response = await fetch(fullUrl, { credentials: 'include' });
-                    
-                    if (!response.ok) {
-                        console.warn(`[useFileActions] Failed to fetch ${fullUrl}: ${response.status}`);
-                        return;
-                    }
+                return requestQueue.add(async () => {
+                    try {
+                        const fullUrl = normalizeFileUrl(link);
+                        console.log(`[useFileActions] Fetching file: ${fullUrl}`);
+                        
+                        // Basic retry logic (1 retry)
+                        let response = await fetch(fullUrl, { credentials: 'include' });
+                        if (!response.ok && response.status >= 500) {
+                            console.warn(`[useFileActions] Server error ${response.status}, retrying once: ${fullUrl}`);
+                            response = await fetch(fullUrl, { credentials: 'include' });
+                        }
+                        
+                        if (!response.ok) {
+                            console.warn(`[useFileActions] Failed to fetch ${fullUrl}: ${response.status}`);
+                            setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
+                            return;
+                        }
 
-                    const blob = await response.blob();
-                    console.log(`[useFileActions] Blob received for ${link}, size: ${blob.size}`);
-                    
-                    const cd = response.headers.get('content-disposition');
-                    let filename = 'file';
-                    if (cd) {
-                        const match = cd.match(/filename="?([^"]+)"?/);
-                        if (match?.[1]) filename = match[1];
-                    }
-                    
-                    // Fallback filename from URL if content-disposition is missing
-                    if (filename === 'file') {
-                        filename = link.split('/').pop() || `file_${Math.random().toString(36).substr(2, 9)}`;
-                    }
+                        const blob = await response.blob();
+                        console.log(`[useFileActions] Blob received for ${link}, size: ${blob.size}`);
+                        
+                        const cd = response.headers.get('content-disposition');
+                        let filename = 'file';
+                        if (cd) {
+                            const match = cd.match(/filename="?([^"]+)"?/);
+                            if (match?.[1]) filename = match[1];
+                        }
+                        
+                        if (filename === 'file') {
+                            filename = link.split('/').pop() || `file_${Math.random().toString(36).substr(2, 9)}`;
+                        }
 
-                    // Remove potentially problematic characters from filename
-                    filename = filename.replace(/[\\/:*?"<>|]/g, '_');
-                    
-                    zip.file(filename, blob);
-                } catch (e) {
-                    log.error(`Failed to add file ${link} to zip`, e);
-                    console.error(`[useFileActions] Error processing file ${link}:`, e);
-                }
+                        filename = filename.replace(/[\\/:*?"<>|]/g, '_');
+                        zip.file(filename, blob);
+                        
+                        // Update progress after successful download and processing
+                        setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
+                    } catch (e) {
+                        log.error(`Failed to add file ${link} to zip`, e);
+                        console.error(`[useFileActions] Error processing file ${link}:`, e);
+                        setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
+                    }
+                });
             });
 
             await Promise.all(downloadPromises);
@@ -111,8 +130,9 @@ export function useFileActions(): UseFileActionsResult {
             log.error('Failed to generate/save ZIP', e);
         } finally {
             setIsDownloading(false);
+            setDownloadProgress(null);
         }
     }, []);
 
-    return { isDownloading, openFile, downloadZip };
+    return { isDownloading, downloadProgress, openFile, downloadZip };
 }

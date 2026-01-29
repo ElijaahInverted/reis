@@ -41,6 +41,7 @@ export interface FilesSlice {
     files: Record<string, ParsedFile[]>;
     filesLoading: Record<string, boolean>;
     fetchFiles: (courseCode: string) => Promise<void>;
+    fetchAllFiles: () => Promise<void>;
 }
 
 export interface AssessmentsSlice {

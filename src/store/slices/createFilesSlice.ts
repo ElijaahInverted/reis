@@ -1,5 +1,6 @@
 import type { FilesSlice, AppSlice } from '../types';
 import { IndexedDBService } from '../../services/storage';
+import type { ParsedFile } from '../../types/documents';
 
 export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
     files: {},
@@ -28,6 +29,18 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             set((state) => ({
                 filesLoading: { ...state.filesLoading, [courseCode]: false }
             }));
+        }
+    },
+    fetchAllFiles: async () => {
+        try {
+            const allFiles = await IndexedDBService.getAllWithKeys('files');
+            const filesMap: Record<string, ParsedFile[]> = {};
+            allFiles.forEach(({ key, value }) => {
+                filesMap[key] = value;
+            });
+            set({ files: filesMap });
+        } catch (error) {
+            console.error('[FilesSlice] Fetch all failed:', error);
         }
     },
 });

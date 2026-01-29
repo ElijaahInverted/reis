@@ -10,7 +10,7 @@ import type { ParsedFile } from '../../types/documents';
 
 export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLesson | null; isOpen: boolean; onClose: () => void }) {
     const state = useSubjectFileDrawerState(lesson, isOpen);
-    const { isDownloading, openFile, downloadZip } = useFileActions();
+    const { isDownloading, downloadProgress, openFile, downloadZip } = useFileActions();
     const [showDragHint, setShowDragHint] = useState(false);
 
     useEffect(() => {
@@ -48,7 +48,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
                 <div role="dialog" className="w-[600px] bg-base-100 shadow-2xl rounded-2xl flex flex-col h-full animate-in slide-in-from-right pointer-events-auto border border-base-300">
                     <DrawerHeader lesson={lesson} courseId={state.resolvedCourseId || state.syllabusResult.syllabus?.courseId || ''}
                         courseInfo={state.syllabusResult.syllabus?.courseInfo} selectedCount={state.selectedIds.length}
-                        isDownloading={isDownloading} activeTab={state.activeTab} onTabChange={state.setActiveTab}
+                        isDownloading={isDownloading} downloadProgress={downloadProgress} activeTab={state.activeTab} onTabChange={state.setActiveTab}
                         onClose={onClose} onDownload={() => downloadZip(state.selectedIds, `${lesson?.courseCode}_files.zip`)} />
                     <div ref={state.containerRef} className="flex-1 overflow-y-auto relative select-none"
                         onMouseDown={state.activeTab === 'files' ? state.handleMouseDown : undefined}

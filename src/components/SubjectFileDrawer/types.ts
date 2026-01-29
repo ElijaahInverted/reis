@@ -13,6 +13,7 @@ export interface DrawerHeaderProps {
     courseInfo?: CourseMetadata; // New: metadata for search/sidebar view
     selectedCount: number;
     isDownloading: boolean;
+    downloadProgress?: { completed: number; total: number } | null;
     activeTab: 'files' | 'stats' | 'assessments' | 'syllabus';
     onClose: () => void;
     onDownload: () => void;

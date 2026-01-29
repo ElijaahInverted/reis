@@ -7,12 +7,14 @@ import { NavItem } from './Sidebar/NavItem';
 import { BottomActions } from './Sidebar/BottomActions';
 import { useSubjects } from '../hooks/data/useSubjects';
 import { useUserParams } from '../hooks/useUserParams';
+import { useAppStore } from '../store/useAppStore';
 
 export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, tutorials = [], onSelectTutorial, onOpenSubject }: { currentView: AppView, onViewChange: (v: AppView) => void, onOpenFeedback?: () => void, tutorials?: any[], onSelectTutorial?: any, onOpenSubject?: any }) => {
   const [hovered, setHovered] = useState<string | null>(null);
   const timeout = useRef<any>(null);
   const { subjects } = useSubjects();
   const { params } = useUserParams();
+  const files = useAppStore(state => state.files);
 
   const handleEnter = (id: string) => { if (timeout.current) clearTimeout(timeout.current); setHovered(id); };
   const handleLeave = () => { timeout.current = setTimeout(() => setHovered(null), 300); };
@@ -25,7 +27,20 @@ export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, tutorials =
     }
     if (item.id === 'subjects' && subjects) {
       p.expandable = true;
-      p.children = Object.values(subjects.data).map((s: any) => ({ 
+      const sortedSubjects = Object.values(subjects.data).sort((a: any, b: any) => {
+        const aHasFiles = (files[a.subjectCode]?.length ?? 0) > 0;
+        const bHasFiles = (files[b.subjectCode]?.length ?? 0) > 0;
+
+        if (aHasFiles && !bHasFiles) return -1;
+        if (!aHasFiles && bHasFiles) return 1;
+
+        // If both have files or both don't, sort alphabetically by display name (without code)
+        const aName = a.displayName.replace(a.subjectCode, '').trim();
+        const bName = b.displayName.replace(b.subjectCode, '').trim();
+        return aName.localeCompare(bName);
+      });
+
+      p.children = sortedSubjects.map((s: any) => ({ 
         id: `subject-${s.subjectCode}`, 
         label: s.displayName.replace(s.subjectCode, '').trim(), 
         icon: <Layers className="w-4 h-4" />, 
