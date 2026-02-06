@@ -192,3 +192,18 @@ html, body, #root {
   align-self: flex-start !important;
   margin-top: 2px !important;
 }
+
+/* Minimalist custom scrollbar for horizontal timeline */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-base-content) 10%, transparent);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}

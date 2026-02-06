@@ -28,7 +28,8 @@ function App() {
       
       <AppMain currentView={s.currentView} currentDate={s.currentDate} dateRangeLabel={getDateRangeLabel()}
                handlePrevWeek={handlePrevWeek} handleNextWeek={handleNextWeek} handleToday={handleToday}
-               handleOpenSubjectFromSearch={s.handleOpenSubjectFromSearch} setSelectedSubject={s.setSelectedSubject} />
+               handleOpenSubjectFromSearch={s.handleOpenSubjectFromSearch} setSelectedSubject={s.setSelectedSubject}
+               onViewChange={s.setCurrentView} />
 
       <AppOverlays selectedSubject={s.selectedSubject} setSelectedSubject={s.setSelectedSubject}
                    weekNavCount={s.weekNavCount} outlookSyncEnabled={s.outlookSyncEnabled}
