@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SearchBar } from './SearchBar/index';
+import { useTranslation } from '../hooks/useTranslation';
 
 import { NotificationFeed } from './NotificationFeed';
 
@@ -20,6 +21,7 @@ export function AppHeader({
   onToday,
   onOpenSubject,
 }: AppHeaderProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex-shrink-0 z-30 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-4 py-2">
       <div className="flex items-center justify-between gap-4 w-full">
@@ -42,7 +44,7 @@ export function AppHeader({
               </button>
             </div>
             <button onClick={onToday} className="btn btn-primary btn-sm border-none shadow-sm">
-              Dnes
+              {t('common.today')}
             </button>
             <span className="text-lg font-semibold text-base-content whitespace-nowrap">{dateRangeLabel}</span>
           </div>
