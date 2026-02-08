@@ -10,20 +10,23 @@ import type { SyllabusRequirements } from "../types/documents";
  * @param predmetId - The numeric subject ID (from predmet=... parameter)
  * @returns Parsed syllabus requirements containing text and grading table
  */
-export async function fetchSyllabus(predmetId: string): Promise<SyllabusRequirements> {
+export async function fetchSyllabus(predmetId: string, lang: string = 'cz'): Promise<SyllabusRequirements> {
     try {
-        const url = `${BASE_URL}/auth/katalog/syllabus.pl?predmet=${predmetId};lang=cz`;
-        console.debug(`[fetchSyllabus] Fetching for predmet=${predmetId}`);
+        const url = `${BASE_URL}/auth/katalog/syllabus.pl?predmet=${predmetId};lang=${lang}`;
+        console.debug(`[fetchSyllabus] Fetching for predmet=${predmetId} (lang=${lang})`);
         
         const response = await fetchWithAuth(url);
         const html = await response.text();
         
-        const parsed = parseSyllabusOffline(html);
+        const parsed = parseSyllabusOffline(html, lang);
         parsed.courseId = predmetId;
+        parsed.language = lang;
         
         console.debug(`[fetchSyllabus] Success for predmet=${predmetId}:`, {
             textLength: parsed.requirementsText.length,
-            tableRows: parsed.requirementsTable.length
+            tableRows: parsed.requirementsTable.length,
+            hasAssessmentMethods: !!parsed.assessmentMethods,
+            assessmentCriteriaCount: parsed.assessmentCriteria?.length || 0
         });
         
         return parsed;

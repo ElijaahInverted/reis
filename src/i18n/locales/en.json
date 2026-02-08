@@ -102,7 +102,7 @@
         "employee": "Employee"
     },
     "course": {
-        "garant": "Guarantor:",
+        "garant": "Course supervisor:",
         "teachers": "Teachers:",
         "showMore": "Show more",
         "showLess": "Show less",

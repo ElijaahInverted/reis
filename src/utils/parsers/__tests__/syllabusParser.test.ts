@@ -392,4 +392,88 @@ describe('syllabusParser', () => {
         expect(result.requirementsTable[1]).toEqual(['Písemná zkouška', '70']);
         expect(result.requirementsTable[2]).toEqual(['Ústní zkouška', '30']);
     });
+
+    /**
+     * Test Case 9: English syllabus with Assessment data
+     */
+    const ENGLISH_SYLLABUS_HTML = `
+    <html>
+        <body>
+            <table>
+                <tr>
+                    <td class="odsazena"><b>Assessment methods:</b></td>
+                </tr>
+                <tr>
+                    <td>
+                        Final exam (písemná část) - 50 points<br>
+                        Project - 50 points
+                    </td>
+                </tr>
+            </table>
+            
+            <table>
+                <tr>
+                    <td class="odsazena"><b>Assessment criteria ratio:</b></td>
+                </tr>
+                <tr>
+                    <td>
+                        <table border="1">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Type of requirement</strong></td>
+                                    <td><strong>Daily attendance</strong></td>
+                                    <td><strong>Combined form</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Project</td>
+                                    <td>50</td>
+                                    <td>50</td>
+                                </tr>
+                                <tr>
+                                    <td>Final exam</td>
+                                    <td>50</td>
+                                    <td>50</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <table>
+                <tr>
+                    <td>Completion</td>
+                    <td><b>Exam</b></td>
+                </tr>
+                <tr>
+                    <td>Guarantor</td>
+                    <td><a href="#">John Doe</a></td>
+                </tr>
+            </table>
+        </body>
+    </html>
+    `;
+
+    it('should parse English syllabus with assessment methods and criteria', () => {
+        const result = parseSyllabusOffline(ENGLISH_SYLLABUS_HTML);
+
+        expect(result.assessmentMethods).toContain('Final exam (písemná část) - 50 points');
+        expect(result.assessmentMethods).toContain('Project - 50 points');
+
+        expect(result.assessmentCriteria).toHaveLength(2);
+        expect(result.assessmentCriteria[0]).toEqual({
+            requirementType: 'Project',
+            dailyAttendance: '50',
+            combinedForm: '50'
+        });
+        expect(result.assessmentCriteria[1]).toEqual({
+            requirementType: 'Final exam',
+            dailyAttendance: '50',
+            combinedForm: '50'
+        });
+
+        // Verify metadata too
+        expect(result.courseInfo.credits).toBe('Exam');
+        expect(result.courseInfo.garant).toBe('John Doe');
+    });
 });

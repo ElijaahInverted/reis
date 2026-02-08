@@ -69,6 +69,7 @@ export interface SuccessRateData {
 }
 
 export interface CourseMetadata {
+    courseName?: string | null;
     credits: string | null;
     garant: string | null;
     teachers: { name: string; roles: string }[];
@@ -87,8 +88,15 @@ export interface Assessment {
 
 export interface SyllabusRequirements {
     version?: number;
+    language?: string; // New: Origin language of the parsed syllabus
     courseId?: string; // Resolved IS Subject ID
     requirementsText: string; // Textual description of requirements
     requirementsTable: string[][]; // Grading breakdown table (rows of cells)
     courseInfo?: CourseMetadata; // New: General course info (credits, garant, etc.)
+    assessmentMethods?: string | null;
+    assessmentCriteria?: {
+        requirementType: string;
+        dailyAttendance: string;
+        combinedForm: string;
+    }[];
 }

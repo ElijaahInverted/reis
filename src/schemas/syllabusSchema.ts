@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const CourseMetadataSchema = z.object({
+    courseName: z.string().nullable().optional(),
     credits: z.string().nullable(),
     garant: z.string().nullable(),
     teachers: z.array(z.object({
@@ -16,6 +17,12 @@ export const SyllabusRequirementsSchema = z.object({
     requirementsText: z.string(),
     requirementsTable: z.array(z.array(z.string())),
     courseInfo: CourseMetadataSchema.optional(),
+    assessmentMethods: z.string().nullable().optional(),
+    assessmentCriteria: z.array(z.object({
+        requirementType: z.string(),
+        dailyAttendance: z.string(),
+        combinedForm: z.string()
+    })).optional(),
 });
 
 export type SyllabusRequirements = z.infer<typeof SyllabusRequirementsSchema>;

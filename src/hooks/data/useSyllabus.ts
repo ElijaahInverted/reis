@@ -7,6 +7,7 @@
 
 import { useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
+import { useTranslation } from '../useTranslation';
 import type { SyllabusRequirements } from '../../types/documents';
 
 export interface UseSyllabusResult {
@@ -15,15 +16,18 @@ export interface UseSyllabusResult {
 }
 
 export function useSyllabus(courseCode: string | undefined, courseId?: string, subjectName?: string): UseSyllabusResult {
+    const { language } = useTranslation();
     const syllabus = useAppStore(state => (courseCode ? state.syllabuses.cache[courseCode] : null));
     const isLoading = useAppStore(state => (courseCode ? !!state.syllabuses.loading[courseCode] : false));
     const fetchSyllabus = useAppStore(state => state.fetchSyllabus);
 
     useEffect(() => {
-        if (courseCode && !syllabus && !isLoading) {
+        // Fetch if missing OR if cached language differs from current language
+        const shouldFetch = courseCode && !isLoading && (!syllabus || syllabus.language !== language);
+        if (shouldFetch) {
             void fetchSyllabus(courseCode, courseId, subjectName);
         }
-    }, [courseCode, courseId, subjectName, syllabus, isLoading, fetchSyllabus]);
+    }, [courseCode, courseId, subjectName, syllabus, isLoading, fetchSyllabus, language]);
 
     return { syllabus: syllabus || null, isLoading };
 }

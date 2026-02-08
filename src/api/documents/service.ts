@@ -1,4 +1,4 @@
-import { fetchWithAuth, BASE_URL } from "../client";
+import { fetchWithAuth } from "../client";
 import { requestQueue, processWithDelay } from "../../utils/requestQueue";
 import { parseServerFiles } from "./parser";
 import { fetchSubjects } from "../subjects";
@@ -16,7 +16,6 @@ export async function fetchDocumentsForSubject(subjectCode: string): Promise<Fil
 export async function fetchFilesFromFolder(folderUrl: string, recursive = true, currentDepth = 0, maxDepth = 2): Promise<ParsedFile[]> {
     try {
         let url = folderUrl;
-        if (!url.includes('lang=')) url += (url.includes('?') ? ';' : '?') + 'lang=cz';
 
         const response = await fetchWithAuth(url);
         const respText = await response.text();
