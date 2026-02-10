@@ -24,22 +24,39 @@ export const createSyllabusSlice: AppSlice<SyllabusSlice> = (set, get) => ({
     }));
 
     try {
-      // 3. Try IndexedDB first
       const SYLLABUS_VERSION = 2;
       let data = await IndexedDBService.get('syllabuses', courseCode);
+      let activeSyllabus: any = undefined;
+      let needsFetch = false;
 
-      // 4. If not in DB OR language mismatch OR old version, fetch from API
-      if (!data || (data as any).language !== currentLang || (data as any).version !== SYLLABUS_VERSION) {
+      if (data && 'cz' in data && 'en' in data) {
+          activeSyllabus = currentLang === 'en' ? data.en : data.cz;
+          if (!activeSyllabus || activeSyllabus.version !== SYLLABUS_VERSION) needsFetch = true;
+      } else {
+          activeSyllabus = data;
+          if (!data || (data as any).language !== currentLang || (data as any).version !== SYLLABUS_VERSION) {
+              needsFetch = true;
+          }
+      }
+
+      if (needsFetch) {
         let activeId = courseId;
         if (!activeId) {
           activeId = await findSubjectId(courseCode, subjectName) || undefined;
         }
 
         if (activeId) {
-          const lang = get().language;
-          data = await fetchSyllabus(activeId, lang);
-          if (data) {
-            await IndexedDBService.set('syllabuses', courseCode, data);
+          try {
+            const [czSyllabus, enSyllabus] = await Promise.all([
+              fetchSyllabus(activeId, 'cz'),
+              fetchSyllabus(activeId, 'en')
+            ]);
+            
+            const dualData = { cz: czSyllabus, en: enSyllabus };
+            await IndexedDBService.set('syllabuses', courseCode, dualData);
+            activeSyllabus = currentLang === 'en' ? enSyllabus : czSyllabus;
+          } catch (err) {
+            console.error(`[SyllabusSlice] API fetch failed:`, err);
           }
         }
       }
@@ -48,7 +65,7 @@ export const createSyllabusSlice: AppSlice<SyllabusSlice> = (set, get) => ({
         syllabuses: {
           cache: { 
             ...state.syllabuses.cache, 
-            ...(data ? { [courseCode]: data } : {}) 
+            ...(activeSyllabus ? { [courseCode]: activeSyllabus } : {}) 
           },
           loading: { ...state.syllabuses.loading, [courseCode]: false },
         },

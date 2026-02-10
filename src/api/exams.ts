@@ -18,13 +18,14 @@ export interface ExamActionResult {
  * Build exam list URL dynamically using user's studium.
  * Removed hardcoded studium that only worked for one user.
  */
-async function getExamListUrl(): Promise<string> {
+async function getExamListUrl(lang: string = 'cs'): Promise<string> {
+    const isLang = lang === 'en' ? 'en' : 'cz';
     const params = await getUserParams();
     if (!params?.studium) {
         console.warn('[exams] No studium available, using base URL');
-        return 'https://is.mendelu.cz/auth/student/terminy_seznam.pl?lang=cz';
+        return `https://is.mendelu.cz/auth/student/terminy_seznam.pl?lang=${isLang}`;
     }
-    return `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${params.studium};lang=cz`;
+    return `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${params.studium};lang=${isLang}`;
 }
 
 /**
@@ -45,9 +46,9 @@ function verifyRegistrationSuccess(html: string, termId: string): boolean {
     return hasUnregisterLink && !hasError;
 }
 
-export async function fetchExamData(): Promise<ExamSubject[]> {
+export async function fetchExamData(lang: string = 'cs'): Promise<ExamSubject[]> {
     try {
-        const url = await getExamListUrl();
+        const url = await getExamListUrl(lang);
         console.log('[exams] Fetching from:', url);
         const response = await fetchWithAuth(url);
         const html = await response.text();

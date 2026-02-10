@@ -6,24 +6,89 @@ import { SubjectsDataSchema } from "../schemas/subjectSchema";
 
 const STUDENT_LIST_URL = `${BASE_URL}/auth/student/list.pl`;
 
-export async function fetchSubjects(): Promise<SubjectsData | null> {
+export async function fetchSubjects(lang: string = 'cs', studium?: string): Promise<SubjectsData | null> {
     try {
-        const response = await fetchWithAuth(`${STUDENT_LIST_URL}?lang=cz`);
+        const isLang = lang === 'en' ? 'en' : 'cz';
+        const url = studium 
+            ? `${STUDENT_LIST_URL}?lang=${isLang};studium=${studium}`
+            : `${STUDENT_LIST_URL}?lang=${isLang}`;
+            
+        const response = await fetchWithAuth(url);
         const html = await response.text();
         const subjectsMap = parseSubjectFolders(html);
-        const subjectsData = showFullSubjects(subjectsMap);
+        const subjectsData = showFullSubjects(subjectsMap, lang);
 
-        // Validation Firewall
         const result = SubjectsDataSchema.safeParse(subjectsData);
         if (result.success) {
-            console.log("[fetchSubjects] ✅ Subject data validated successfully");
             return result.data;
         } else {
-            console.error("[fetchSubjects] ❌ Subject data validation failed:", result.error.issues);
-            return subjectsData; // Fallback to raw data for now, or return null based on strictness
+            console.error("[fetchSubjects] ❌ Validation failed:", result.error.issues);
+            return subjectsData;
         }
     } catch (error) {
         console.error("Failed to fetch subjects:", error);
+        return null;
+    }
+}
+
+/**
+ * Fetches subjects in both Czech and English and merges them.
+ */
+export async function fetchDualLanguageSubjects(studium?: string): Promise<SubjectsData | null> {
+    try {
+        console.log('[fetchDualLanguageSubjects] Fetching both CZ and EN subject names...');
+        
+        const czUrl = studium ? `${STUDENT_LIST_URL}?lang=cz;studium=${studium}` : `${STUDENT_LIST_URL}?lang=cz`;
+        const enUrl = studium ? `${STUDENT_LIST_URL}?lang=en;studium=${studium}` : `${STUDENT_LIST_URL}?lang=en`;
+
+        // Fetch both in parallel
+        const [czRes, enRes] = await Promise.all([
+            fetchWithAuth(czUrl),
+            fetchWithAuth(enUrl)
+        ]);
+
+        const czHtml = await czRes.text();
+        const enHtml = await enRes.text();
+
+        const czMap = parseSubjectFolders(czHtml);
+        const enMap = parseSubjectFolders(enHtml);
+
+        const merged: Record<string, SubjectInfo> = {};
+        
+        // Process CZ as base
+        for (const [fullName, data] of Object.entries(czMap)) {
+            const code = extractSubjectCode(fullName);
+            const name = extractCleanName(fullName);
+            
+            merged[code] = {
+                displayName: name,
+                fullName,
+                nameCs: name,
+                subjectCode: code,
+                subjectId: data.subjectId,
+                folderUrl: data.folderUrl,
+                fetchedAt: new Date().toISOString()
+            };
+        }
+
+        // Merge EN names
+        for (const [fullName] of Object.entries(enMap)) {
+            const code = extractSubjectCode(fullName);
+            if (merged[code]) {
+                merged[code].nameEn = extractCleanName(fullName);
+            }
+        }
+
+        const subjectsData: SubjectsData = {
+            version: 1,
+            lastUpdated: new Date().toISOString(),
+            data: merged
+        };
+
+        const result = SubjectsDataSchema.safeParse(subjectsData);
+        return result.success ? result.data : subjectsData;
+    } catch (error) {
+        console.error("[fetchDualLanguageSubjects] Failed:", error);
         return null;
     }
 }
@@ -34,19 +99,14 @@ interface SubjectLinkData {
 }
 
 function parseSubjectFolders(htmlString: string): Record<string, SubjectLinkData> {
-    console.debug('[parseSubjectFolders] Starting parse, HTML length:', htmlString.length);
     const subjectMap: Record<string, SubjectLinkData> = {};
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
 
     const table = doc.querySelector('#tmtab_1');
-    if (!table) {
-        console.debug('[parseSubjectFolders] No #tmtab_1 table found - IS Mendelu may have changed structure');
-        return subjectMap;
-    }
+    if (!table) return subjectMap;
 
     const subjectRows = table.querySelectorAll('tr.uis-hl-table');
-    console.debug('[parseSubjectFolders] Found', subjectRows.length, 'subject rows');
     subjectRows.forEach((row) => {
         const subjectLinkElement = row.querySelector('a[href*="/auth/katalog/syllabus.pl"]');
         const folderLinkElement = row.querySelector('a[href*="../dok_server/slozka.pl"]');
@@ -57,7 +117,6 @@ function parseSubjectFolders(htmlString: string): Record<string, SubjectLinkData
             const cleanUrl = relativeUrl.replace('../', '');
             const absoluteUrl = new URL(cleanUrl, `${BASE_URL}/auth/`).href;
             
-            // Extract numeric ID from syllabus link (predmet=12345)
             const syllabusHref = subjectLinkElement.getAttribute('href') || '';
             const idMatch = syllabusHref.match(/[?&;]predmet=(\d+)/);
             const subjectId = idMatch ? idMatch[1] : undefined;
@@ -68,7 +127,6 @@ function parseSubjectFolders(htmlString: string): Record<string, SubjectLinkData
             };
         }
     });
-    console.debug('[parseSubjectFolders] Parsed', Object.keys(subjectMap).length, 'subjects with folders');
     return subjectMap;
 }
 
@@ -76,14 +134,23 @@ function extractSubjectCode(subjectName: string): string {
     return subjectName.split(" ")[0];
 }
 
-function showFullSubjects(subjectsObject: Record<string, SubjectLinkData>): SubjectsData {
+function extractCleanName(fullName: string): string {
+    const code = extractSubjectCode(fullName);
+    // Remove code at start and trailing info in brackets
+    return fullName.replace(code, '').replace(/\s*\([^)]+\)\s*$/, '').trim();
+}
+
+function showFullSubjects(subjectsObject: Record<string, SubjectLinkData>, lang: string): SubjectsData {
     const enrichedSubjects: Record<string, SubjectInfo> = {};
     for (const [fullName, data] of Object.entries(subjectsObject)) {
         const subjectCode = extractSubjectCode(fullName);
-        const displayName = fullName.replace(/\s*\([^)]+\)\s*$/, '').trim();
+        const name = extractCleanName(fullName);
+        
         enrichedSubjects[subjectCode] = {
-            displayName,
+            displayName: name,
             fullName,
+            nameCs: lang === 'cs' ? name : undefined,
+            nameEn: lang === 'en' ? name : undefined,
             subjectCode,
             subjectId: data.subjectId,
             folderUrl: data.folderUrl,

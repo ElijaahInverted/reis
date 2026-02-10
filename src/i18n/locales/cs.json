@@ -179,5 +179,10 @@
     "studijni_texty": "Studijní texty",
     "materialy_z_prednasek": "Materiály z přednášek",
     "pruvodce_studiem": "Průvodce studiem předmětu"
+  },
+  "onboarding": {
+    "welcome": "Vítej v reISu!",
+    "description": "Vylepšená verze IS MENDELU.\nVytvořeno studenty pro studenty.",
+    "getStarted": "Začít používat"
   }
 }

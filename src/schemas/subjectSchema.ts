@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const SubjectInfoSchema = z.object({
     displayName: z.string().transform(s => s.trim()),
     fullName: z.string(),
+    nameCs: z.string().optional(),
+    nameEn: z.string().optional(),
     subjectCode: z.string(),
     subjectId: z.string().optional(),
     folderUrl: z.string().url(),

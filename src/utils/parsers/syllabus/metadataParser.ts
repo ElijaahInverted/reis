@@ -1,35 +1,38 @@
 export function parseCourseMetadata(doc: Document, lang: string = 'cs') {
-    const info: any = { courseName: null, credits: null, garant: null, teachers: [], status: null };
-    const targetLang = lang === 'en' ? 'en' : 'cs';
+    const info: any = { 
+        courseName: null,      // Deprecated: for backward compatibility
+        courseNameCs: null,    // Czech name
+        courseNameEn: null,    // English name
+        credits: null, 
+        garant: null, 
+        teachers: [], 
+        status: null 
+    };
+
+    const isValidName = (name: string | null) => {
+        if (!name) return false;
+        const n = name.toLowerCase().trim();
+        // Match -- anything -- as placeholder, or specific English/Czech strings
+        return !n.match(/^[-–—]{2}.*[-–—]{2}$/) && 
+               !n.includes('not defined') && 
+               !n.includes('nebyla zadána');
+    };
 
     doc.querySelectorAll('table tbody tr').forEach(r => {
         const c = r.querySelectorAll('td'); if (c.length < 2) return;
         const l = (c[0].textContent || '').toLowerCase().trim().replace(/:$/, ''), v = c[1];
         const v_txt = v.textContent?.trim() || null;
         
-        const isValidName = (name: string | null) => {
-            if (!name) return false;
-            const n = name.toLowerCase().trim();
-            // Match -- anything -- as placeholder, or specific English/Czech strings
-            return !n.match(/^[-–—]{2}.*[-–—]{2}$/) && 
-                   !n.includes('not defined') && 
-                   !n.includes('nebyla zadána');
-        };
-        
-        // Match course name with language awareness
-        if (targetLang === 'cs') {
-            if (l === 'název předmětu' && isValidName(v_txt)) {
-                info.courseName = v_txt;
-            } else if (!info.courseName && (l === 'course title in english' || l === 'název předmětu anglicky') && isValidName(v_txt)) {
-                info.courseName = v_txt;
-            }
-        } else {
-            // English prioritize "Course title" or "Course title in English"
-            if ((l === 'course title' || l === 'course title in english') && isValidName(v_txt)) {
-                info.courseName = v_txt;
-            } else if (!info.courseName && (l === 'název předmětu' || l === 'course title in czech' || l === 'název předmětu česky') && isValidName(v_txt)) {
-                info.courseName = v_txt;
-            }
+        // Extract BOTH Czech and English names
+        if (l === 'název předmětu' && isValidName(v_txt)) {
+            info.courseNameCs = v_txt;
+        } else if ((l === 'název předmětu anglicky' || l === 'course title in english' || l === 'course title') && isValidName(v_txt)) {
+            info.courseNameEn = v_txt;
+        }
+
+        // Set deprecated courseName based on lang for backward compatibility
+        if (!info.courseName) {
+            info.courseName = lang === 'en' ? info.courseNameEn : info.courseNameCs;
         }
 
         // Match Czech and English labels strictly
@@ -53,3 +56,4 @@ export function parseCourseMetadata(doc: Document, lang: string = 'cs') {
     });
     return info;
 }
+

@@ -7,11 +7,11 @@ import { IndexedDBService } from '../storage';
 import { fetchAssessments } from '../../api/assessments';
 import { getUserParams } from '../../utils/userParams';
 
-export async function syncAssessments(): Promise<void> {
+export async function syncAssessments(studiumIn?: string, lang: string = 'cs'): Promise<void> {
     console.log('[syncAssessments] Starting assessments sync...');
 
     // 1. Get required user parameters
-    let studium = '';
+    let studium = studiumIn || '';
     let obdobi = '';
 
     const userParams = await getUserParams();

@@ -16,6 +16,8 @@ export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, tutorials =
   const { subjects } = useSubjects();
   const { params } = useUserParams();
   const files = useAppStore(state => state.files);
+  const syllabuses = useAppStore(state => state.syllabuses.cache); // ✅ Subscribe to changes
+  const language = useAppStore(state => state.language); // ✅ Subscribe to language
   const { t } = useTranslation();
 
   const handleEnter = (id: string) => { if (timeout.current) clearTimeout(timeout.current); setHovered(id); };
@@ -51,14 +53,29 @@ export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, tutorials =
         }
       }
 
-      p.children = columnMajorSubjects.map((s: any) => ({ 
-        id: `subject-${s.subjectCode}`, 
-        label: s.displayName.replace(s.subjectCode, '').trim(), 
-        icon: <Layers className="w-4 h-4" />, 
-        isSubject: true, 
-        courseCode: s.subjectCode, 
-        subjectId: s.subjectId 
-      }));
+      p.children = columnMajorSubjects.map((s: any) => {
+        // Try to get course name from syllabus (language-aware)
+        const syllabus = syllabuses[s.subjectCode];
+        
+        // Select name based on current language
+        // Priority: 1. names from record list (s.nameCs/En), 2. names from syllabus, 3. schedule-based s.displayName
+        const storeName = language === 'cs' ? s.nameCs : s.nameEn;
+        
+        const syllabusName = language === 'cs'
+          ? (syllabus?.courseInfo?.courseNameCs || syllabus?.courseInfo?.courseName)
+          : (syllabus?.courseInfo?.courseNameEn || syllabus?.courseInfo?.courseName);
+        
+        const displayLabel = storeName || syllabusName || s.displayName.replace(s.subjectCode, '').trim();
+        
+        return {
+          id: `subject-${s.subjectCode}`, 
+          label: displayLabel, 
+          icon: <Layers className="w-4 h-4" />, 
+          isSubject: true, 
+          courseCode: s.subjectCode, 
+          subjectId: s.subjectId 
+        };
+      });
     }
     return p;
   });

@@ -14,14 +14,26 @@ export const SubjectsDataSchema = z.custom<SubjectsData>();
 
 // --- Storage Value Schemas ---
 
-// 'files' store - Array of ParsedFile
-export const FilesSchema = z.array(ParsedFileSchema);
+// 'files' store - can be legacy array or dual-language object
+export const FilesSchema = z.union([
+    z.array(ParsedFileSchema),
+    z.object({
+        cz: z.array(ParsedFileSchema),
+        en: z.array(ParsedFileSchema)
+    })
+]);
 
 // 'assessments' store - Array of Assessment
 export const AssessmentsSchema = z.array(AssessmentSchema);
 
-// 'syllabuses' store - SyllabusRequirements
-export const SyllabusSchema = SyllabusRequirementsSchema;
+// 'syllabuses' store - can be legacy single-language or dual-language object
+export const SyllabusSchema = z.union([
+    SyllabusRequirementsSchema,
+    z.object({
+        cz: SyllabusRequirementsSchema,
+        en: SyllabusRequirementsSchema
+    })
+]);
 
 // 'exams' store - Array of ExamSubject
 export const ExamsSchema = z.array(ExamSubjectSchema);

@@ -9,10 +9,12 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MENDELU_LOGO_PATH } from '../../constants/icons';
 import { IndexedDBService } from '../../services/storage';
+import { useTranslation } from '../../hooks/useTranslation';
 
 
 export function WelcomeModal() {
     const [isVisible, setIsVisible] = useState(false);
+    const { t } = useTranslation();
 
     useEffect(() => {
         async function checkWelcome() {
@@ -66,13 +68,12 @@ export function WelcomeModal() {
                             
                             {/* Title - Smaller */}
                             <h2 className="text-2xl font-bold text-base-content mb-3">
-                                Vítej v reISu!
+                                {t('onboarding.welcome')}
                             </h2>
                             
                             {/* Description - Smaller text/spacing */}
-                            <p className="text-base-content/70 mb-8 leading-relaxed">
-                                Vylepšená verze IS MENDELU.<br />
-                                Vytvořeno studenty pro studenty.
+                            <p className="text-base-content/70 mb-8 leading-relaxed whitespace-pre-line">
+                                {t('onboarding.description')}
                             </p>
                             
                             {/* CTA Button - Standard size */}
@@ -80,7 +81,7 @@ export function WelcomeModal() {
                                 onClick={handleDismiss}
                                 className="btn btn-primary btn-wide gap-2 shadow-md"
                             >
-                                Začít používat
+                                {t('onboarding.getStarted')}
                             </button>
                         </div>
                     </motion.div>

@@ -46,6 +46,8 @@ export const initializeStore = () => {
         }
         if (type === 'LANGUAGE_UPDATE') {
             useAppStore.getState().loadLanguage();
+            // Re-fetch files from IndexedDB so language-aware hooks detect the change
+            useAppStore.getState().fetchAllFiles();
         }
     });
 

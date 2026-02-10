@@ -5,10 +5,10 @@
 import { IndexedDBService } from '../storage';
 import { fetchExamData } from '../../api/exams';
 
-export async function syncExams(): Promise<void> {
+export async function syncExams(lang: string = 'cs'): Promise<void> {
     console.log('[syncExams] Fetching exam data...');
 
-    const data = await fetchExamData();
+    const data = await fetchExamData(lang);
 
     if (data && data.length > 0) {
         await IndexedDBService.set('exams', 'current', data);

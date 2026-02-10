@@ -5,8 +5,8 @@
 import { IndexedDBService } from '../storage';
 import { fetchSyllabus } from '../../api/syllabus';
 
-export async function syncSyllabus(): Promise<void> {
-    console.log('[syncSyllabus] Starting syllabus sync...');
+export async function syncSyllabus(_lang: string = 'cs'): Promise<void> {
+    console.log('[syncSyllabus] Starting dual-language syllabus sync...');
 
     // 1. Get subjects
     const subjectsData = await IndexedDBService.get('subjects', 'current');
@@ -16,14 +16,13 @@ export async function syncSyllabus(): Promise<void> {
     }
 
     const subjects = Object.entries(subjectsData.data);
-    console.log(`[syncSyllabus] Syncing syllabus for ${subjects.length} subjects`);
+    console.log(`[syncSyllabus] Syncing syllabus for ${subjects.length} subjects (dual fetch)`);
 
     let successCount = 0;
     let errorCount = 0;
 
     for (const [courseCode, subject] of subjects) {
         try {
-            // Need to find the numeric course ID (predmet ID)
             const predmetId = subject.subjectId;
             
             if (!predmetId) {
@@ -31,9 +30,16 @@ export async function syncSyllabus(): Promise<void> {
                 continue;
             }
             
-            const syllabus = await fetchSyllabus(predmetId);
+            // Fetch both languages in parallel
+            const [czSyllabus, enSyllabus] = await Promise.all([
+                fetchSyllabus(predmetId, 'cz'),
+                fetchSyllabus(predmetId, 'en')
+            ]);
 
-            await IndexedDBService.set('syllabuses', courseCode, syllabus);
+            await IndexedDBService.set('syllabuses', courseCode, {
+                cz: czSyllabus,
+                en: enSyllabus
+            });
             
             successCount++;
 

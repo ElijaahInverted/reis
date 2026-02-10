@@ -1,6 +1,8 @@
 export interface SubjectInfo {
     displayName: string;
     fullName: string;
+    nameCs?: string;
+    nameEn?: string;
     subjectCode: string;
     subjectId?: string; // Numeric ID (from predmet=...)
     folderUrl: string;
@@ -26,6 +28,7 @@ export interface ParsedFile {
     author: string;
     date: string;
     files: FileAttachment[];
+    language?: string; // Language of the fetch request
 }
 
 export interface GradeStats {
@@ -69,7 +72,9 @@ export interface SuccessRateData {
 }
 
 export interface CourseMetadata {
-    courseName?: string | null;
+    courseName?: string | null;  // Deprecated: Use courseNameCs/courseNameEn
+    courseNameCs?: string | null;  // Czech course name
+    courseNameEn?: string | null;  // English course name
     credits: string | null;
     garant: string | null;
     teachers: { name: string; roles: string }[];

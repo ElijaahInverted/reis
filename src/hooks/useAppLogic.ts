@@ -42,17 +42,47 @@ export function useAppLogic() {
 
   useEffect(() => {
     if (!isInIframe()) return;
-    const handle = (e: MessageEvent) => {
+    const handle = async (e: MessageEvent) => {
         if (e.source !== window.parent) return;
         const d = e.data;
         if (!d || (d.type !== 'REIS_DATA' && d.type !== 'REIS_SYNC_UPDATE')) return;
         const r = d.data || d;
-        if (r.schedule) IndexedDBService.set('schedule', 'current', r.schedule);
-        if (r.exams) IndexedDBService.set('exams', 'current', r.exams);
-        if (r.subjects) IndexedDBService.set('subjects', 'current', r.subjects);
-        if (r.files) Object.entries(r.files).forEach(([c, f]) => IndexedDBService.set('files', c, f as any));
-        if (r.assessments) Object.entries(r.assessments).forEach(([c, a]) => IndexedDBService.set('assessments', c, a as any));
-        if (r.syllabuses) Object.entries(r.syllabuses).forEach(([c, s]) => IndexedDBService.set('syllabuses', c, s as any));
+        if (r.schedule) await IndexedDBService.set('schedule', 'current', r.schedule);
+        if (r.exams) await IndexedDBService.set('exams', 'current', r.exams);
+        if (r.subjects) {
+            const existing = await IndexedDBService.get('subjects', 'current');
+            if (existing && existing.data) {
+                // Merge dual-language names into incoming data if incoming is missing them
+                Object.keys(r.subjects.data).forEach(code => {
+                    const incomingSub = r.subjects.data[code];
+                    const existingSub = existing.data[code];
+                    if (existingSub) {
+                        if (!incomingSub.nameCs && existingSub.nameCs) incomingSub.nameCs = existingSub.nameCs;
+                        if (!incomingSub.nameEn && existingSub.nameEn) incomingSub.nameEn = existingSub.nameEn;
+                    }
+                });
+            }
+            await IndexedDBService.set('subjects', 'current', r.subjects);
+        }
+
+        if (r.files) {
+            for (const [c, f] of Object.entries(r.files)) {
+                const existing = await IndexedDBService.get('files', c);
+                // Only overwrite if incoming has more content or existing is not dual-language
+                if (!existing || (f as any).cz || !(existing as any).cz) {
+                     await IndexedDBService.set('files', c, f as any);
+                }
+            }
+        }
+
+        if (r.syllabuses) {
+            for (const [c, s] of Object.entries(r.syllabuses)) {
+                const existing = await IndexedDBService.get('syllabuses', c);
+                if (!existing || (s as any).cz || !(existing as any).cz) {
+                    await IndexedDBService.set('syllabuses', c, s as any);
+                }
+            }
+        }
 
         if (r.lastSync) IndexedDBService.set('meta', 'last_sync', r.lastSync);
         if (typeof r.isSyncing === 'boolean') useAppStore.getState().setSyncStatus({ isSyncing: r.isSyncing });

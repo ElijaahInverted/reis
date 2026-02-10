@@ -45,8 +45,20 @@ export function DrawerHeader({ lesson, courseId, courseInfo, selectedCount, isDo
                 <HeaderActions selectedCount={selectedCount} isDownloading={isDownloading} downloadProgress={downloadProgress} onDownload={onDownload} onClose={onClose} />
             </div>
             <div className="mb-2">
-                {courseId ? <a href={`https://is.mendelu.cz/auth/katalog/syllabus.pl?predmet=${courseId};lang=${language === 'cs' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link text-xl font-bold flex items-center gap-1"><span>{courseInfo?.courseName || lesson?.courseName}</span><ExternalLink size={14} className="opacity-50" /></a>
-                : <span className="text-xl font-bold text-base-content">{courseInfo?.courseName || lesson?.courseName}</span>}
+                {(() => {
+                    // Select course name based on language (both names in single fetch!)
+                    const courseName = language === 'cs' 
+                        ? (courseInfo?.courseNameCs || courseInfo?.courseName)
+                        : (courseInfo?.courseNameEn || courseInfo?.courseName);
+                    const displayName = courseName || lesson?.courseName;
+                    
+                    return courseId ? 
+                        <a href={`https://is.mendelu.cz/auth/katalog/syllabus.pl?predmet=${courseId};lang=${language === 'cs' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link text-xl font-bold flex items-center gap-1">
+                            <span>{displayName}</span>
+                            <ExternalLink size={14} className="opacity-50" />
+                        </a>
+                        : <span className="text-xl font-bold text-base-content">{displayName}</span>;
+                })()}
             </div>
             <CourseMeta lesson={lesson} courseInfo={courseInfo} isSearchContext={isSearch} />
             <HeaderTabs activeTab={activeTab} onTabChange={onTabChange} />

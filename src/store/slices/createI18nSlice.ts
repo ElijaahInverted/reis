@@ -1,6 +1,7 @@
 import type { I18nSlice, AppSlice, Language } from '../types';
 import { IndexedDBService } from '../../services/storage';
 import { syncService } from '../../services/sync';
+import { getUserParams } from '../../utils/userParams';
 
 const STORAGE_KEY = "reis_language";
 const DEFAULT_LANGUAGE: Language = "cs";
@@ -11,7 +12,15 @@ export const createI18nSlice: AppSlice<I18nSlice> = (set) => ({
     loadLanguage: async () => {
         try {
             const storedLang = await IndexedDBService.get("meta", STORAGE_KEY) as Language | undefined;
-            const language = (storedLang === "cs" || storedLang === "en") ? storedLang : DEFAULT_LANGUAGE;
+            
+            if (storedLang === "cs" || storedLang === "en") {
+                set({ language: storedLang, isLanguageLoading: false });
+                return;
+            }
+
+            // No preference stored, check for Erasmus status
+            const userParams = await getUserParams();
+            const language = userParams?.isErasmus ? "en" : DEFAULT_LANGUAGE;
             
             set({ language, isLanguageLoading: false });
         } catch (e) {

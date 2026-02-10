@@ -13,9 +13,13 @@ export async function fetchDocumentsForSubject(subjectCode: string): Promise<Fil
     return parsedFiles.flatMap(pf => pf.files);
 }
 
-export async function fetchFilesFromFolder(folderUrl: string, recursive = true, currentDepth = 0, maxDepth = 2): Promise<ParsedFile[]> {
+export async function fetchFilesFromFolder(folderUrl: string, lang: string = 'cz', recursive = true, currentDepth = 0, maxDepth = 2): Promise<ParsedFile[]> {
     try {
+        // Append language parameter if not already present
         let url = folderUrl;
+        if (!url.includes('lang=')) {
+            url += url.includes('?') ? `;lang=${lang}` : `?lang=${lang}`;
+        }
 
         const response = await fetchWithAuth(url);
         const respText = await response.text();
@@ -54,7 +58,7 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive = true, 
 
             const subResults = await processWithDelay(folders, async f => {
                 try {
-                    const results = await fetchFilesFromFolder(f.url, true, currentDepth + 1, maxDepth);
+                    const results = await fetchFilesFromFolder(f.url, lang, true, currentDepth + 1, maxDepth);
                     results.forEach(r => r.subfolder = f.name);
                     return results;
                 } catch (err) {
@@ -78,6 +82,9 @@ export async function fetchFilesFromFolder(folderUrl: string, recursive = true, 
         const finalResults = Array.from(unique.values()).filter(f => 
             f.files.some(fi => fi.link.includes('download') || !fi.link.includes('slozka.pl'))
         );
+
+        // Tag all files with the language they were fetched in
+        finalResults.forEach(f => f.language = lang);
 
         console.log(`[fetchFilesFromFolder] ${folderUrl} - Done. Total unique files: ${finalResults.length}`);
         return finalResults;

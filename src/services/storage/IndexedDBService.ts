@@ -7,7 +7,7 @@ import { StoreSchemas, type StoreName } from '../../types/storage';
 interface ReisDB extends DBSchema {
     files: {
         key: string;
-        value: ParsedFile[]; // Key is courseCode
+        value: ParsedFile[] | { cz: ParsedFile[], en: ParsedFile[] }; // Key is courseCode
     };
     assessments: {
         key: string;
@@ -15,7 +15,7 @@ interface ReisDB extends DBSchema {
     };
     syllabuses: {
         key: string;
-        value: SyllabusRequirements; // Key is courseCode
+        value: SyllabusRequirements | { cz: SyllabusRequirements, en: SyllabusRequirements }; // Key is courseCode
     };
     exams: {
         key: string;

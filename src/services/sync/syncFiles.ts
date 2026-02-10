@@ -10,8 +10,8 @@ function getIdFromUrl(url: string): string | null {
     return match ? match[1] : null;
 }
 
-export async function syncFiles(): Promise<void> {
-    console.log('[syncFiles] Starting files sync...');
+export async function syncFiles(_lang: string = 'cs'): Promise<void> {
+    console.log('[syncFiles] Starting dual-language files sync...');
 
     const subjectsData = await IndexedDBService.get('subjects', 'current');
 
@@ -21,7 +21,7 @@ export async function syncFiles(): Promise<void> {
     }
 
     const subjects = Object.entries(subjectsData.data);
-    console.log(`[syncFiles] Syncing files for ${subjects.length} subjects`);
+    console.log(`[syncFiles] Syncing files for ${subjects.length} subjects (dual fetch)`);
 
     let successCount = 0;
     let errorCount = 0;
@@ -35,14 +35,20 @@ export async function syncFiles(): Promise<void> {
             }
 
             const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
-            const files = await fetchFilesFromFolder(folderUrl);
+            
+            // Fetch both languages in parallel
+            const [czFiles, enFiles] = await Promise.all([
+                fetchFilesFromFolder(folderUrl, 'cs'),
+                fetchFilesFromFolder(folderUrl, 'en')
+            ]);
 
-            if (Array.isArray(files)) {
-                // files can be [] if folder is empty, or [...] if has files. 
-                // We want to store it even if empty (but ONLY if fetch succeeded, handled by try/catch above)
-                await IndexedDBService.set('files', courseCode, files);
-                successCount++;
-            }
+            // Store in a dual-language structure
+            await IndexedDBService.set('files', courseCode, { 
+                cz: Array.isArray(czFiles) ? czFiles : [], 
+                en: Array.isArray(enFiles) ? enFiles : [] 
+            });
+            
+            successCount++;
         } catch (error) {
             console.error(`[syncFiles] Failed to sync files for ${courseCode}:`, error);
             errorCount++;

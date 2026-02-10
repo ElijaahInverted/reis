@@ -1,7 +1,7 @@
 import pLimit from "p-limit";
 import { Messages } from "../types/messages";
 import { fetchExamData } from "../api/exams";
-import { fetchSubjects } from "../api/subjects";
+import { fetchDualLanguageSubjects } from "../api/subjects";
 import { fetchFilesFromFolder } from "../api/documents";
 import { fetchAssessments } from "../api/assessments";
 import { fetchSyllabus } from "../api/syllabus";
@@ -22,8 +22,13 @@ export async function syncAllData() {
     sendToIframe(Messages.syncUpdate({ isSyncing: true, lastSync: cachedData.lastSync }));
 
     try {
+        const userParams = await getUserParams();
+        const studium = userParams?.studium;
+
         const [schedule, exams, subjects] = await Promise.allSettled([
-            fetchScheduleData(), fetchExamData(), fetchSubjects(),
+            fetchScheduleData(), 
+            fetchExamData(), 
+            fetchDualLanguageSubjects(studium || undefined),
         ]);
 
         cachedData = {
