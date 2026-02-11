@@ -23,8 +23,17 @@ export function useSyllabus(courseCode: string | undefined, courseId?: string, s
 
     useEffect(() => {
         // Fetch if missing OR if cached language differs from current language
-        const shouldFetch = courseCode && !isLoading && (!syllabus || syllabus.language !== language);
+        const isCzech = (lang?: string) => lang === 'cs' || lang === 'cz';
+        const languageMismatch = syllabus && !((isCzech(syllabus.language) && isCzech(language)) || (syllabus.language === language));
+        const shouldFetch = courseCode && !isLoading && (!syllabus || languageMismatch);
+        
         if (shouldFetch) {
+            console.debug(`[useSyllabus] Triggering fetch for ${courseCode}`, {
+                reason: !syllabus ? 'missing_syllabus' : 'language_mismatch',
+                hookLang: language,
+                syllabusLang: syllabus?.language,
+                isLoading
+            });
             void fetchSyllabus(courseCode, courseId, subjectName);
         }
     }, [courseCode, courseId, subjectName, syllabus, isLoading, fetchSyllabus, language]);

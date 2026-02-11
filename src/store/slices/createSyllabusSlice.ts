@@ -17,6 +17,7 @@ export const createSyllabusSlice: AppSlice<SyllabusSlice> = (set, get) => ({
     if (loading[courseCode] || (cachedData && cachedData.language === currentLang)) return;
 
     // 2. Set loading state
+    console.debug(`[SyllabusSlice] Setting loading=true for ${courseCode}`);
     set((state) => ({
       syllabuses: {
         ...state.syllabuses,
@@ -26,20 +27,35 @@ export const createSyllabusSlice: AppSlice<SyllabusSlice> = (set, get) => ({
 
     try {
       const SYLLABUS_VERSION = 2;
+      console.debug(`[SyllabusSlice] Checking IDB for ${courseCode}`);
       const data = await IndexedDBService.get('syllabuses', courseCode);
+      console.debug(`[SyllabusSlice] IDB result for ${courseCode}:`, !!data);
       let activeSyllabus: SyllabusRequirements | undefined = undefined;
       let needsFetch = false;
 
       if (data && 'cz' in data && 'en' in data) {
           activeSyllabus = currentLang === 'en' ? data.en : data.cz;
+          if (activeSyllabus) {
+              activeSyllabus.language = activeSyllabus.language === 'cz' ? 'cs' : activeSyllabus.language;
+          }
           if (!activeSyllabus || activeSyllabus.version !== SYLLABUS_VERSION) needsFetch = true;
       } else if (data) {
           activeSyllabus = data as SyllabusRequirements;
+          activeSyllabus.language = activeSyllabus.language === 'cz' ? 'cs' : activeSyllabus.language;
           if (activeSyllabus.language !== currentLang || activeSyllabus.version !== SYLLABUS_VERSION) {
               needsFetch = true;
           }
       } else {
           needsFetch = true;
+      }
+
+      if (!needsFetch && activeSyllabus) {
+        console.debug(`[SyllabusSlice] IDB Hit - No fetch needed:`, {
+            courseCode,
+            storeLang: currentLang,
+            syllabusLang: activeSyllabus.language,
+            version: activeSyllabus.version
+        });
       }
 
       if (needsFetch) {
@@ -50,20 +66,28 @@ export const createSyllabusSlice: AppSlice<SyllabusSlice> = (set, get) => ({
 
         if (activeId) {
           try {
+            console.debug(`[SyllabusSlice] Starting parallel fetch for ${activeId} (cz, en)`);
             const [czSyllabus, enSyllabus] = await Promise.all([
               fetchSyllabus(activeId, 'cz'),
               fetchSyllabus(activeId, 'en')
             ]);
+            console.debug(`[SyllabusSlice] Parallel fetch completed for ${activeId}`);
             
             const dualData = { cz: czSyllabus, en: enSyllabus };
+            console.debug(`[SyllabusSlice] Saving to IDB for ${courseCode}`);
             await IndexedDBService.set('syllabuses', courseCode, dualData);
+            console.debug(`[SyllabusSlice] Saved to IDB for ${courseCode}`);
             activeSyllabus = currentLang === 'en' ? enSyllabus : czSyllabus;
+            if (activeSyllabus) {
+                activeSyllabus.language = activeSyllabus.language === 'cz' ? 'cs' : activeSyllabus.language;
+            }
           } catch (err) {
             console.error(`[SyllabusSlice] API fetch failed:`, err);
           }
         }
       }
 
+      console.debug(`[SyllabusSlice] Updating state for ${courseCode}, activeSyllabus:`, !!activeSyllabus);
       set((state) => ({
         syllabuses: {
           cache: { 
