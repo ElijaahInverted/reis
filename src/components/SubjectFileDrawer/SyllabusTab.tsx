@@ -19,6 +19,8 @@ export function SyllabusTab({ courseCode, courseId, courseName, prefetchedResult
     const { params } = useUserParams();
     const { t } = useTranslation();
 
+    console.debug('[SyllabusTab] Render:', { courseCode, isLoading, hasSyllabus: !!syllabus });
+
     if (isLoading) return <div className="flex flex-col items-center justify-center h-full p-8 animate-pulse"><div className="w-12 h-12 bg-base-300 rounded mb-4" /><div className="h-4 bg-base-300 rounded w-1/2 mb-2" /></div>;
     if (!syllabus || (!syllabus.requirementsText && !syllabus.requirementsTable.length)) return <div className="flex flex-col items-center justify-center h-full p-6 opacity-40 text-center"><BookOpen className="w-12 h-12 mb-3" /><p className="text-sm">{t('syllabus.noData')}</p></div>;
 

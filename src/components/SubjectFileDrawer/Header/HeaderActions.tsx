@@ -3,7 +3,7 @@ import { X, Download, Loader2 } from 'lucide-react';
 interface HeaderActionsProps {
     selectedCount: number;
     isDownloading: boolean;
-    downloadProgress: { completed: number; total: number } | null;
+    downloadProgress?: { completed: number; total: number } | null;
     onDownload: () => void;
     onClose: () => void;
 }

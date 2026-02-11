@@ -1,14 +1,20 @@
 import { useState, useRef, useMemo } from 'react';
-import { useSchedule, useFiles, useSyncStatus, useSyllabus } from '../../hooks/data';
+import { useSchedule, useFiles, useSyncStatus, useSyllabus, useSubjects } from '../../hooks/data';
 import { useDragSelection } from './useDragSelection';
 import type { BlockLesson } from '../../types/calendarTypes';
 
 
 export function useSubjectFileDrawerState(lesson: BlockLesson | null, isOpen: boolean) {
     const { schedule } = useSchedule();
+    const { getSubject } = useSubjects();
     const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments' | 'syllabus'>(lesson?.isExam ? 'stats' : 'files');
     const { files, isLoading: isFilesLoading } = useFiles(isOpen ? lesson?.courseCode : undefined);
     const { isSyncing } = useSyncStatus();
+
+    const subjectInfo = useMemo(() => {
+        if (!isOpen || !lesson?.courseCode) return null;
+        return getSubject(lesson.courseCode);
+    }, [isOpen, lesson?.courseCode, getSubject]);
 
     const resolvedCourseId = useMemo(() => {
         if (lesson?.courseId) return lesson.courseId;
@@ -32,5 +38,5 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | null, isOpen: bo
         }
     }
 
-    return { activeTab, setActiveTab, files, isFilesLoading, isSyncing, resolvedCourseId, syllabusResult, containerRef, contentRef, fileRefs, ...drag };
+    return { activeTab, setActiveTab, files, isFilesLoading, isSyncing, resolvedCourseId, syllabusResult, subjectInfo, containerRef, contentRef, fileRefs, ...drag };
 }

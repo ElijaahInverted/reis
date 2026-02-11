@@ -20,20 +20,30 @@ export function parseCourseMetadata(doc: Document, lang: string = 'cs'): CourseM
         status: null 
     };
 
+    const normalizeLabel = (text: string) => {
+        return (text || '').toLowerCase().replace(/\s+/g, ' ').trim().replace(/:$/, '');
+    };
+
     doc.querySelectorAll('table tbody tr').forEach(r => {
         const c = r.querySelectorAll('td'); if (c.length < 2) return;
-        const l = (c[0].textContent || '').toLowerCase().trim().replace(/:$/, ''), v = c[1];
+        const l = normalizeLabel(c[0].textContent || '');
+        const v = c[1];
         const v_txt = v.textContent?.trim() || null;
         
         // Extract BOTH Czech and English names
-        if ((l === 'název předmětu' || l === 'course title in czech') && isValidName(v_txt)) {
+        if ((l === 'název předmětu' || l === 'název předmětu česky' || l === 'course title in czech') && isValidName(v_txt)) {
             info.courseNameCs = v_txt;
         } else if ((l === 'název předmětu anglicky' || l === 'course title in english' || l === 'course title') && isValidName(v_txt)) {
             info.courseNameEn = v_txt;
         }
 
-        // Match Czech and English labels strictly
-        if (l === 'způsob ukončení' || l === 'completion' || l === 'mode of completion and number of credits') {
+        // Match Czech and English labels
+        if (
+            l === 'způsob ukončení' || 
+            l === 'způsob ukončení a počet kreditů' || 
+            l === 'completion' || 
+            l === 'mode of completion and number of credits'
+        ) {
              // Prioritize bold text (e.g. "Exam") then full text
              const bold = v.querySelector('b')?.textContent?.trim();
              info.credits = bold || v_txt;

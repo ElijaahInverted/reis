@@ -2,7 +2,7 @@ import { useTranslation } from '../../../hooks/useTranslation';
 
 interface HeaderTabsProps {
     activeTab: string;
-    onTabChange: (id: string) => void;
+    onTabChange: (id: any) => void;
 }
 
 export function HeaderTabs({ activeTab, onTabChange }: HeaderTabsProps) {

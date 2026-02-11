@@ -56,7 +56,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
             <div className="w-full flex justify-end items-start h-full pt-10 pb-10 relative z-10 pointer-events-none">
                 <div role="dialog" className="w-[600px] bg-base-100 shadow-2xl rounded-2xl flex flex-col h-full animate-in slide-in-from-right pointer-events-auto border border-base-300">
                     <DrawerHeader lesson={lesson} courseId={resolvedCourseId || syllabusResult.syllabus?.courseId || ''}
-                        courseInfo={syllabusResult.syllabus?.courseInfo} selectedCount={selectedIds.length}
+                        courseInfo={syllabusResult.syllabus?.courseInfo} subjectInfo={state.subjectInfo} selectedCount={selectedIds.length}
                         isDownloading={isDownloading} downloadProgress={downloadProgress} activeTab={activeTab} onTabChange={setActiveTab}
                         onClose={onClose} onDownload={() => downloadZip(selectedIds, `${lesson?.courseCode}_files.zip`)} />
                     <div ref={containerRef} className="flex-1 overflow-y-auto relative select-none"

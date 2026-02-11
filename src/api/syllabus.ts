@@ -12,15 +12,18 @@ import type { SyllabusRequirements } from "../types/documents";
  */
 export async function fetchSyllabus(predmetId: string, lang: string = 'cz'): Promise<SyllabusRequirements> {
     try {
+        console.debug(`[fetchSyllabus] START predmet=${predmetId} lang=${lang}`);
         const url = `${BASE_URL}/auth/katalog/syllabus.pl?predmet=${predmetId};lang=${lang}`;
         console.debug(`[fetchSyllabus] Fetching for predmet=${predmetId} (lang=${lang})`);
         
         const response = await fetchWithAuth(url);
         const html = await response.text();
+        console.debug(`[fetchSyllabus] GOT RESPONSE predmet=${predmetId} lang=${lang}, length=${html.length}`);
         
         const parsed = parseSyllabusOffline(html, lang);
         parsed.courseId = predmetId;
-        parsed.language = lang;
+        // Normalize 'cz' to 'cs' to match app state language code
+        parsed.language = lang === 'cz' ? 'cs' : lang;
         
         console.debug(`[fetchSyllabus] Success for predmet=${predmetId}:`, {
             textLength: parsed.requirementsText.length,

@@ -21,7 +21,7 @@ function getBadge(l: { isExam?: boolean; courseName?: string; sectionName?: stri
     return l.isSeminar === 'true' ? { label: t('course.badge.seminar'), cls: 'bg-emerald-100 text-emerald-700' } : { label: t('course.badge.lecture'), cls: 'bg-blue-100 text-blue-700' };
 }
 
-export function DrawerHeader({ lesson, courseId, courseInfo, selectedCount, isDownloading, downloadProgress, activeTab, onClose, onDownload, onTabChange }: DrawerHeaderProps) {
+export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, selectedCount, isDownloading, downloadProgress, activeTab, onClose, onDownload, onTabChange }: DrawerHeaderProps) {
     const { t, language } = useTranslation();
     const badge = getBadge(lesson, t), isSearch = lesson?.isFromSearch;
 
@@ -46,11 +46,20 @@ export function DrawerHeader({ lesson, courseId, courseInfo, selectedCount, isDo
             </div>
             <div className="mb-2">
                 {(() => {
-                    // Select course name based on language (both names in single fetch!)
-                    const courseName = language === 'cs' 
+                    // Selection logic consistent with Sidebar.tsx:
+                    // 1. Store Name (SubjectInfo)
+                    // 2. Syllabus Name (CourseMetadata)
+                    // 3. Store DisplayName (SubjectInfo fallback)
+                    // 4. Lesson Name (BlockLesson)
+                    const storeName = language === 'cs' ? subjectInfo?.nameCs : subjectInfo?.nameEn;
+                    
+                    const syllabusName = language === 'cs' 
                         ? (courseInfo?.courseNameCs || courseInfo?.courseName)
                         : (courseInfo?.courseNameEn || courseInfo?.courseName);
-                    const displayName = courseName || lesson?.courseName;
+                    
+                    const storeDisplayName = subjectInfo?.displayName ? subjectInfo.displayName.replace(subjectInfo.subjectCode, '').trim() : null;
+                        
+                    const displayName = storeName || syllabusName || storeDisplayName || lesson?.courseName;
                     
                     return courseId ? 
                         <a href={`https://is.mendelu.cz/auth/katalog/syllabus.pl?predmet=${courseId};lang=${language === 'cs' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link text-xl font-bold flex items-center gap-1">

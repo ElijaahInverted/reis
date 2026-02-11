@@ -16,12 +16,12 @@ interface SubjectFileDrawerContentProps {
     isFilesLoading: boolean;
     isSyncing: boolean;
     isDragging: boolean;
-    selectionBoxStyle: { left: number; top: number; width: number; height: number; };
+    selectionBoxStyle: { left: number; top: number; width: number; height: number; } | null;
     showDragHint: boolean;
     groupedFiles: FileGroup[];
     selectedIds: string[];
     fileRefs: React.MutableRefObject<Map<string, HTMLDivElement>>;
-    ignoreClickRef: React.RefObject<boolean>;
+    ignoreClickRef: React.MutableRefObject<boolean>;
     toggleSelect: (id: string, e: React.MouseEvent) => void;
     openFile: (link: string) => void;
     resolvedCourseId: string;
