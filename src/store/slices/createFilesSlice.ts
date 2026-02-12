@@ -6,15 +6,15 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
     files: {},
     filesLoading: {},
     fetchFiles: async (courseCode) => {
-        const { files, filesLoading } = get();
-        const currentLang = get().language;
+        const { files, filesLoading, language: currentLang } = get();
         
-        // Check if already in memory AND language matches
+        // Check if already in memory
         const cachedFiles = files[courseCode];
-        const languageMatches = cachedFiles && cachedFiles.length > 0 && cachedFiles[0]?.language === currentLang;
         
-        if (cachedFiles && languageMatches && !filesLoading[courseCode]) {
-            // Cache is valid and language matches
+        // We skip if:
+        // 1. We're already loading this course
+        // 2. We have cached files (even if empty [])
+        if (filesLoading[courseCode] || cachedFiles !== undefined) {
             return;
         }
 

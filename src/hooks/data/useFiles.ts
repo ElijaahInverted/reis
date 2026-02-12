@@ -16,28 +16,30 @@ export interface UseFilesResult {
  * Re-fetches when language changes.
  */
 export function useFiles(courseCode: string | undefined): UseFilesResult {
-    const language = useAppStore((state) => state.language); // Get current language
     const filesMap = useAppStore((state) => state.files);
     const loadingMap = useAppStore((state) => state.filesLoading);
     const fetchFiles = useAppStore((state) => state.fetchFiles);
     const { isSyncing } = useSyncStatus();
 
-    const subjectFiles = courseCode ? filesMap[courseCode] : null;
+    const subjectFiles = courseCode ? filesMap[courseCode] : undefined;
     const isSubjectLoading = courseCode ? !!loadingMap[courseCode] : false;
 
     useEffect(() => {
-        // Fetch if missing OR if cached language differs from current language
-        const shouldFetch = courseCode && (!subjectFiles || subjectFiles.length === 0 || subjectFiles[0]?.language !== language);
+        // Fetch if missing (undefined)
+        // If it's an empty array [], it means we've already fetched and found no files
+        const shouldFetch = courseCode && subjectFiles === undefined;
         if (shouldFetch) {
             fetchFiles(courseCode);
         }
-    }, [courseCode, fetchFiles, language, subjectFiles]);
+    }, [courseCode, fetchFiles, subjectFiles]);
 
-    // Final loading state: Store is fetching from IDB OR Global Sync is active (on first load)
-    const isLoading = isSubjectLoading || (isSyncing && (!subjectFiles || subjectFiles.length === 0));
+    // Loading state: 
+    // 1. Explicitly loading this subject from IndexedDB
+    // 2. Global Sync is active AND we haven't even finished the initial local load (subjectFiles is undefined)
+    const isLoading = isSubjectLoading || (isSyncing && subjectFiles === undefined);
 
     return {
-        files: subjectFiles || null,
+        files: subjectFiles ?? null,
         isLoading
     };
 }
