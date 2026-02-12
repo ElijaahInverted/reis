@@ -56,4 +56,52 @@ describe('parseServerFiles - Link Filtering', () => {
         expect(file.files[0].link).toContain('slozka.pl?download=');
         expect(file.files[0].type).toBe('pdf');
     });
+
+    it('should ignore Document Server system menu even if it has >= 5 cells', () => {
+        const html = `
+            <table class="portal_menu">
+                <tr>
+                    <td class="portal_menu_hole"></td>
+                    <td class="odsazena active"><b><a href="index.pl?lang=en">Document tree</a></b></td>
+                    <td class="portal_menu_hole"></td>
+                    <td class="odsazena"><a href="moje_dok.pl?lang=en">All my folders</a></td>
+                    <td class="portal_menu_hole"></td>
+                    <td class="odsazena"><a href="nove_dok.pl?lang=en">New documents (500)</a></td>
+                    <td class="portal_menu_hole"></td>
+                </tr>
+            </table>
+            <table id="tmtab_1">
+                <tr class="uis-hl-table lbn">
+                    <td class="UISTMNumberCell">1</td>
+                    <td>Folder</td>
+                    <td>Actual File</td>
+                    <td>Author</td>
+                    <td>Date</td>
+                    <td><a href="download.pl?id=1"><img sysid="mime-txt"></a></td>
+                </tr>
+            </table>
+        `;
+
+        const result = parseServerFiles(html);
+        expect(result.files).toHaveLength(1);
+        expect(result.files[0].file_name).toBe('Actual File');
+    });
+
+    it('should filter out localized system labels like "All my folders"', () => {
+        const html = `
+            <table>
+                <tr>
+                    <td>1</td>
+                    <td>Folder</td>
+                    <td>All my folders</td>
+                    <td>Author</td>
+                    <td>Date</td>
+                    <td><a href="moje_dok.pl?lang=en"><img sysid="mime-link"></a></td>
+                </tr>
+            </table>
+        `;
+
+        const result = parseServerFiles(html);
+        expect(result.files).toHaveLength(0);
+    });
 });

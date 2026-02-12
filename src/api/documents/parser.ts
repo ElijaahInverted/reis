@@ -28,7 +28,10 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
 
     // Case 2: Folder list
     let rows: NodeListOf<Element> | Element[] = doc.querySelectorAll('tr.uis-hl-table.lbn');
-    if (rows.length === 0) rows = Array.from(doc.querySelectorAll('table tr')).filter(r => r.querySelectorAll('td').length >= 5);
+    if (rows.length === 0) {
+        // Fallback: search for any rows with >= 5 columns, but exclude system tables like portal_menu
+        rows = Array.from(doc.querySelectorAll('table:not(.portal_menu) tr')).filter(r => r.querySelectorAll('td').length >= 5);
+    }
 
     doc.querySelectorAll('a').forEach(a => {
         const href = a.getAttribute('href');
@@ -58,10 +61,12 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
             const href = l.getAttribute('href');
             if (!href) return;
             const vUrl = validateUrl(href.startsWith('http') ? href : (href.startsWith('/') ? href : `/auth/dok_server/${href.replace(/^\.\//, '')}`), 'is.mendelu.cz');
-            if (!vUrl || /Všechny moje složky|Nadřazená složka/.test(file_name)) return;
+            
+            // Filter out system links and navigation shortcuts (CZ/EN)
+            const isSystemLabel = /Všechny moje složky|Nadřazená složka|All my folders|Parent folder|Document tree|New documents|DS settings|Searching|Dokumentový strom|Nové dokumenty|Nastavení stromu|Vyhledávání/i.test(file_name);
+            const isSystemUrl = /moje_dok\.pl|nove_dok\.pl|nastaveni_stromu\.pl|vyhledavani\.pl|index\.pl|clovek\.pl|dokumenty_ct\.pl/.test(vUrl || '');
 
-            // Filter out unwanted links (teacher profiles, info pages)
-            if (vUrl.includes('clovek.pl') || vUrl.includes('dokumenty_ct.pl')) return;
+            if (!vUrl || isSystemLabel || isSystemUrl) return;
 
             const sysid = l.querySelector('img[sysid]')?.getAttribute('sysid') || '';
             if (sysid === 'mime-prohlizeni-info') return;
