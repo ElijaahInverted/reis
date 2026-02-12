@@ -33,10 +33,10 @@ export function formatRelativeTime(timestamp: number | null, t: (k: string) => s
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMinutes / 60);
 
-    if (diffMinutes < 1) return lang === 'cs' ? 'Právě teď' : 'Just now';
-    if (diffMinutes < 60) return lang === 'cs' ? `Před ${diffMinutes} min` : `${diffMinutes} min ago`;
-    if (diffHours < 24) return lang === 'cs' ? `Před ${diffHours} h` : `${diffHours} h ago`;
+    if (diffMinutes < 1) return lang === 'cz' ? 'Právě teď' : 'Just now';
+    if (diffMinutes < 60) return lang === 'cz' ? `Před ${diffMinutes} min` : `${diffMinutes} min ago`;
+    if (diffHours < 24) return lang === 'cz' ? `Před ${diffHours} h` : `${diffHours} h ago`;
 
     const date = new Date(timestamp);
-    return date.toLocaleDateString(lang === 'cs' ? 'cs-CZ' : 'en-US', { day: 'numeric', month: 'numeric' });
+    return date.toLocaleDateString(lang === 'cz' ? 'cs-CZ' : 'en-US', { day: 'numeric', month: 'numeric' });
 }

@@ -35,13 +35,9 @@ export const createSyllabusSlice: AppSlice<SyllabusSlice> = (set, get) => ({
 
       if (data && 'cz' in data && 'en' in data) {
           activeSyllabus = currentLang === 'en' ? data.en : data.cz;
-          if (activeSyllabus) {
-              activeSyllabus.language = activeSyllabus.language === 'cz' ? 'cs' : activeSyllabus.language;
-          }
           if (!activeSyllabus || activeSyllabus.version !== SYLLABUS_VERSION) needsFetch = true;
       } else if (data) {
           activeSyllabus = data as SyllabusRequirements;
-          activeSyllabus.language = activeSyllabus.language === 'cz' ? 'cs' : activeSyllabus.language;
           if (activeSyllabus.language !== currentLang || activeSyllabus.version !== SYLLABUS_VERSION) {
               needsFetch = true;
           }
@@ -78,9 +74,6 @@ export const createSyllabusSlice: AppSlice<SyllabusSlice> = (set, get) => ({
             await IndexedDBService.set('syllabuses', courseCode, dualData);
             console.debug(`[SyllabusSlice] Saved to IDB for ${courseCode}`);
             activeSyllabus = currentLang === 'en' ? enSyllabus : czSyllabus;
-            if (activeSyllabus) {
-                activeSyllabus.language = activeSyllabus.language === 'cz' ? 'cs' : activeSyllabus.language;
-            }
           } catch (err) {
             console.error(`[SyllabusSlice] API fetch failed:`, err);
           }

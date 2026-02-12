@@ -25,7 +25,7 @@ describe('metadataParser', () => {
             </table>
         `;
         document.body.innerHTML = html;
-        const result = parseCourseMetadata(document, 'cs');
+        const result = parseCourseMetadata(document, 'cz');
 
         expect(result.courseName).toBe('Algoritmizace');
         expect(result.credits).toBe('Zkouška');

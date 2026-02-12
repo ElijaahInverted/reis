@@ -16,7 +16,7 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
     const { weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton, scheduleData } = useCalendarData(initialDate);
     const [selected, setSelected] = useState<BlockLesson | null>(null);
     const [showCalendarHint, setShowCalendarHint] = useState(false);
-    const [language, setLanguage] = useState<string>('cs');
+    const [language, setLanguage] = useState<string>('cz');
 
     // Load initial language and subscribe to language changes
     useEffect(() => {

@@ -1,4 +1,4 @@
-export const getCzechHoliday = (date: Date, lang: 'cs' | 'en' = 'cs'): string | null => {
+export const getCzechHoliday = (date: Date, lang: 'cz' | 'en' = 'cz'): string | null => {
     const isEn = lang === 'en';
     const day = date.getDate();
     const month = date.getMonth() + 1; // 0-indexed

@@ -15,7 +15,7 @@ export async function fetchAssessments(
     studium: string, 
     obdobi: string, 
     predmetId: string,
-    lang: string = 'cs'
+    lang: string = 'cz'
 ): Promise<Assessment[]> {
     try {
         const url = `${BASE_URL}/auth/student/list.pl?studium=${studium};obdobi=${obdobi};predmet=${predmetId};test=1;lang=${lang}`;

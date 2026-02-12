@@ -6,9 +6,9 @@ import type { BlockLesson, ScheduleData } from "../types/schedule";
 
 const SCHEDULE_URL = `${BASE_URL}/auth/katalog/rozvrhy_view.pl`;
 
-export async function fetchWeekSchedule(specific?: { start: Date, end: Date }, lang: string = 'cs'): Promise<BlockLesson[] | null> {
-    const isLang = lang === 'en' ? 'en' : 'cz';
-    console.log('[fetchWeekSchedule] 🌐 API call with lang:', lang, '→ isLang:', isLang);
+export async function fetchWeekSchedule(specific?: { start: Date, end: Date }, lang: string = 'cz'): Promise<BlockLesson[] | null> {
+    console.log('[fetchWeekSchedule] 🌐 API call with lang:', lang);
+    const isLang = lang;
     const userId = await getUserId();
     if (!userId) {
         console.error("User ID not found");
@@ -100,7 +100,7 @@ export async function fetchDualLanguageSchedule(dateRange: { start: Date, end: D
         
         // Fetch both languages in parallel
         const [czLessons, enLessons] = await Promise.all([
-            fetchWeekSchedule(dateRange, 'cs'),
+            fetchWeekSchedule(dateRange, 'cz'),
             fetchWeekSchedule(dateRange, 'en')
         ]);
 

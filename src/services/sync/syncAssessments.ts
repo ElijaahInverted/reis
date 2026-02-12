@@ -62,9 +62,8 @@ export async function syncAssessments(studiumIn?: string): Promise<void> {
                 continue;
             }
             
-            // Fetch both languages in parallel
             const [czAssessments, enAssessments] = await Promise.all([
-                fetchAssessments(studium, obdobi, predmetId, 'cs'),
+                fetchAssessments(studium, obdobi, predmetId, 'cz'),
                 fetchAssessments(studium, obdobi, predmetId, 'en')
             ]);
             

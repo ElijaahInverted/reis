@@ -14,8 +14,8 @@ export function ExamPanelHeader() {
     const obdobi = params?.obdobi || '';
 
     const href = studium && obdobi
-        ? `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${studium};obdobi=${obdobi};lang=${language === 'cs' ? 'cz' : 'en'}`
-        : `https://is.mendelu.cz/auth/student/prihlasovani_zkousky.pl?lang=${language === 'cs' ? 'cz' : 'en'}`;
+        ? `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${studium};obdobi=${obdobi};lang=${language === 'cz' ? 'cz' : 'en'}`
+        : `https://is.mendelu.cz/auth/student/prihlasovani_zkousky.pl?lang=${language === 'cz' ? 'cz' : 'en'}`;
 
     return (
         <div className="flex items-center justify-between px-4 py-3 border-b border-base-200 bg-base-100">

@@ -4,7 +4,7 @@ import { syncService } from '../../services/sync';
 import { getUserParams } from '../../utils/userParams';
 
 const STORAGE_KEY = "reis_language";
-const DEFAULT_LANGUAGE: Language = "cs";
+const DEFAULT_LANGUAGE: Language = "cz";
 
 export const createI18nSlice: AppSlice<I18nSlice> = (set) => ({
     language: DEFAULT_LANGUAGE,
@@ -13,7 +13,7 @@ export const createI18nSlice: AppSlice<I18nSlice> = (set) => ({
         try {
             const storedLang = await IndexedDBService.get("meta", STORAGE_KEY) as Language | undefined;
             
-            if (storedLang === "cs" || storedLang === "en") {
+            if (storedLang === "cz" || storedLang === "en") {
                 set({ language: storedLang, isLanguageLoading: false });
                 return;
             }

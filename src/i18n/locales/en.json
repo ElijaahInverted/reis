@@ -5,7 +5,9 @@
     "darkMode": "Dark Mode",
     "language": "Language",
     "czech": "Čeština",
-    "english": "English"
+    "english": "English",
+    "studentId": "Student ID",
+    "emailLabel": "Email"
   },
   "sidebar": {
     "profile": "Profile",
@@ -26,7 +28,8 @@
     "studyPlans": "Study Plans Overview",
     "successRating": "Success Rating",
     "wifi": "Wi-Fi",
-    "contactCenter": "Contact Center"
+    "contactCenter": "Contact Center",
+    "slides": "slides"
   },
     "exams": {
         "title": "My Exams",

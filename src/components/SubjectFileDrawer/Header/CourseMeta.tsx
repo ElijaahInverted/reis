@@ -11,7 +11,7 @@ export function CourseMeta({ lesson, courseInfo, isSearchContext }: { lesson: Bl
         return (
             <div className="flex items-center gap-4 text-sm text-base-content/60 flex-wrap">
                 {lesson?.teachers && lesson.teachers.length > 0 && (
-                    lesson.teachers[0].id ? <a href={`https://is.mendelu.cz/auth/lide/clovek.pl?;id=${lesson.teachers[0].id};lang=${language === 'cs' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link flex items-center gap-1"><User size={14} /><span>{lesson.teachers[0].fullName}</span></a>
+                    lesson.teachers[0].id ? <a href={`https://is.mendelu.cz/auth/lide/clovek.pl?;id=${lesson.teachers[0].id};lang=${language === 'cz' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link flex items-center gap-1"><User size={14} /><span>{lesson.teachers[0].fullName}</span></a>
                     : <span className="flex items-center gap-1"><User size={14} /><span>{lesson.teachers.map(t => t.fullName).join(', ')}</span></span>
                 )}
                 {lesson?.room?.startsWith('Q') && <button onClick={() => window.open(`https://mm.mendelu.cz/mapwidget/embed?placeName=${lesson.room}`, '_blank')} className="flex items-center gap-1 hover:text-emerald-600 transition-colors"><MapIcon size={14} /><span>{lesson.room}</span></button>}

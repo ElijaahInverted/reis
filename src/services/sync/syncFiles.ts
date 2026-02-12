@@ -38,7 +38,7 @@ export async function syncFiles(): Promise<void> {
             
             // Fetch both languages in parallel
             const [czFiles, enFiles] = await Promise.all([
-                fetchFilesFromFolder(folderUrl, 'cs'),
+                fetchFilesFromFolder(folderUrl, 'cz'),
                 fetchFilesFromFolder(folderUrl, 'en')
             ]);
 

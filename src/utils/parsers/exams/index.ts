@@ -5,7 +5,7 @@ import { validateHtmlStructure } from './validator';
 import { parseRegisteredTerms } from './registeredTermsParser';
 import { parseAvailableTerms } from './availableTermsParser';
 
-export function parseExamData(html: string, lang: string = 'cs'): ExamSubject[] {
+export function parseExamData(html: string, lang: string = 'cz'): ExamSubject[] {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     validateHtmlStructure(doc);
 

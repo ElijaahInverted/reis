@@ -13,7 +13,7 @@ export function BonusPointsSection({ bonusPoints, onUpdate, onRemove, onAdd }: B
     if (Object.keys(bonusPoints).length === 0) return null;
 
     const formatNumberInput = (value: string) => {
-        if (language === 'cs') {
+        if (language === 'cz') {
             return value.replace(',', '.').replace(/[^0-9.-]/g, '');
         }
         return value.replace(/[^0-9.-]/g, '');
@@ -23,7 +23,7 @@ export function BonusPointsSection({ bonusPoints, onUpdate, onRemove, onAdd }: B
         if (num === null || num === undefined || num === '') return '';
         const parsedNum = typeof num === 'string' ? parseFloat(num) : num;
         if (isNaN(parsedNum)) return '';
-        if (language === 'cs') {
+        if (language === 'cz') {
             return parsedNum.toString().replace('.', ',');
         }
         return parsedNum.toString();

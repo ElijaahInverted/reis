@@ -72,7 +72,7 @@ export const initializeStore = async () => {
     const bcLang = new BroadcastChannel('reis_language_sync');
     bcLang.onmessage = (event) => {
         const newLang = event.data;
-        if (newLang === "cs" || newLang === "en") {
+        if (newLang === "cz" || newLang === "en") {
             useAppStore.setState({ language: newLang });
         }
     };

@@ -23,7 +23,7 @@ export function useSyllabus(courseCode: string | undefined, courseId?: string, s
 
     useEffect(() => {
         // Fetch if missing OR if cached language differs from current language
-        const isCzech = (lang?: string) => lang === 'cs' || lang === 'cz';
+        const isCzech = (lang?: string) => lang === 'cz';
         const languageMismatch = syllabus && !((isCzech(syllabus.language) && isCzech(language)) || (syllabus.language === language));
         const shouldFetch = courseCode && !isLoading && (!syllabus || languageMismatch);
         

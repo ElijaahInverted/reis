@@ -21,7 +21,7 @@ function getLocalizedCourseName(lesson: BlockLesson, lang: string): string {
     if (lang === 'en' && lesson.courseNameEn) {
         return lesson.courseNameEn;
     }
-    if (lang === 'cs' && lesson.courseNameCs) {
+    if (lang === 'cz' && lesson.courseNameCs) {
         return lesson.courseNameCs;
     }
     // Fallback to original courseName
@@ -33,7 +33,7 @@ function getLocalizedRoom(lesson: BlockLesson, lang: string): string {
     if (lang === 'en' && lesson.roomEn) {
         return lesson.roomEn;
     }
-    if (lang === 'cs' && lesson.roomCs) {
+    if (lang === 'cz' && lesson.roomCs) {
         return lesson.roomCs;
     }
     // Fallback to original room
@@ -58,7 +58,7 @@ function getExamSectionName(courseName: string): string {
     return courseName;
 }
 
-export function CalendarEventCard({ lesson, onClick, language = 'cs' }: CalendarEventCardProps) {
+export function CalendarEventCard({ lesson, onClick, language = 'cz' }: CalendarEventCardProps) {
     const duration = calculateDuration(lesson.startTime, lesson.endTime);
     const isLongEnough = duration >= 60; // Only show location if event is 1 hour+
 

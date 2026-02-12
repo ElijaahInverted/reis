@@ -22,9 +22,7 @@ export async function fetchSyllabus(predmetId: string, lang: string = 'cz'): Pro
         
         const parsed = parseSyllabusOffline(html, lang);
         parsed.courseId = predmetId;
-        // Normalize 'cz' to 'cs' to match app state language code
-        parsed.language = lang === 'cz' ? 'cs' : lang;
-        
+        parsed.language = lang;        
         console.debug(`[fetchSyllabus] Success for predmet=${predmetId}:`, {
             textLength: parsed.requirementsText.length,
             tableRows: parsed.requirementsTable.length,

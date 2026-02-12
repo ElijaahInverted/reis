@@ -25,7 +25,7 @@ export function AssessmentItem({ test, isEditing, editMax, onStartEdit, onCancel
                 {isEditing ? (
                     <div className="flex items-center gap-1.5">
                         <div className="font-mono text-sm text-base-content/70 min-w-[50px] text-right">
-                            {language === 'cs' ? ((test.score / test.maxScore) * (parseFloat(editMax) || test.maxScore)).toFixed(2).replace('.', ',') : ((test.score / test.maxScore) * (parseFloat(editMax) || test.maxScore)).toFixed(2)}
+                            {language === 'cz' ? ((test.score / test.maxScore) * (parseFloat(editMax) || test.maxScore)).toFixed(2).replace('.', ',') : ((test.score / test.maxScore) * (parseFloat(editMax) || test.maxScore)).toFixed(2)}
                         </div>
                         <span className="text-base-content/60">/</span>
                         <input type="text" inputMode="numeric" className="input input-xs input-bordered w-16 text-right" value={editMax} onChange={e => onEditMaxChange(e.target.value.replace(/[^0-9.]/g, ''))} autoFocus />
@@ -35,7 +35,7 @@ export function AssessmentItem({ test, isEditing, editMax, onStartEdit, onCancel
                 ) : (
                     <>
                         <div className={`font-mono font-semibold ${values.isAdjusted ? 'text-success' : 'text-base-content'}`}>
-                            {language === 'cs' ? values.score.toFixed(2).replace('.', ',') : values.score.toFixed(2)}<span className="text-base-content/40 text-sm font-normal"> / {values.maxScore}</span>
+                            {language === 'cz' ? values.score.toFixed(2).replace('.', ',') : values.score.toFixed(2)}<span className="text-base-content/40 text-sm font-normal"> / {values.maxScore}</span>
                         </div>
                         <button onClick={onStartEdit} className="btn btn-ghost btn-xs opacity-50 hover:opacity-100"><Pencil size={14} /></button>
                     </>

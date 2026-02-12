@@ -34,11 +34,11 @@ export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, tutorials =
   const handleEnter = (id: string) => { if (timeout.current) clearTimeout(timeout.current); setHovered(id); };
   const handleLeave = () => { timeout.current = setTimeout(() => setHovered(null), 300); };
 
-  const menuItems = getMainMenuItems(params?.studium ?? '', params?.obdobi ?? '', t).map(item => {
+  const menuItems = getMainMenuItems(params?.studium ?? '', params?.obdobi ?? '', t, language).map(item => {
     const p = { ...item };
     if (item.id === 'tutorials' && tutorials.length > 0) {
       p.expandable = true;
-      p.children = tutorials.map(t => ({ id: `tutorial-${t.id}`, label: t.title, subtitle: `${t.slides.length} snímků`, icon: <Layers className="w-4 h-4" />, isTutorial: true, tutorial: t }));
+      p.children = tutorials.map(tItem => ({ id: `tutorial-${tItem.id}`, label: tItem.title, subtitle: `${tItem.slides.length} ${t('sidebar.slides')}`, icon: <Layers className="w-4 h-4" />, isTutorial: true, tutorial: tItem }));
     }
     if (item.id === 'subjects' && subjects) {
       p.expandable = true;
@@ -70,9 +70,9 @@ export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, tutorials =
         
         // Select name based on current language
         // Priority: 1. names from record list (s.nameCs/En), 2. names from syllabus, 3. schedule-based s.displayName
-        const storeName = language === 'cs' ? s.nameCs : s.nameEn;
+        const storeName = language === 'cz' ? s.nameCs : s.nameEn;
         
-        const syllabusName = language === 'cs'
+        const syllabusName = language === 'cz'
           ? (syllabus?.courseInfo?.courseNameCs || syllabus?.courseInfo?.courseName)
           : (syllabus?.courseInfo?.courseNameEn || syllabus?.courseInfo?.courseName);
         

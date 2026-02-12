@@ -41,7 +41,7 @@ export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, select
                             courseInfo.status}
                         </span>}
                         {courseInfo?.credits && <span className="px-2 py-0.5 rounded text-xs font-bold bg-primary/10 text-primary capitalize">
-                            {courseInfo.credits.toLowerCase().replace('kreditů', language === 'cs' ? 'kreditů' : 'credits' ).replace('kredity', language === 'cs' ? 'kredity' : 'credits').replace('kredit', language === 'cs' ? 'kredit' : 'credit')}
+                            {courseInfo.credits.toLowerCase().replace('kreditů', language === 'cz' ? 'kreditů' : 'credits' ).replace('kredity', language === 'cz' ? 'kredity' : 'credits').replace('kredit', language === 'cz' ? 'kredit' : 'credit')}
                         </span>}
                     </div>)}
                 </div>
@@ -54,9 +54,9 @@ export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, select
                     // 2. Syllabus Name (CourseMetadata)
                     // 3. Store DisplayName (SubjectInfo fallback)
                     // 4. Lesson Name (BlockLesson)
-                    const storeName = language === 'cs' ? subjectInfo?.nameCs : subjectInfo?.nameEn;
+                    const storeName = language === 'cz' ? subjectInfo?.nameCs : subjectInfo?.nameEn;
                     
-                    const syllabusName = language === 'cs' 
+                    const syllabusName = language === 'cz' 
                         ? (courseInfo?.courseNameCs || courseInfo?.courseName)
                         : (courseInfo?.courseNameEn || courseInfo?.courseName);
                     
@@ -65,7 +65,7 @@ export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, select
                     const displayName = storeName || syllabusName || storeDisplayName || lesson?.courseName;
                     
                     return courseId ? 
-                        <a href={`https://is.mendelu.cz/auth/katalog/syllabus.pl?predmet=${courseId};lang=${language === 'cs' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link text-xl font-bold flex items-center gap-1">
+                        <a href={`https://is.mendelu.cz/auth/katalog/syllabus.pl?predmet=${courseId};lang=${language === 'cz' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link text-xl font-bold flex items-center gap-1">
                             <span>{displayName}</span>
                             <ExternalLink size={14} className="opacity-50" />
                         </a>

@@ -2,11 +2,13 @@ import { useRef, useState, useEffect } from 'react';
 import { Settings } from 'lucide-react';
 import { OUTLOOK_ICON_PATH, TEAMS_ICON_PATH } from '../../constants/icons';
 import { ProfilePopup } from './ProfilePopup';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export function BottomActions({ onOpenFeedback }: { onOpenFeedback?: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
     const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const { t } = useTranslation();
 
     const handleEnter = () => { if (timeout.current) clearTimeout(timeout.current); setIsOpen(true); };
     const handleLeave = () => { timeout.current = setTimeout(() => setIsOpen(false), 300); };
@@ -26,7 +28,7 @@ export function BottomActions({ onOpenFeedback }: { onOpenFeedback?: () => void 
             </a>
             <div className="h-px bg-base-300 w-full my-1" />
             <div className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
-                <button className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all ${isOpen ? 'bg-primary text-primary-content shadow-md' : 'text-base-content/50 hover:bg-base-100 hover:text-base-content'}`}><Settings className="w-5 h-5" /><span className="text-[10px] mt-1 font-medium">Profil</span></button>
+                <button className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-all ${isOpen ? 'bg-primary text-primary-content shadow-md' : 'text-base-content/50 hover:bg-base-100 hover:text-base-content'}`}><Settings className="w-5 h-5" /><span className="text-[10px] mt-1 font-medium">{t('sidebar.profile')}</span></button>
                 <div onMouseEnter={handleEnter} onMouseLeave={handleLeave}><ProfilePopup isOpen={isOpen} onOpenFeedback={() => { setIsOpen(false); onOpenFeedback?.(); }} /></div>
             </div>
         </div>

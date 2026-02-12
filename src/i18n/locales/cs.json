@@ -5,7 +5,9 @@
     "darkMode": "Tmavý režim",
     "language": "Jazyk",
     "czech": "Čeština",
-    "english": "English"
+    "english": "English",
+    "studentId": "ID studenta",
+    "emailLabel": "E-mail"
   },
   "sidebar": {
     "profile": "Profil",
@@ -26,7 +28,8 @@
     "studyPlans": "Přehled studijních plánů",
     "successRating": "Hodnocení úspěšnosti",
     "wifi": "Wi-Fi",
-    "contactCenter": "Kontaktní centrum"
+    "contactCenter": "Kontaktní centrum",
+    "slides": "snímků"
   },
   "common": {
     "loading": "Načítání...",

@@ -1,6 +1,6 @@
 import type { ScrapedExamSubject, ScrapedExamSection } from './types';
 
-export function parseAvailableTerms(doc: Document, getOrCreateSubject: (c: string, n: string) => ScrapedExamSubject, getOrCreateSection: (s: ScrapedExamSubject, n: string) => ScrapedExamSection, lang: string = 'cs') {
+export function parseAvailableTerms(doc: Document, getOrCreateSubject: (c: string, n: string) => ScrapedExamSubject, getOrCreateSection: (s: ScrapedExamSubject, n: string) => ScrapedExamSection, lang: string = 'cz') {
     const isEn = lang === 'en';
     const table2 = doc.querySelector('#table_2');
     if (!table2) return;

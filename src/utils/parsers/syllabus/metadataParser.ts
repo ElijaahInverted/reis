@@ -1,6 +1,6 @@
 import type { CourseMetadata } from "../../../schemas/syllabusSchema";
 
-export function parseCourseMetadata(doc: Document, lang: string = 'cs'): CourseMetadata {
+export function parseCourseMetadata(doc: Document, lang: string = 'cz'): CourseMetadata {
     const isValidName = (name: string | null) => {
         if (!name) return false;
         const n = name.toLowerCase().trim();

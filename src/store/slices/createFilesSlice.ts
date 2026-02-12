@@ -51,7 +51,7 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
                     if (folderId) {
                         const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
                         try {
-                            const czFiles = await fetchFilesFromFolder(folderUrl, 'cs');
+                            const czFiles = await fetchFilesFromFolder(folderUrl, 'cz');
                             const enFiles = await fetchFilesFromFolder(folderUrl, 'en');
                             const dualData = { cz: czFiles || [], en: enFiles || [] };
                             await IndexedDBService.set('files', courseCode, dualData);

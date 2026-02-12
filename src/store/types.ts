@@ -6,7 +6,7 @@ import type { SyncStatus } from '../services/sync';
 
 export type Status = 'idle' | 'loading' | 'success' | 'error';
 export type Theme = "mendelu" | "mendelu-dark";
-export type Language = "cs" | "en";
+export type Language = "cz" | "en";
 
 export interface ScheduleSlice {
   schedule: {

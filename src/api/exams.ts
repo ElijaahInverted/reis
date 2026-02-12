@@ -18,8 +18,8 @@ export interface ExamActionResult {
  * Build exam list URL dynamically using user's studium.
  * Removed hardcoded studium that only worked for one user.
  */
-async function getExamListUrl(lang: string = 'cs'): Promise<string> {
-    const isLang = lang === 'en' ? 'en' : 'cz';
+async function getExamListUrl(lang: string = 'cz'): Promise<string> {
+    const isLang = lang;
     const params = await getUserParams();
     if (!params?.studium) {
         console.warn('[exams] No studium available, using base URL');
@@ -46,7 +46,7 @@ function verifyRegistrationSuccess(html: string, termId: string): boolean {
     return hasUnregisterLink && !hasError;
 }
 
-export async function fetchExamData(lang: string = 'cs'): Promise<ExamSubject[]> {
+export async function fetchExamData(lang: string = 'cz'): Promise<ExamSubject[]> {
     try {
         const url = await getExamListUrl(lang);
         console.log(`[exams] Fetching ${lang === 'en' ? 'EN' : 'CZ'} from:`, url);
@@ -68,7 +68,7 @@ export async function fetchDualLanguageExams(): Promise<ExamSubject[]> {
     console.debug('[fetchDualLanguageExams] 🌐 Fetching exams in both CZ and EN...');
     try {
         const [czData, enData] = await Promise.all([
-            fetchExamData('cs'),
+            fetchExamData('cz'),
             fetchExamData('en')
         ]);
         console.debug(`[fetchDualLanguageExams] ✅ Fetched CZ: ${czData.length} subjects, EN: ${enData.length} subjects`);
@@ -112,7 +112,7 @@ export async function fetchDualLanguageExams(): Promise<ExamSubject[]> {
         return merged;
     } catch (error) {
         console.error('[exams] Error fetching dual language exams:', error);
-        return fetchExamData('cs'); // Fallback to CZ
+        return fetchExamData('cz'); // Fallback to CZ
     }
 }
 

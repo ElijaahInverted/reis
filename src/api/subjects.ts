@@ -6,9 +6,9 @@ import { SubjectsDataSchema } from "../schemas/subjectSchema";
 
 const STUDENT_LIST_URL = `${BASE_URL}/auth/student/list.pl`;
 
-export async function fetchSubjects(lang: string = 'cs', studium?: string): Promise<SubjectsData | null> {
+export async function fetchSubjects(lang: string = 'cz', studium?: string): Promise<SubjectsData | null> {
     try {
-        const isLang = lang === 'en' ? 'en' : 'cz';
+        const isLang = lang;
         const url = studium 
             ? `${STUDENT_LIST_URL}?lang=${isLang};studium=${studium}`
             : `${STUDENT_LIST_URL}?lang=${isLang}`;
@@ -149,7 +149,7 @@ function showFullSubjects(subjectsObject: Record<string, SubjectLinkData>, lang:
         enrichedSubjects[subjectCode] = {
             displayName: name,
             fullName,
-            nameCs: lang === 'cs' ? name : undefined,
+            nameCs: lang === 'cz' ? name : undefined,
             nameEn: lang === 'en' ? name : undefined,
             subjectCode,
             subjectId: data.subjectId,
