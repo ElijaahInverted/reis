@@ -8,15 +8,17 @@ import { useCalendarData } from './useCalendarData';
 import { WeeklyCalendarHeader } from './WeeklyCalendarHeader';
 import { WeeklyCalendarGrid } from './WeeklyCalendarGrid';
 import { WeeklyCalendarDay } from './WeeklyCalendarDay';
+import { useHintStatus } from '../../hooks/ui/useHintStatus';
 import type { BlockLesson } from '../../types/calendarTypes';
 
 const TOTAL_HOURS = 13;
 
 export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Date }) {
-    const { weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton, scheduleData } = useCalendarData(initialDate);
+    const { weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton } = useCalendarData(initialDate);
     const [selected, setSelected] = useState<BlockLesson | null>(null);
-    const [showCalendarHint, setShowCalendarHint] = useState(false);
     const [language, setLanguage] = useState<string>('cz');
+    
+    const { isSeen, markSeen } = useHintStatus('calendar_event_click');
 
     // Load initial language and subscribe to language changes
     useEffect(() => {
@@ -35,29 +37,71 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
         return () => { unsubscribe(); };
     }, []);
 
-    const firstEventPosition = useMemo(() => {
-        for (let i = 0; i < 5; i++) {
-            const dayLessons = lessonsByDay[i] || [];
-            if (dayLessons.length > 0) {
-                const first = [...dayLessons].sort((a, b) => a.startTime.localeCompare(b.startTime))[0];
-                const columnWidth = 100 / 5;
-                const [h, m] = first.startTime.split(':').map(Number);
-                return { top: ((h - 7) * 60 + m) / (13 * 60) * 100, left: i * columnWidth, width: columnWidth };
+    const targetEventPosition = useMemo(() => {
+        if (showSkeleton || isSeen) return null;
+
+        const now = new Date();
+        const currentHour = now.getHours() + now.getMinutes() / 60;
+        const columnWidth = 100 / 5;
+
+        let targetLesson: BlockLesson | null = null;
+        let targetDayIndex = -1;
+
+        // 1. Check for ongoing lesson today
+        if (todayIndex >= 0 && todayIndex < 5) {
+            const todayLessons = lessonsByDay[todayIndex] || [];
+            targetLesson = todayLessons.find(l => {
+                const [startH, startM] = l.startTime.split(':').map(Number);
+                const [endH, endM] = l.endTime.split(':').map(Number);
+                const start = startH + startM / 60;
+                const end = endH + endM / 60;
+                return currentHour >= start && currentHour <= end;
+            }) || null;
+
+            if (targetLesson) targetDayIndex = todayIndex;
+
+            // 2. If no ongoing, check for next lesson today
+            if (!targetLesson) {
+                targetLesson = todayLessons
+                    .filter(l => {
+                        const [h, m] = l.startTime.split(':').map(Number);
+                        return (h + m / 60) > currentHour;
+                    })
+                    .sort((a, b) => a.startTime.localeCompare(b.startTime))[0] || null;
+                if (targetLesson) targetDayIndex = todayIndex;
             }
         }
-        return null;
-    }, [lessonsByDay]);
 
-    useEffect(() => {
-        if (showSkeleton || scheduleData.length === 0) return;
-        IndexedDBService.get('meta', 'calendar_click_hint_shown').then(seen => {
-            if (!seen) {
-                IndexedDBService.set('meta', 'calendar_click_hint_shown', true);
-                setTimeout(() => setShowCalendarHint(true), 1000);
-                setTimeout(() => setShowCalendarHint(false), 5000);
+        // 3. If still no lesson (or today is weekend/past work hours), find first lesson of the next active day
+        if (!targetLesson) {
+            for (let i = 0; i < 5; i++) {
+                // Adjust index to start from "tomorrow" if today is weekday
+                const checkIndex = todayIndex >= 0 && todayIndex < 5 ? (todayIndex + 1 + i) % 5 : i;
+                const dayLessons = lessonsByDay[checkIndex] || [];
+                if (dayLessons.length > 0) {
+                    targetLesson = [...dayLessons].sort((a, b) => a.startTime.localeCompare(b.startTime))[0];
+                    targetDayIndex = checkIndex;
+                    break;
+                }
             }
-        });
-    }, [showSkeleton, scheduleData.length]);
+        }
+
+        if (targetLesson && targetDayIndex !== -1) {
+            const [h, m] = targetLesson.startTime.split(':').map(Number);
+            return { 
+                top: ((h - 7) * 60 + m) / (TOTAL_HOURS * 60) * 100, 
+                left: targetDayIndex * columnWidth, 
+                width: columnWidth 
+            };
+        }
+
+        return null;
+    }, [lessonsByDay, todayIndex, showSkeleton, isSeen]);
+
+    const handleEventClick = (lesson: BlockLesson) => {
+        setSelected(lesson);
+        if (!isSeen) markSeen();
+    };
 
     return (
         <div className="flex h-full overflow-hidden flex-col font-inter bg-base-100">
@@ -73,12 +117,12 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
                         ))}
                     </div>
                     <div className="flex-1 relative flex">
-                        <CalendarHint show={showCalendarHint} firstEventPosition={firstEventPosition || undefined} />
+                        <CalendarHint show={!isSeen} eventPosition={targetEventPosition || undefined} onDismiss={markSeen} />
                         <WeeklyCalendarGrid />
                         {[0, 1, 2, 3, 4].map(i => (
                             <WeeklyCalendarDay key={i} dayIndex={i} lessons={lessonsByDay[i] || []}
                                                holiday={holidaysByDay[i]} isToday={i === todayIndex}
-                                               showSkeleton={showSkeleton} onEventClick={setSelected}
+                                               showSkeleton={showSkeleton} onEventClick={handleEventClick}
                                                language={language} />
                         ))}
                     </div>

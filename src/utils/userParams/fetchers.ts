@@ -4,7 +4,26 @@ export async function fetchUserBaseIds() {
     const res = await fetchWithAuth(`${BASE_URL}/auth/student/studium.pl`), h = await res.text();
     const m = h.match(/studium=(\d+);obdobi=(\d+)/), idm = h.match(/Identifikační\s+číslo\s+uživatele:\s*<\/td>\s*<td[^>]*>\s*(\d+)/i);
     const nm = h.match(/id="prihlasen"[^>]*>\s*Přihlášen:&nbsp;([^&]+)/i);
-    return m ? { studium: m[1], obdobi: m[2], studentId: idm ? idm[1] : '', fullName: nm ? nm[1].trim() : '', isErasmus: h.includes('Erasmus+') || h.includes('Erasmus +'), html: h } : null;
+    
+    // Stricter Erasmus detection: 
+    // Usually, Erasmus students have 'Erasmus+' in their study program name or a specific active study row.
+    // We sanitize the HTML by removing sidebars (e.g., Zapsané termíny) that might contain course names with "Erasmus".
+    const sanitizedHtml = h.replace(/<div class="sideportlet">[\s\S]*?<\/div>/g, '');
+    
+    const isErasmus = /Erasmus\s*\+/i.test(sanitizedHtml) && (
+        sanitizedHtml.includes('studijní program') || 
+        sanitizedHtml.includes('study program') || 
+        sanitizedHtml.includes('stáž')
+    );
+
+    return m ? { 
+        studium: m[1], 
+        obdobi: m[2], 
+        studentId: idm ? idm[1] : '', 
+        fullName: nm ? nm[1].trim() : '', 
+        isErasmus, 
+        html: h 
+    } : null;
 }
 
 export async function fetchUserStudyDetails() {

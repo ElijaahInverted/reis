@@ -122,6 +122,7 @@
       "noFilesAvailable": "Žádné soubory nejsou k dispozici."
     },
     "dragHint": "Tažením vyberete více souborů",
+    "clickHint": "Klikněte pro zobrazení materiálů",
     "badge": {
       "lecture": "Přednáška",
       "seminar": "Cvičení",

@@ -122,6 +122,7 @@
             "noFilesAvailable": "No files are available."
         },
         "dragHint": "Drag to select multiple files",
+        "clickHint": "Click to view materials",
         "badge": {
             "lecture": "Lecture",
             "seminar": "Seminar",

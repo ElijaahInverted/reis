@@ -14,18 +14,22 @@ export const createI18nSlice: AppSlice<I18nSlice> = (set) => ({
             const storedLang = await IndexedDBService.get("meta", STORAGE_KEY) as Language | undefined;
             
             if (storedLang === "cz" || storedLang === "en") {
+                console.log(`[I18nSlice] Using stored language preference: ${storedLang}`);
                 set({ language: storedLang, isLanguageLoading: false });
                 return;
             }
 
             // No preference stored, check for Erasmus status
             const userParams = await getUserParams();
-            const language = userParams?.isErasmus ? "en" : DEFAULT_LANGUAGE;
+            const isErasmus = !!userParams?.isErasmus;
+            const language = isErasmus ? "en" : DEFAULT_LANGUAGE;
+            
+            console.log(`[I18nSlice] No stored preference. Erasmus status: ${isErasmus}. Defaulting to: ${language}`);
             
             set({ language, isLanguageLoading: false });
         } catch (e) {
             console.error("[I18nSlice] Failed to load language:", e);
-            set({ isLanguageLoading: false });
+            set({ language: DEFAULT_LANGUAGE, isLanguageLoading: false });
         }
     },
     setLanguage: async (newLang: Language) => {
