@@ -11,6 +11,8 @@ import type { BlockLesson } from '../../types/calendarTypes';
 export interface UseScheduleResult {
     schedule: BlockLesson[];
     isLoaded: boolean;
+    status: 'idle' | 'loading' | 'success' | 'error';
+    error: string | null;
     weekStart: Date | null;
 }
 
@@ -20,6 +22,8 @@ export function useSchedule(): UseScheduleResult {
     return { 
         schedule: data, 
         isLoaded: status !== 'loading' && status !== 'idle', 
+        status,
+        error: null, // Schedule slice doesn't currently store error message, but we can add it later if needed
         weekStart 
     };
 }

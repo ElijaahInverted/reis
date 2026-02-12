@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { CalendarHint } from '../CalendarHint';
 import { SubjectFileDrawer } from '../SubjectFileDrawer';
-import { IndexedDBService } from '../../services/storage';
-import { syncService } from '../../services/sync/SyncService';
+import { useAppStore } from '../../store/useAppStore';
 import { HOURS } from './utils';
 import { useCalendarData } from './useCalendarData';
 import { WeeklyCalendarHeader } from './WeeklyCalendarHeader';
@@ -14,28 +13,15 @@ import type { BlockLesson } from '../../types/calendarTypes';
 const TOTAL_HOURS = 13;
 
 export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Date }) {
-    const { weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton } = useCalendarData(initialDate);
-    const [selected, setSelected] = useState<BlockLesson | null>(null);
-    const [language, setLanguage] = useState<string>('cz');
+    const language = useAppStore((state) => state.language);
+    const isLanguageLoading = useAppStore((state) => state.isLanguageLoading);
+    const { weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton: dataLoading } = useCalendarData(initialDate);
     
+    const [selected, setSelected] = useState<BlockLesson | null>(null);
     const { isSeen, markSeen } = useHintStatus('calendar_event_click');
 
-    // Load initial language and subscribe to language changes
-    useEffect(() => {
-        IndexedDBService.get('meta', 'reis_language').then(lang => {
-            if (lang) setLanguage(lang);
-        });
-
-        const unsubscribe = syncService.subscribe((action) => {
-            if (action === 'LANGUAGE_UPDATE') {
-                IndexedDBService.get('meta', 'reis_language').then(lang => {
-                    if (lang) setLanguage(lang);
-                });
-            }
-        });
-
-        return () => { unsubscribe(); };
-    }, []);
+    // Show skeletons if either data is loading (initial) or language is still being determined
+    const showSkeleton = dataLoading || isLanguageLoading;
 
     const targetEventPosition = useMemo(() => {
         if (showSkeleton || isSeen) return null;

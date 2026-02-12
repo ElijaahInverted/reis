@@ -106,5 +106,14 @@ export function useCalendarData(initialDate: Date) {
         return weekDates.findIndex(d => parseInt(d.day) === today.getDate() && parseInt(d.month) === today.getMonth() + 1 && parseInt(d.year) === today.getFullYear());
     }, [weekDates]);
 
-    return { weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton: scheduleData.length === 0 && (!isScheduleLoaded || !isExamsLoaded), scheduleData };
+    return { 
+        weekDates, 
+        lessonsByDay, 
+        holidaysByDay, 
+        todayIndex, 
+        showSkeleton: scheduleData.length === 0 && (storedSchedule.length === 0 && !isScheduleLoaded), 
+        scheduleData,
+        isScheduleLoaded,
+        isExamsLoaded
+    };
 }
