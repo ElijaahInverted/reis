@@ -13,8 +13,8 @@ interface SpolkySectionProps {
 export function SpolkySection({ expanded, onToggle, isSub, onToggleAssoc }: SpolkySectionProps) {
     const { t } = useTranslation();
     return (
-        <div className="mt-2 border-t border-base-200">
-            <button onClick={onToggle} className="w-full flex items-center justify-between px-1 py-3 hover:bg-base-200 rounded-lg group">
+        <div>
+            <button onClick={onToggle} className="w-full flex items-center justify-between px-1 py-2 hover:bg-base-200 rounded-lg group">
                 <div className="flex items-center gap-2"><Users size={16} className="text-base-content/50 group-hover:text-primary" /><span className="text-xs font-medium opacity-70">{t('sync.spolky') as string}</span></div>
                 {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </button>

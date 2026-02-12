@@ -21,31 +21,31 @@ export function ProfilePopup({ isOpen, onOpenFeedback }: { isOpen: boolean; onOp
   if (!isOpen) return null;
   return (
     <AnimatePresence><motion.div initial={{ opacity: 0, x: 10, scale: 0.95 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 10, scale: 0.95 }} className="absolute left-14 bottom-0 w-72 bg-base-100 rounded-xl shadow-popover-heavy border border-base-300 p-3 z-50">
-        <div className="px-1 py-1 border-b border-base-200 mb-3">
-            <h3 className="font-semibold text-sm mb-2">{t('sidebar.profile')}</h3>
+        <div className="px-1 pt-1 pb-3 border-b border-base-200">
+            <h3 className="font-bold text-base mb-3 ">{t('sidebar.profile')}</h3>
             {params && (
-                <div className="flex flex-col gap-1.5 mb-1 text-xs">
-                    <div className="flex items-center gap-2 text-base-content/80">
-                        <User size={14} className="text-primary" />
-                        <span className="font-medium truncate">{params.fullName}</span>
+                <div className="flex flex-col gap-2.5 text-xs">
+                    <div className="flex items-center gap-3 text-base-content/90">
+                        <User size={16} className="text-base-content/40" />
+                        <span className="font-semibold text-sm truncate">{params.fullName}</span>
                     </div>
                     {params.email && (
-                        <div className="flex items-center gap-2 text-base-content/60">
-                            <Mail size={14} />
-                            <span className="truncate">{params.email}</span>
+                        <div className="flex items-center gap-3 text-base-content/60">
+                            <Mail size={16} className="text-base-content/30" />
+                            <span className="truncate opacity-80">{params.email}</span>
                         </div>
                     )}
-                    <div className="flex items-center gap-2 text-base-content/60">
-                        <Hash size={14} />
-                        <span className="opacity-70">{t('settings.studentId')}:</span>
-                        <span className="font-mono text-[10px] bg-base-200 px-1.5 py-0.5 rounded border border-base-300 select-all">{params.studentId}</span>
+                    <div className="flex items-center gap-3 text-base-content/60">
+                        <Hash size={16} className="text-base-content/30" />
+                        <span className="opacity-70">{t('settings.studentId')}</span>
+                        <span className="font-mono text-[10px] bg-base-300/50 px-2 py-0.5 rounded border border-base-300/50 select-all ml-auto">{params.studentId}</span>
                     </div>
                 </div>
             )}
         </div>
         {/* Preferences Section */}
-        <div className="py-2 border-b border-base-200">
-            <div className="flex items-center justify-between gap-3 px-1 py-1.5 hover:bg-base-200 rounded-lg group transition-colors">
+        <div className="py-1 border-b border-base-200">
+            <div className="flex items-center justify-between gap-3 px-1 py-2 hover:bg-base-200 rounded-lg group transition-colors">
                 <div className="flex items-center gap-2 flex-1">
                     <Languages size={16} className="text-base-content/50" />
                     <span className="text-xs opacity-70">{t('settings.language')}</span>
@@ -65,7 +65,7 @@ export function ProfilePopup({ isOpen, onOpenFeedback }: { isOpen: boolean; onOp
                     </button>
                 </div>
             </div>
-            <label className="flex items-center justify-between gap-3 px-1 py-1.5 cursor-pointer hover:bg-base-200 rounded-lg mt-0.5">
+            <label className="flex items-center justify-between gap-3 px-1 py-2 cursor-pointer hover:bg-base-200 rounded-lg">
                 <div className="flex items-center gap-2 flex-1">
                     <Moon size={16} className="text-base-content/50" />
                     <span className="text-xs opacity-70">{t('settings.darkMode')}</span>
@@ -75,17 +75,17 @@ export function ProfilePopup({ isOpen, onOpenFeedback }: { isOpen: boolean; onOp
         </div>
 
         {/* Services Section */}
-        <div className="py-2 border-b border-base-200">
+        <div className="py-1 border-b border-base-200">
             <SpolkySection expanded={spolkyOpen} onToggle={() => setSpolkyOpen(!spolkyOpen)} isSub={isSubscribed} onToggleAssoc={toggleAssociation} />
             <OutlookSyncToggle enabled={isEnabled} loading={syncLoading} onToggle={tSync} />
         </div>
 
         {/* Support Section */}
-        <div className="pt-2">
+        <div className="pt-1">
             {onOpenFeedback && (
                 <button onClick={onOpenFeedback} className="w-full flex items-center gap-3 px-1 py-2 hover:bg-base-200 rounded-lg transition-colors">
-                    <MessageSquarePlus size={16} className="text-primary" />
-                    <span className="text-xs font-medium">{t('settings.reportBug')}</span>
+                    <MessageSquarePlus size={16} className="text-base-content/50" />
+                    <span className="text-xs font-medium opacity-70">{t('settings.reportBug')}</span>
                 </button>
             )}
         </div>

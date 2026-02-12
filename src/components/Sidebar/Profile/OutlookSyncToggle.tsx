@@ -13,7 +13,7 @@ export function OutlookSyncToggle({ enabled, loading, onToggle }: OutlookSyncTog
     const [show, setShow] = useState(false);
     const { t } = useTranslation();
     return (
-        <div className="border-t border-base-200 pt-1">
+        <div>
             <div className="flex items-center justify-between gap-3 px-1 py-2 rounded-lg hover:bg-base-200 cursor-pointer" onClick={() => !loading && onToggle()}>
                 <div className="flex items-center gap-2 flex-1">
                     <Calendar size={16} className="text-base-content/50" />
