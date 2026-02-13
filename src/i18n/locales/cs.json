@@ -118,7 +118,7 @@
     "footer": {
       "other": "Ostatní",
       "noFiles": "Žádné soubory",
-      "searchOnlyInSchedule": "Soubory jsou dostupné pouze pro předměty ve vašem rozvrhu",
+      "searchOnlyInSchedule": "Žádné soubory nejsou k dispozici.",
       "noFilesAvailable": "Žádné soubory nejsou k dispozici."
     },
     "dragHint": "Tažením vyberete více souborů",
