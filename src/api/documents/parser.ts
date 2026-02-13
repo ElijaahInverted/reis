@@ -23,10 +23,11 @@ function getColumnIndices(table: Element): Record<string, number> {
     return indices;
 }
 
-export function parseServerFiles(html: string): { files: ParsedFile[], paginationLinks: string[] } {
+export function parseServerFiles(html: string): { files: ParsedFile[], paginationLinks: string[], totalRecords?: number } {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const files: ParsedFile[] = [];
     const paginationLinks: string[] = [];
+    let totalRecords: number | undefined;
 
     // Case 1: Read document page (detail page)
     const attachmentsLabel = Array.from(doc.querySelectorAll('td')).find(td => td.textContent?.includes('Attachments:') || td.textContent?.includes('Přílohy:'));
@@ -46,7 +47,7 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
             const sName = validateFileName(name || 'Unknown');
             const vUrl = validateUrl(link, 'is.mendelu.cz');
             if (sName && vUrl) {
-                return { files: [{ subfolder: '', file_name: sName, file_comment: sanitizeString(comment, 500), author: sanitizeString(author, 200), date, files: [{ name: sName, type, link: vUrl }] }], paginationLinks: [] };
+                return { files: [{ subfolder: '', file_name: sName, file_comment: sanitizeString(comment, 500), author: sanitizeString(author, 200), date, files: [{ name: sName, type, link: vUrl }] }], paginationLinks: [], totalRecords: 1 };
             }
         }
     }
@@ -115,10 +116,17 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
 
     doc.querySelectorAll('a').forEach(a => {
         const href = a.getAttribute('href');
-        if (href?.includes('slozka.pl') && !href.includes('download') && a.textContent?.trim().match(/^\d+-\d+$/)) {
+        if (href?.includes('slozka.pl') && !href.includes('download') && a.textContent?.trim().match(/^\d+[\-–]\d+$/)) {
             if (!paginationLinks.includes(href)) paginationLinks.push(href);
         }
     });
 
-    return { files, paginationLinks };
+    // Try to find total records count (e.g. "1-10 z 24")
+    const bodyText = doc.body.textContent || '';
+    const totalMatch = bodyText.match(/(\d+)\s*[\-–]\s*(\d+)\s+(?:z|of)\s+(\d+)/i);
+    if (totalMatch) {
+        totalRecords = parseInt(totalMatch[3], 10);
+    }
+
+    return { files, paginationLinks, totalRecords };
 }

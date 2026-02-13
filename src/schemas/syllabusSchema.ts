@@ -5,9 +5,13 @@ export const CourseMetadataSchema = z.object({
     courseNameCs: z.string().nullable().optional(),
     courseNameEn: z.string().nullable().optional(),
     credits: z.string().nullable(),
-    garant: z.string().nullable(),
+    garant: z.object({
+        name: z.string().nullable(),
+        id: z.string().nullable().optional(),
+    }).nullable().optional(),
     teachers: z.array(z.object({
         name: z.string().transform(s => s.trim()),
+        id: z.string().nullable().optional(),
         roles: z.string().transform(s => s.trim()),
     })),
     status: z.string().nullable(),

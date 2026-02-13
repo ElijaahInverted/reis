@@ -48,8 +48,18 @@ export function parseCourseMetadata(doc: Document, lang: string = 'cz'): CourseM
              const bold = v.querySelector('b')?.textContent?.trim();
              info.credits = bold || v_txt;
         }
+        const extractId = (url: string | null | undefined) => {
+            if (!url) return null;
+            const match = url.match(/id=(\d+)/);
+            return match ? match[1] : null;
+        };
+
         if (l === 'garant předmětu' || l === 'guarantor' || l === 'course supervisor') {
-             info.garant = v.querySelector('a')?.textContent?.trim() || v_txt;
+             const anchor = v.querySelector('a');
+             info.garant = {
+                 name: anchor?.textContent?.trim() || v_txt,
+                 id: extractId(anchor?.getAttribute('href'))
+             };
         }
         if (l === 'typ předmětu' || l === 'course type') {
              info.status = v_txt;
@@ -57,7 +67,11 @@ export function parseCourseMetadata(doc: Document, lang: string = 'cz'): CourseM
         if (l === 'vyučující' || l === 'instructors' || l === 'teachers') {
             v.querySelectorAll('a').forEach(a => {
                 const role = a.parentNode?.textContent?.match(/\(([^)]+)\)/);
-                info.teachers.push({ name: a.textContent?.trim() || '', roles: role ? role[1] : '' });
+                info.teachers.push({ 
+                    name: a.textContent?.trim() || '', 
+                    id: extractId(a.getAttribute('href')),
+                    roles: role ? role[1] : '' 
+                });
             });
         }
     });

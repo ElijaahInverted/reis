@@ -1,4 +1,4 @@
-import { FileText } from 'lucide-react';
+import { FileText, ExternalLink } from 'lucide-react';
 import { FileList, FileListSkeleton } from './FileList';
 import { AssessmentTab } from './AssessmentTab';
 import { SyllabusTab } from './SyllabusTab';
@@ -34,20 +34,32 @@ export function SubjectFileDrawerContent({
     activeTab, lesson, files, isFilesLoading, isSyncing, isDragging, selectionBoxStyle, showDragHint,
     groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, resolvedCourseId, syllabusResult, folderUrl
 }: SubjectFileDrawerContentProps) {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     if (activeTab === 'files') {
+        const isEmpty = !files || files.length === 0;
         return (
             <>
                 <SelectionBox isDragging={isDragging} style={selectionBoxStyle} />
                 <DragHint show={showDragHint} />
                 {(isFilesLoading || (isSyncing && files === null)) ? <FileListSkeleton /> :
-                 (!files || files.length === 0) ? (
+                 isEmpty ? (
                     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
                         <FileText className="w-12 h-12 text-base-content/20 mb-3" />
                         <p className="text-sm text-base-content/60">
                             {lesson?.isFromSearch ? t('course.footer.searchOnlyInSchedule') : 
                             t('course.footer.noFilesAvailable')}
                         </p>
+                        {folderUrl && (
+                            <a 
+                                href={folderUrl.includes('?') ? `${folderUrl};lang=${language === 'cz' ? 'cz' : 'en'}` : `${folderUrl}?lang=${language === 'cz' ? 'cz' : 'en'}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="btn btn-ghost btn-sm gap-2 text-base-content/70 hover:text-primary normal-case font-bold mt-4"
+                            >
+                                <span>IS MENDELU</span>
+                                <ExternalLink size={16} />
+                            </a>
+                        )}
                     </div>
                  ) : (
                     <FileList groups={groupedFiles} selectedIds={selectedIds} fileRefs={fileRefs}

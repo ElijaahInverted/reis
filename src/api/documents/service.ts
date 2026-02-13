@@ -23,7 +23,7 @@ export async function fetchFilesFromFolder(folderUrl: string, lang: string = 'cz
 
         const response = await fetchWithAuth(url);
         const respText = await response.text();
-        const { files: initialFiles, paginationLinks } = parseServerFiles(respText);
+        const { files: initialFiles, paginationLinks, totalRecords } = parseServerFiles(respText);
         const allFiles = [...initialFiles];
 
         console.log(`[fetchFilesFromFolder] ${folderUrl} - Page 1: Found ${initialFiles.length} files, ${paginationLinks.length} pagination links`);
@@ -35,17 +35,33 @@ export async function fetchFilesFromFolder(folderUrl: string, lang: string = 'cz
             
             try {
                 const pageResp = await requestQueue.add(async () => fetchWithAuth(pageUrl));
-                const { files: pageFiles } = parseServerFiles(await pageResp.text());
+                const pageText = await pageResp.text();
+                const { files: pageFiles } = parseServerFiles(pageText);
+                
+                if (pageFiles.length === 0) {
+                    throw new Error(`Pagination page ${pageUrl} returned 0 files, likely a parsing error.`);
+                }
+                
                 console.log(`[fetchFilesFromFolder]   - Paged ${pageUrl}: Found ${pageFiles.length} files`);
                 return pageFiles;
             } catch (err) {
-                console.warn(`[fetchFilesFromFolder]   - Paged ${pageUrl} failed, skipping:`, err);
-                return [];
+                console.error(`[fetchFilesFromFolder]   - Paged ${pageUrl} failed CRITICALLY:`, err);
+                throw err; // Re-throw to fail the whole folder fetch
             }
         });
 
         const extraResults = await Promise.all(pageRequests);
         allFiles.push(...extraResults.flat());
+
+        // Count base files (excluding subfolder links themselves)
+        const baseFilesCount = allFiles.filter(f => 
+            f.files.some(fi => fi.link.includes('download') || !fi.link.includes('slozka.pl'))
+        ).length;
+
+        if (totalRecords !== undefined && baseFilesCount < totalRecords) {
+            console.error(`[fetchFilesFromFolder] ${folderUrl} - COUNT MISMATCH! Expected ${totalRecords}, found only ${baseFilesCount} base files.`);
+            throw new Error(`Data integrity check failed for folder ${folderUrl}: Expected ${totalRecords} items, but parsed only ${baseFilesCount}. This indicates a parser or pagination failure.`);
+        }
 
         if (recursive && currentDepth < maxDepth) {
             const folders = allFiles.filter(f => f.files.some(fi => fi.link.includes('slozka.pl') && !fi.link.includes('download')))
@@ -62,8 +78,8 @@ export async function fetchFilesFromFolder(folderUrl: string, lang: string = 'cz
                     results.forEach(r => r.subfolder = f.name);
                     return results;
                 } catch (err) {
-                    console.warn(`[fetchFilesFromFolder] Subfolder ${f.name} failed (recurse depth ${currentDepth}), skipping:`, err);
-                    return [];
+                    console.error(`[fetchFilesFromFolder] Subfolder ${f.name} failed CRITICALLY (recurse depth ${currentDepth}):`, err);
+                    throw err; // Re-throw to fail the parent folder fetch
                 }
             }, 200);
 
