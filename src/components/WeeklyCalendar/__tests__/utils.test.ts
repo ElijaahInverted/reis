@@ -1,0 +1,129 @@
+import { describe, it, expect } from 'vitest';
+import { organizeLessons } from '../utils';
+import { BlockLesson } from '../../../types/calendarTypes';
+
+describe('organizeLessons', () => {
+    const createLesson = (id: string, startTime: string, endTime: string): BlockLesson => ({
+        id,
+        startTime,
+        endTime,
+        date: '20251022',
+        courseName: `Course ${id}`,
+        courseCode: id,
+        courseId: id,
+        room: 'A01',
+        roomStructured: { name: 'A01', id: '1' },
+        teachers: [],
+        periodId: '1',
+        studyId: '1',
+        campus: 'Brno',
+        isDefaultCampus: 'true',
+        facultyCode: 'AF',
+        isSeminar: 'false',
+        isConsultation: 'false'
+    });
+
+    it('should assign maxColumns: 1 to non-overlapping lessons', () => {
+        const lessons = [
+            createLesson('1', '08:00', '09:00'),
+            createLesson('2', '10:00', '11:00'),
+        ];
+
+        const { lessons: organized } = organizeLessons(lessons);
+        
+        expect(organized).toHaveLength(2);
+        expect(organized[0].maxColumns).toBe(1);
+        expect(organized[1].maxColumns).toBe(1);
+        expect(organized[0].row).toBe(0);
+        expect(organized[1].row).toBe(0);
+    });
+
+    it('should assign maxColumns: 2 to overlapping lessons', () => {
+        const lessons = [
+            createLesson('1', '08:00', '10:00'),
+            createLesson('2', '09:00', '11:00'),
+        ];
+
+        const { lessons: organized } = organizeLessons(lessons);
+
+        expect(organized).toHaveLength(2);
+        expect(organized[0].maxColumns).toBe(2);
+        expect(organized[1].maxColumns).toBe(2);
+        expect(organized[0].row).toBe(0);
+        expect(organized[1].row).toBe(1);
+    });
+
+    it('should handle multiple clusters correctly', () => {
+        const lessons = [
+            // Cluster 1: One lesson
+            createLesson('1', '08:00', '09:00'),
+            // Cluster 2: Two overlapping lessons
+            createLesson('2', '10:00', '12:00'),
+            createLesson('3', '11:00', '13:00'),
+            // Cluster 3: Three overlapping lessons
+            createLesson('4', '14:00', '16:00'),
+            createLesson('5', '14:30', '16:30'),
+            createLesson('6', '15:00', '17:00'),
+        ];
+
+        const { lessons: organized } = organizeLessons(lessons);
+
+        expect(organized).toHaveLength(6);
+        
+        // Cluster 1
+        expect(organized.find(l => l.id === '1')?.maxColumns).toBe(1);
+        
+        // Cluster 2
+        expect(organized.find(l => l.id === '2')?.maxColumns).toBe(2);
+        expect(organized.find(l => l.id === '3')?.maxColumns).toBe(2);
+        
+        // Cluster 3
+        expect(organized.find(l => l.id === '4')?.maxColumns).toBe(3);
+        expect(organized.find(l => l.id === '5')?.maxColumns).toBe(3);
+        expect(organized.find(l => l.id === '6')?.maxColumns).toBe(3);
+    });
+
+    it('should handle complex overlaps where maxColumns is based on simultaneous events', () => {
+        // Example: A starts, B starts, A ends, C starts, B ends, C ends
+        // A: 08:00 - 10:00
+        // B: 09:00 - 12:00
+        // C: 11:00 - 13:00
+        // At any point, max 2 are overlapping (A&B or B&C), but they all form one cluster.
+        // Wait, if A&B overlap and B&C overlap, they are one cluster.
+        // Max simultaneous is 2.
+        
+        const lessons = [
+            createLesson('A', '08:00', '10:00'),
+            createLesson('B', '09:00', '12:00'),
+            createLesson('C', '11:00', '13:00'),
+        ];
+
+        const { lessons: organized } = organizeLessons(lessons);
+        
+        // A overlaps B (row 0, row 1)
+        // B is at row 1. C starts after A ends. C can take row 0.
+        // Cluster max rows is 2 (row 0 and row 1 were used).
+        expect(organized.every(l => l.maxColumns === 2)).toBe(true);
+    });
+
+    it('should handle the user scenario from the screenshot', () => {
+        const lessons = [
+            createLesson('1', '09:00', '10:50'),
+            createLesson('2', '13:00', '14:50'),
+            createLesson('3', '15:00', '16:50'),
+            createLesson('4', '17:00', '18:50'),
+            createLesson('5', '17:00', '18:50'),
+        ];
+
+        const { lessons: organized } = organizeLessons(lessons);
+
+        // First three should be 100% width
+        expect(organized.find(l => l.id === '1')?.maxColumns).toBe(1);
+        expect(organized.find(l => l.id === '2')?.maxColumns).toBe(1);
+        expect(organized.find(l => l.id === '3')?.maxColumns).toBe(1);
+        
+        // Last two should be 50% width
+        expect(organized.find(l => l.id === '4')?.maxColumns).toBe(2);
+        expect(organized.find(l => l.id === '5')?.maxColumns).toBe(2);
+    });
+});

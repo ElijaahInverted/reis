@@ -71,6 +71,7 @@ export interface ScheduleData {
 
 export interface LessonWithRow extends BlockLesson {
     row: number;
+    maxColumns: number;
 }
 
 export interface OrganizedLessons {

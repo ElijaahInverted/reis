@@ -74,18 +74,6 @@ export function ExamPanel({ onSelectSubject }: { onSelectSubject: (subject: Exam
                     <ExamTimeline 
                         exams={realExams as unknown as TimelineExam[]} 
                         orientation="horizontal" 
-                        onSelectItem={(item) => {
-                            const registeredItem = item as unknown as RegisteredExam;
-                            const subName = (language === 'en' && registeredItem.subject.nameEn) ? registeredItem.subject.nameEn : (registeredItem.subject.nameCs || registeredItem.subject.name);
-                            const secName = (language === 'en' && registeredItem.section.nameEn) ? registeredItem.section.nameEn : (registeredItem.section.nameCs || registeredItem.section.name);
-                            onSelectSubject({ 
-                                ...registeredItem.subject, 
-                                courseCode: registeredItem.subject.code, 
-                                courseName: subName, 
-                                sectionName: secName, 
-                                isExam: true 
-                            });
-                        }} 
                     />
                 </div>
             )}

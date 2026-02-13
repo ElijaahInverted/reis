@@ -15,7 +15,7 @@ interface WeeklyCalendarDayProps {
 export function WeeklyCalendarDay({ 
     lessons, holiday, isToday, showSkeleton, onEventClick, language 
 }: WeeklyCalendarDayProps) {
-    const { lessons: organizedLessons, totalRows } = organizeLessons(lessons);
+    const { lessons: organizedLessons } = organizeLessons(lessons);
 
     return (
         <div className={`flex-1 relative ${isToday ? 'bg-current-day' : ''}`}>
@@ -41,7 +41,9 @@ export function WeeklyCalendarDay({
 
             {!holiday && !showSkeleton && organizedLessons.map((lesson) => {
                 const style = getEventStyle(lesson.startTime, lesson.endTime);
-                const hasOverlap = totalRows > 1;
+                
+                // Fallback to 1 if maxColumns is missing or zero for some reason
+                const cols = lesson.maxColumns || 1;
 
                 return (
                     <div
@@ -49,8 +51,8 @@ export function WeeklyCalendarDay({
                         className="absolute"
                         style={{
                             ...style,
-                            left: hasOverlap ? `${(lesson.row / totalRows) * 100}%` : '0',
-                            width: hasOverlap ? `${100 / totalRows}%` : '100%',
+                            left: `${(lesson.row / cols) * 100}%`,
+                            width: `${100 / cols}%`,
                         }}
                     >
                         <CalendarEventCard lesson={lesson} onClick={() => onEventClick(lesson)} language={language} />

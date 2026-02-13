@@ -30,8 +30,7 @@ export function ExamSectionCard({ subject, section, isExpanded, isProcessing, on
                 <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="flex-1 min-w-[200px]">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <span className="badge badge-sm font-bold bg-primary/10 text-primary cursor-pointer hover:bg-primary/20 transition-all py-1 h-auto whitespace-normal" 
-                                  onClick={() => onSelectSubject({ ...subject, courseCode: subject.code, courseName: subjectName, sectionName: sectionName, isExam: true })}>
+                            <span className="badge badge-sm font-bold bg-primary/10 text-primary py-1 h-auto whitespace-normal">
                                 {subjectName}
                             </span>
                             <span className="text-sm font-bold opacity-80">{sectionName}</span>

@@ -6,9 +6,10 @@
 
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { ParsedFile, CourseMetadata, SubjectInfo } from '../../types/documents';
+import type { SelectedSubject } from '../../types/app';
 
 export interface DrawerHeaderProps {
-    lesson: BlockLesson | null;
+    lesson: BlockLesson | SelectedSubject | null;
     courseId: string;
     courseInfo?: CourseMetadata; // New: metadata for search/sidebar view
     subjectInfo?: SubjectInfo | null;
@@ -34,6 +35,7 @@ export interface FileListProps {
     ignoreClickRef: React.MutableRefObject<boolean>;
     onToggleSelect: (id: string, e: React.MouseEvent) => void;
     onOpenFile: (link: string) => void;
+    folderUrl?: string;
 }
 
 export interface DragSelectionState {

@@ -4,7 +4,7 @@
  * Renders the file grid with selection support.
  */
 
-import { Folder, FileText, Check } from 'lucide-react';
+import { Folder, FileText, Check, ExternalLink } from 'lucide-react';
 import type { FileListProps } from './types';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -14,9 +14,10 @@ export function FileList({
     fileRefs,
     ignoreClickRef,
     onToggleSelect,
-    onOpenFile
+    onOpenFile,
+    folderUrl
 }: FileListProps) {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     if (groups.length === 0) {
         return (
             <div className="text-center py-12 text-slate-400 italic">
@@ -29,9 +30,22 @@ export function FileList({
         <div className="p-6 space-y-6">
             {groups.map(group => (
                 <div key={group.name} className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-base-content/50 uppercase tracking-wider px-2">
-                        <Folder size={14} />
-                        {group.displayName}
+                    <div className="flex items-center justify-between text-sm font-semibold text-base-content/50 uppercase tracking-wider px-2">
+                        <div className="flex items-center gap-2">
+                            <Folder size={14} />
+                            {group.displayName}
+                        </div>
+                        {groups.indexOf(group) === 0 && folderUrl && (
+                            <a 
+                                href={folderUrl.includes('?') ? `${folderUrl};lang=${language === 'cz' ? 'cz' : 'en'}` : `${folderUrl}?lang=${language === 'cz' ? 'cz' : 'en'}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="btn btn-ghost btn-sm gap-2 text-base-content/70 hover:text-primary normal-case font-bold"
+                            >
+                                <span>IS MENDELU</span>
+                                <ExternalLink size={16} />
+                            </a>
+                        )}
                     </div>
                     <div className="grid grid-cols-1 gap-1">
                         {group.files.map((file, i) => (

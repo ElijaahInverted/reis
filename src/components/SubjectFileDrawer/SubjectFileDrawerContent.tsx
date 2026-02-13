@@ -8,10 +8,11 @@ import type { FileGroup } from './types';
 import type { SyllabusRequirements } from '../../types/documents';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { BlockLesson } from '../../types/calendarTypes';
+import type { SelectedSubject } from '../../types/app';
 
 interface SubjectFileDrawerContentProps {
     activeTab: 'files' | 'stats' | 'assessments' | 'syllabus';
-    lesson: BlockLesson | null;
+    lesson: BlockLesson | SelectedSubject | null;
     files: unknown[] | null;
     isFilesLoading: boolean;
     isSyncing: boolean;
@@ -26,11 +27,12 @@ interface SubjectFileDrawerContentProps {
     openFile: (link: string) => void;
     resolvedCourseId: string;
     syllabusResult: { syllabus: SyllabusRequirements | null; isLoading: boolean };
+    folderUrl?: string;
 }
 
 export function SubjectFileDrawerContent({
     activeTab, lesson, files, isFilesLoading, isSyncing, isDragging, selectionBoxStyle, showDragHint,
-    groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, resolvedCourseId, syllabusResult
+    groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, resolvedCourseId, syllabusResult, folderUrl
 }: SubjectFileDrawerContentProps) {
     const { t } = useTranslation();
     if (activeTab === 'files') {
@@ -49,7 +51,8 @@ export function SubjectFileDrawerContent({
                     </div>
                  ) : (
                     <FileList groups={groupedFiles} selectedIds={selectedIds} fileRefs={fileRefs}
-                              ignoreClickRef={ignoreClickRef} onToggleSelect={toggleSelect} onOpenFile={openFile} />
+                              ignoreClickRef={ignoreClickRef} onToggleSelect={toggleSelect} onOpenFile={openFile} 
+                              folderUrl={folderUrl} />
                  )}
             </>
         );

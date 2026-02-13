@@ -70,6 +70,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
                                 showDragHint={showDragHint} groupedFiles={groupedFiles} selectedIds={selectedIds}
                                 fileRefs={fileRefs} ignoreClickRef={ignoreClickRef} toggleSelect={toggleSelect}
                                 openFile={openFile} resolvedCourseId={resolvedCourseId} syllabusResult={syllabusResult}
+                                folderUrl={state.subjectInfo?.folderUrl}
                             />
                         </div>
                     </div>
