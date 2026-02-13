@@ -46,6 +46,7 @@ export const initializeStore = async () => {
         useAppStore.getState().fetchSchedule();
         useAppStore.getState().fetchExams();
         useAppStore.getState().fetchSubjects();
+        useAppStore.getState().fetchAllFiles();
         useAppStore.getState().fetchSyncStatus();
 
         if (type === 'THEME_UPDATE') {

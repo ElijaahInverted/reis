@@ -446,8 +446,15 @@ describe('syllabusParser', () => {
                     <td><b>Exam</b></td>
                 </tr>
                 <tr>
+                    <td>Instructors</td>
+                    <td>
+                        <a href="/auth/lide/clovek.pl?id=22222;lang=en">Jane Doe</a> (lecturer), 
+                        <a href="/auth/lide/clovek.pl?id=33333;lang=en">Bob Smith</a> (tutor)
+                    </td>
+                </tr>
+                <tr>
                     <td>Guarantor</td>
-                    <td><a href="#">John Doe</a></td>
+                    <td><a href="/auth/lide/clovek.pl?id=12345;lang=en">John Doe</a> (guarantor)</td>
                 </tr>
             </table>
         </body>
@@ -474,6 +481,10 @@ describe('syllabusParser', () => {
 
         // Verify metadata too
         expect(result.courseInfo.credits).toBe('Exam');
-        expect(result.courseInfo.garant).toBe('John Doe');
+        expect(result.courseInfo.garant).toEqual({ name: 'John Doe', id: '12345' });
+        
+        expect(result.courseInfo.teachers).toHaveLength(2);
+        expect(result.courseInfo.teachers[0]).toEqual({ name: 'Jane Doe', id: '22222', roles: 'lecturer' });
+        expect(result.courseInfo.teachers[1]).toEqual({ name: 'Bob Smith', id: '33333', roles: 'tutor' });
     });
 });

@@ -43,6 +43,7 @@ export interface FilesSlice {
     filesLoading: Record<string, boolean>;
     fetchFiles: (courseCode: string) => Promise<void>;
     fetchAllFiles: () => Promise<void>;
+    refreshFiles: (courseCode: string) => Promise<void>;
 }
 
 export interface AssessmentsSlice {

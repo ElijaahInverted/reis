@@ -66,11 +66,19 @@ export function parseCourseMetadata(doc: Document, lang: string = 'cz'): CourseM
         }
         if (l === 'vyučující' || l === 'instructors' || l === 'teachers') {
             v.querySelectorAll('a').forEach(a => {
-                const role = a.parentNode?.textContent?.match(/\(([^)]+)\)/);
+                // Roles are usually in parenthesis immediately following the link
+                // IS structure: <a href="...">Name</a> (role), <a href="...">Name</a> (role)
+                let roles = '';
+                const nextNode = a.nextSibling;
+                if (nextNode && nextNode.nodeType === Node.TEXT_NODE) {
+                    const match = nextNode.textContent?.match(/\(([^)]+)\)/);
+                    if (match) roles = match[1];
+                }
+                
                 info.teachers.push({ 
                     name: a.textContent?.trim() || '', 
                     id: extractId(a.getAttribute('href')),
-                    roles: role ? role[1] : '' 
+                    roles: roles.trim()
                 });
             });
         }

@@ -33,7 +33,7 @@ export function CourseMeta({ lesson, courseInfo, isSearchContext }: { lesson: Bl
                                     href={`https://is.mendelu.cz/auth/lide/clovek.pl?id=${courseInfo.garant.id};lang=${language}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer" 
-                                    className="hover:underline text-primary/80"
+                                    className="hover:underline"
                                 >
                                     {courseInfo.garant.name}
                                 </a>
@@ -56,7 +56,7 @@ export function CourseMeta({ lesson, courseInfo, isSearchContext }: { lesson: Bl
                                             href={`https://is.mendelu.cz/auth/lide/clovek.pl?id=${t.id};lang=${language}`} 
                                             target="_blank" 
                                             rel="noopener noreferrer" 
-                                            className="hover:underline text-primary/80"
+                                            className="hover:underline"
                                         >
                                             {t.name}
                                         </a>

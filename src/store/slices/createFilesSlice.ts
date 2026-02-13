@@ -6,18 +6,20 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
     files: {},
     filesLoading: {},
     fetchFiles: async (courseCode) => {
-        const { files, filesLoading, language: currentLang } = get();
-        
-        // Check if already in memory
-        const cachedFiles = files[courseCode];
+        const { files, filesLoading } = get();
         
         // We skip if:
         // 1. We're already loading this course
         // 2. We have cached files (even if empty [])
-        if (filesLoading[courseCode] || cachedFiles !== undefined) {
+        if (filesLoading[courseCode] || files[courseCode] !== undefined) {
             return;
         }
 
+        await get().refreshFiles(courseCode);
+    },
+    refreshFiles: async (courseCode) => {
+        const { language: currentLang } = get();
+        
         set((state) => ({
             filesLoading: { ...state.filesLoading, [courseCode]: true }
         }));
@@ -51,8 +53,10 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
                     if (folderId) {
                         const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
                         try {
-                            const czFiles = await fetchFilesFromFolder(folderUrl, 'cz');
-                            const enFiles = await fetchFilesFromFolder(folderUrl, 'en');
+                            const [czFiles, enFiles] = await Promise.all([
+                                fetchFilesFromFolder(folderUrl, 'cz'),
+                                fetchFilesFromFolder(folderUrl, 'en')
+                            ]);
                             const dualData = { cz: czFiles || [], en: enFiles || [] };
                             await IndexedDBService.set('files', courseCode, dualData);
                             filesList = currentLang === 'en' ? dualData.en : dualData.cz;
