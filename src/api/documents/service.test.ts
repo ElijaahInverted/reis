@@ -102,4 +102,20 @@ describe('fetchFilesFromFolder', () => {
         expect(result.map(f => f.file_name)).toContain('File 1');
         expect(result.map(f => f.file_name)).toContain('File 2');
     });
+
+
+    it('should call onChunk callback with initial files', async () => {
+        vi.mocked(parseServerFiles).mockReturnValueOnce({
+            files: [{ file_name: 'File 1', files: [{ name: 'File 1', type: 'pdf', link: 'download?id=1' }] } as unknown as ParsedFile],
+            paginationLinks: []
+        });
+
+        const onChunk = vi.fn();
+        await fetchFilesFromFolder('http://test.com', 'cz', true, 0, 2, onChunk);
+
+        expect(onChunk).toHaveBeenCalledWith(expect.arrayContaining([
+            expect.objectContaining({ file_name: 'File 1' })
+        ]));
+    });
 });
+

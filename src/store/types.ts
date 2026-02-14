@@ -41,7 +41,10 @@ export interface SyllabusSlice {
 export interface FilesSlice {
     files: Record<string, ParsedFile[]>;
     filesLoading: Record<string, boolean>;
+    filesPriorityLoading: Record<string, boolean>;
+    filesProgress: Record<string, string>;
     fetchFiles: (courseCode: string) => Promise<void>;
+    fetchFilesPriority: (courseCode: string) => Promise<void>;
     fetchAllFiles: () => Promise<void>;
     refreshFiles: (courseCode: string) => Promise<void>;
 }
@@ -60,6 +63,7 @@ export interface SubjectsSlice {
 
 export interface SyncSlice {
     syncStatus: SyncStatus;
+    isSyncing: boolean;
     fetchSyncStatus: () => Promise<void>;
     setSyncStatus: (status: Partial<SyncStatus>) => void;
 }

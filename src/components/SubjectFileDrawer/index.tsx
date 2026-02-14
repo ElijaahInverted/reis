@@ -45,10 +45,11 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
     }, [state.files, lesson, t]);
 
     const {
-        activeTab, setActiveTab, files, isFilesLoading, isSyncing, resolvedCourseId, syllabusResult,
+        activeTab, setActiveTab, files, isFilesLoading, isSyncing, isPriorityLoading, progressStatus, resolvedCourseId, syllabusResult,
         containerRef, contentRef, fileRefs, selectedIds, isDragging, ignoreClickRef,
         handleMouseDown, toggleSelect, selectionBoxStyle
     } = state;
+
 
     if (!isOpen) return null;
     return (
@@ -66,12 +67,14 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
                         <div ref={contentRef} className="min-h-full pb-20 relative">
                             <SubjectFileDrawerContent 
                                 activeTab={activeTab} lesson={lesson} files={files} isFilesLoading={isFilesLoading}
-                                isSyncing={isSyncing} isDragging={isDragging} selectionBoxStyle={selectionBoxStyle}
+                                isSyncing={isSyncing} isPriorityLoading={isPriorityLoading} progressStatus={progressStatus}
+                                isDragging={isDragging} selectionBoxStyle={selectionBoxStyle}
                                 showDragHint={showDragHint} groupedFiles={groupedFiles} selectedIds={selectedIds}
                                 fileRefs={fileRefs} ignoreClickRef={ignoreClickRef} toggleSelect={toggleSelect}
                                 openFile={openFile} resolvedCourseId={resolvedCourseId} syllabusResult={syllabusResult}
                                 folderUrl={state.subjectInfo?.folderUrl}
                             />
+
                         </div>
                     </div>
                 </div>

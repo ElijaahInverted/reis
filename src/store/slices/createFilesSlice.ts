@@ -5,9 +5,11 @@ import type { ParsedFile } from '../../types/documents';
 export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
     files: {},
     filesLoading: {},
+    filesPriorityLoading: {},
+    filesProgress: {},
     fetchFiles: async (courseCode) => {
         const { files, filesLoading } = get();
-        
+
         // We skip if:
         // 1. We're already loading this course
         // 2. We have cached files (even if empty [])
@@ -15,7 +17,79 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             return;
         }
 
+        // Set loading synchronously before any await so the skeleton renders immediately
+        set((state) => ({
+            filesLoading: { ...state.filesLoading, [courseCode]: true }
+        }));
+
         await get().refreshFiles(courseCode);
+    },
+    fetchFilesPriority: async (courseCode) => {
+        const { files, filesPriorityLoading, language: currentLang } = get();
+
+        // Already loading or have data
+        if (filesPriorityLoading[courseCode] || (files[courseCode] && files[courseCode].length > 0)) {
+            return;
+        }
+
+        console.log(`[FilesSlice] Starting priority fetch for ${courseCode}`);
+        set((state) => ({
+            filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: true },
+            filesProgress: { ...state.filesProgress, [courseCode]: 'initializing' }
+        }));
+
+        try {
+            const { fetchFilesFromFolder } = await import('../../api/documents/service');
+            const subjectsData = await IndexedDBService.get('subjects', 'current');
+            const subject = subjectsData?.data?.[courseCode];
+
+            if (!subject?.folderUrl) {
+                console.warn(`[FilesSlice] No folder URL found for ${courseCode}`);
+                throw new Error('No folder URL for subject');
+            }
+
+            const folderId = subject.folderUrl.match(/[?&;]id=(\d+)/)?.[1];
+            if (!folderId) {
+                console.warn(`[FilesSlice] Invalid folder URL for ${courseCode}: ${subject.folderUrl}`);
+                throw new Error('Invalid folder URL');
+            }
+
+            const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
+            console.log(`[FilesSlice] Priority fetch URL for ${courseCode}: ${folderUrl}`);
+
+            set((state) => ({
+                filesProgress: { ...state.filesProgress, [courseCode]: 'fetching_first' }
+            }));
+
+            // Fetch with onChunk callback for progressive update
+            const fullFilesList = await fetchFilesFromFolder(folderUrl, currentLang, true, 0, 2, (chunk) => {
+                console.log(`[FilesSlice] Received first chunk for ${courseCode}: ${chunk.length} files`);
+                set((state) => ({
+                    files: { ...state.files, [courseCode]: chunk },
+                    filesProgress: { ...state.filesProgress, [courseCode]: 'syncing_remaining' }
+                }));
+            });
+
+            console.log(`[FilesSlice] Priority fetch complete for ${courseCode}. Total files: ${fullFilesList.length}`);
+            
+            // Store full data in IndexedDB
+            const data = await IndexedDBService.get('files', courseCode) || { cz: [], en: [] };
+            if (currentLang === 'en') data.en = fullFilesList; else data.cz = fullFilesList;
+            await IndexedDBService.set('files', courseCode, data);
+            console.log(`[FilesSlice] Persisted ${fullFilesList.length} files to IndexedDB for ${courseCode}`);
+
+            set((state) => ({
+                files: { ...state.files, [courseCode]: fullFilesList },
+                filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
+                filesProgress: { ...state.filesProgress, [courseCode]: 'success' }
+            }));
+        } catch (error) {
+            console.error(`[FilesSlice] Priority fetch failed for ${courseCode}:`, error);
+            set((state) => ({
+                filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
+                filesProgress: { ...state.filesProgress, [courseCode]: 'error' }
+            }));
+        }
     },
     refreshFiles: async (courseCode) => {
         const { language: currentLang } = get();

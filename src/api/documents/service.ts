@@ -13,7 +13,14 @@ export async function fetchDocumentsForSubject(subjectCode: string): Promise<Fil
     return parsedFiles.flatMap(pf => pf.files);
 }
 
-export async function fetchFilesFromFolder(folderUrl: string, lang: string = 'cz', recursive = true, currentDepth = 0, maxDepth = 2): Promise<ParsedFile[]> {
+export async function fetchFilesFromFolder(
+    folderUrl: string, 
+    lang: string = 'cz', 
+    recursive = true, 
+    currentDepth = 0, 
+    maxDepth = 2,
+    onChunk?: (files: ParsedFile[]) => void
+): Promise<ParsedFile[]> {
     try {
         // Append language parameter if not already present
         let url = folderUrl;
@@ -24,6 +31,16 @@ export async function fetchFilesFromFolder(folderUrl: string, lang: string = 'cz
         const response = await fetchWithAuth(url);
         const respText = await response.text();
         const { files: initialFiles, paginationLinks, totalRecords } = parseServerFiles(respText);
+        
+        // Tag initial files with language
+        initialFiles.forEach(f => f.language = lang);
+
+        // Immediate callback for the first "chunk" (page 1)
+        if (onChunk && initialFiles.length > 0) {
+            console.log(`[fetchFilesFromFolder] ${folderUrl} - Delivering first chunk of ${initialFiles.length} files`);
+            onChunk(initialFiles);
+        }
+
         const allFiles = [...initialFiles];
 
         console.log(`[fetchFilesFromFolder] ${folderUrl} - Page 1: Found ${initialFiles.length} files, ${paginationLinks.length} pagination links`);
@@ -74,14 +91,15 @@ export async function fetchFilesFromFolder(folderUrl: string, lang: string = 'cz
 
             const subResults = await processWithDelay(folders, async f => {
                 try {
-                    const results = await fetchFilesFromFolder(f.url, lang, true, currentDepth + 1, maxDepth);
+                    const results = await fetchFilesFromFolder(f.url, lang, true, currentDepth + 1, maxDepth, onChunk);
                     results.forEach(r => r.subfolder = f.name);
                     return results;
                 } catch (err) {
-                    console.error(`[fetchFilesFromFolder] Subfolder ${f.name} failed CRITICALLY (recurse depth ${currentDepth}):`, err);
-                    throw err; // Re-throw to fail the parent folder fetch
+                    console.error(`[fetchFilesFromFolder] Subfolder ${f.name} failed (recurse depth ${currentDepth}):`, err);
+                    return []; // Resilience: return empty array instead of failing the whole fetch
                 }
             }, 200);
+
 
             allFiles.push(...subResults.flat());
         }
