@@ -52,7 +52,14 @@ export function NavItem({ item, isActive, isHovered, onMouseEnter, onMouseLeave,
             <div className={`gap-0.5 ${
                 item.id === 'subjects' && item.children && item.children.length > 4 ? 'grid grid-cols-2' : 'flex flex-col'
             }`}>
-              {item.children?.map((child) => (
+              {!item.children || item.children.length === 0 ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-3 py-2">
+                    <div className="skeleton w-4 h-4 rounded" />
+                    <div className="skeleton h-3 rounded flex-1" />
+                  </div>
+                ))
+              ) : item.children.map((child) => (
                 <a
                   key={child.id}
                   href={child.href}

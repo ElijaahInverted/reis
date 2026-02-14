@@ -40,12 +40,24 @@ export async function syncAllData() {
             sendToIframe(Messages.syncUpdate({ ...cachedData, isSyncing: true, isPartial: true }));
         }
 
-        // Phase 2: Full Sync in background
-        console.log('[syncAllData] 🍕 Phase 2: Fetching full semester data...');
+        // Phase 2a: Start subjects early — fast fetch, send immediately when ready
+        console.log('[syncAllData] 🍕 Phase 2a: Fetching subjects early...');
+        const subjectsPromise = fetchDualLanguageSubjects(studium || undefined)
+            .then(subjects => {
+                if (subjects) {
+                    cachedData = { ...cachedData, subjects };
+                    sendToIframe(Messages.syncUpdate({ ...cachedData, isSyncing: true, isPartial: true }));
+                    console.log('[syncAllData] ✅ Subjects ready, sent early update');
+                }
+                return subjects;
+            });
+
+        // Phase 2b: Full schedule + exams in parallel (subjects re-uses already-started promise)
+        console.log('[syncAllData] 🍕 Phase 2b: Fetching full semester data...');
         const [fullSchedule, exams, subjects] = await Promise.allSettled([
             fetchFullSemesterSchedule(),
-            fetchDualLanguageExams(), 
-            fetchDualLanguageSubjects(studium || undefined),
+            fetchDualLanguageExams(),
+            subjectsPromise,
         ]);
 
         cachedData = {
