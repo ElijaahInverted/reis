@@ -29,8 +29,13 @@ export function parseGlobalPeopleResults(htmlString: string): Person[] {
         const faculty = parts[0] ?? 'N/A';
         const programAndMode = parts.slice(1).join(' ');
 
-        const isStudent = rawDetails.includes('[') && (rawDetails.includes('term') || rawDetails.includes('year') || rawDetails.includes('ročník')) ||
-                         rawDetails.includes(' pres ') || rawDetails.includes(' komb ') ||
+        const isStudent = rawDetails.includes('[') && (
+                            rawDetails.includes('term') || rawDetails.includes('year') ||
+                            rawDetails.includes('ročník') || rawDetails.includes('roč') ||
+                            rawDetails.includes('sem')
+                         ) ||
+                         rawDetails.includes(' pres ') || rawDetails.includes(' prez ') ||
+                         rawDetails.includes(' komb ') ||
                          rawDetails.includes('Bachelor') || rawDetails.includes('Master');
 
         let type: 'student' | 'teacher' | 'staff' = 'staff';
