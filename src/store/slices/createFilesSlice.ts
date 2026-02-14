@@ -27,8 +27,8 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
     fetchFilesPriority: async (courseCode) => {
         const { files, filesPriorityLoading, language: currentLang } = get();
 
-        // Already loading or have data
-        if (filesPriorityLoading[courseCode] || (files[courseCode] && files[courseCode].length > 0)) {
+        // Already loading, or files have been fetched (even if empty — [] means "synced, no files")
+        if (filesPriorityLoading[courseCode] || Array.isArray(files[courseCode])) {
             return;
         }
 

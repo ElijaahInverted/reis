@@ -25,8 +25,9 @@ export function useFiles(courseCode?: string): UseFilesResult {
     useEffect(() => {
         if (courseCode) {
             const state = useAppStore.getState();
-            // Try priority fetch if no files yet
-            if (!state.files[courseCode] || state.files[courseCode].length === 0) {
+            // Priority fetch only when files have never been loaded (undefined)
+            // [] means synced with no files — use the normal IDB path
+            if (state.files[courseCode] === undefined) {
                 state.fetchFilesPriority(courseCode);
             } else {
                 state.fetchFiles(courseCode);
