@@ -69,11 +69,15 @@ async function handleAction(id: string, action: string, payload: unknown) {
         switch (action) {
             case "register_exam": result = { success: await registerExam(p.termId) }; break;
             case "unregister_exam": result = { success: await unregisterExam(p.termId) }; break;
-            case "trigger_sync": 
+            case "trigger_sync":
                 console.log('[handleAction] 🔄 Triggering sync...');
-                await syncAllData(); 
+                await syncAllData();
                 console.log('[handleAction] ✅ Sync completed');
-                result = { success: true }; 
+                result = { success: true };
+                break;
+            case "open_url":
+                window.open(p.url, '_blank', 'popup,width=520,height=680');
+                result = { success: true };
                 break;
             default: throw new Error(`Unknown action: ${action}`);
         }

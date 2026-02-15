@@ -10,6 +10,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useAppStore } from '../../store/useAppStore';
 import { useUserParams } from '../../hooks/useUserParams';
 import { User, Mail, Hash } from 'lucide-react';
+import { openPopup } from '../../api/proxyClient';
 import { BalanceSection } from './Profile/BalanceSection';
 
 export function ProfilePopup({ isOpen, onOpenFeedback }: { isOpen: boolean; onOpenFeedback?: () => void }) {
@@ -41,11 +42,8 @@ export function ProfilePopup({ isOpen, onOpenFeedback }: { isOpen: boolean; onOp
                         <span className="opacity-70">{t('settings.studentId')}</span>
                         <span className="font-mono text-xs bg-base-300/50 px-2.5 py-1 rounded-lg border border-base-300/50 select-all ml-auto">{params.studentId}</span>
                     </div>
-                    <BalanceSection 
-                        balance="927" 
-                        lastSyncTime="15:32" 
-                        onTopUp={() => console.log('Top up clicked')}
-                        onRefresh={() => console.log('Refresh clicked')}
+                    <BalanceSection
+                        onTopUp={() => openPopup('https://webiskam.mendelu.cz/Platby/NabitiKonta/0')}
                     />
                 </div>
             )}

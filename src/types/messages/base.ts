@@ -1,5 +1,5 @@
 export type DataRequestType = 'schedule' | 'exams' | 'subjects' | 'files' | 'assessments' | 'all';
-export type ActionType = 'register_exam' | 'unregister_exam' | 'toggle_outlook_sync' | 'download_file' | 'trigger_sync';
+export type ActionType = 'register_exam' | 'unregister_exam' | 'toggle_outlook_sync' | 'download_file' | 'trigger_sync' | 'open_url';
 
 export interface SyncedData { schedule?: unknown; exams?: unknown; subjects?: unknown; files?: unknown; assessments?: unknown; syllabuses?: unknown; isSyncing?: boolean; isPartial?: boolean; lastSync: number; error?: string; }
 
