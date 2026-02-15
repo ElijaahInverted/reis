@@ -15,8 +15,7 @@ export function BalanceSection({ onTopUp, isTopUpOpen }: BalanceSectionProps) {
       <span className="opacity-70">{t('settings.isicBalance')}</span>
       <button
         onClick={(e) => { e.stopPropagation(); onTopUp?.(); }}
-        disabled={isTopUpOpen}
-        className="font-mono text-xs bg-success/20 text-success px-2.5 py-1 rounded-lg border border-success/30 ml-auto hover:bg-success/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="font-mono text-xs bg-success/20 text-success px-2.5 py-1 rounded-lg border border-success/30 ml-auto hover:bg-success/30 transition-colors"
       >
         {isTopUpOpen
           ? <span className="loading loading-spinner loading-xs" />
