@@ -15,5 +15,6 @@ export interface DataResponseMessage { type: 'REIS_DATA'; dataType: DataRequestT
 export interface FetchResultMessage { type: 'REIS_FETCH_RESULT'; id: string; success: boolean; data?: string; error?: string; }
 export interface ActionResultMessage { type: 'REIS_ACTION_RESULT'; id: string; success: boolean; data?: unknown; error?: string; }
 export interface SyncUpdateMessage { type: 'REIS_SYNC_UPDATE'; data: SyncedData; }
+export interface PopupStateMessage { type: 'REIS_POPUP_STATE'; open: boolean; }
 
-export type ContentToIframeMessage = DataResponseMessage | FetchResultMessage | ActionResultMessage | SyncUpdateMessage;
+export type ContentToIframeMessage = DataResponseMessage | FetchResultMessage | ActionResultMessage | SyncUpdateMessage | PopupStateMessage;

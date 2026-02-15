@@ -6,6 +6,8 @@ import { fetchExamData, registerExam, unregisterExam } from "../api/exams";
 import { fetchSubjects } from "../api/subjects";
 import type { DataRequestType } from "../types/messages";
 
+let topUpPopupRef: Window | null = null;
+
 export async function handleMessage(event: MessageEvent) {
     if (event.source !== iframeElement?.contentWindow) return;
     const data = event.data;
@@ -76,10 +78,23 @@ async function handleAction(id: string, action: string, payload: unknown) {
                 result = { success: true };
                 break;
             case "open_url": {
+                if (topUpPopupRef && !topUpPopupRef.closed) {
+                    topUpPopupRef.focus();
+                    result = { success: true };
+                    break;
+                }
                 const w = 520, h = 680;
                 const left = Math.round(window.screenX + (window.outerWidth - w) / 2);
                 const top = Math.round(window.screenY + (window.outerHeight - h) / 2);
-                window.open(p.url, '_blank', `popup,width=${w},height=${h},left=${left},top=${top}`);
+                topUpPopupRef = window.open(p.url, '_blank', `popup,width=${w},height=${h},left=${left},top=${top}`);
+                sendToIframe(Messages.popupState(true));
+                const interval = setInterval(() => {
+                    if (!topUpPopupRef || topUpPopupRef.closed) {
+                        clearInterval(interval);
+                        topUpPopupRef = null;
+                        sendToIframe(Messages.popupState(false));
+                    }
+                }, 500);
                 result = { success: true };
                 break;
             }

@@ -68,7 +68,8 @@ export function useAppLogic() {
         if (e.source !== window.parent) return;
         const d = e.data;
         if (!isContentMessage(d)) return;
-        
+        if (d.type === 'REIS_POPUP_STATE') return;
+
         const r = d.type === 'REIS_SYNC_UPDATE' ? (d.data as SyncedData) : d.dataType === 'all' ? (d.data as SyncedData) : null;
         if (!r) return;
 

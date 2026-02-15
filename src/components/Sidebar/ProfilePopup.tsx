@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Moon, MessageSquarePlus, Languages } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutlookSync } from '../../hooks/data';
 import { useTheme } from '../../hooks/useTheme';
 import { useSpolkySettings } from '../../hooks/useSpolkySettings';
@@ -15,6 +15,12 @@ import { BalanceSection } from './Profile/BalanceSection';
 
 export function ProfilePopup({ isOpen, onOpenFeedback }: { isOpen: boolean; onOpenFeedback?: () => void }) {
   const { isEnabled, isLoading: syncLoading, toggle: tSync } = useOutlookSync(), { isDark, isLoading: tLoading, toggle: tTheme } = useTheme(), { isSubscribed, toggleAssociation } = useSpolkySettings(), [spolkyOpen, setSpolkyOpen] = useState(false);
+  const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+  useEffect(() => {
+    const handler = (e: Event) => setIsTopUpOpen((e as CustomEvent<{ open: boolean }>).detail.open);
+    window.addEventListener('reis:popup-state', handler);
+    return () => window.removeEventListener('reis:popup-state', handler);
+  }, []);
   const { t } = useTranslation();
   const language = useAppStore(state => state.language);
   const setLanguage = useAppStore(state => state.setLanguage);
@@ -43,6 +49,7 @@ export function ProfilePopup({ isOpen, onOpenFeedback }: { isOpen: boolean; onOp
                         <span className="font-mono text-xs bg-base-300/50 px-2.5 py-1 rounded-lg border border-base-300/50 select-all ml-auto">{params.studentId}</span>
                     </div>
                     <BalanceSection
+                        isTopUpOpen={isTopUpOpen}
                         onTopUp={() => openPopup('https://webiskam.mendelu.cz/Platby/NabitiKonta/0')}
                     />
                 </div>
