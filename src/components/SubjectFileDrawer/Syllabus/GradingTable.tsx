@@ -20,7 +20,9 @@ export function GradingTable({ table, studyForm }: { table: string[][], studyFor
                         </tr>
                     </thead>
                     <tbody>
-                        {table.slice(1).map((row, ri) => <tr key={ri} className="border-b last:border-0 hover:bg-base-200/30">{indices.map(ci => <td key={ci} className={ci > 0 ? 'text-center font-mono' : ''}>{row[ci]}</td>)}</tr>)}
+                        {table.slice(1)
+                            .filter(row => row[0]?.toLowerCase() !== 'celkem' && row[0]?.toLowerCase() !== 'total')
+                            .map((row, ri) => <tr key={ri} className="border-b last:border-0 hover:bg-base-200/30">{indices.map(ci => <td key={ci} className={ci > 0 ? 'text-center font-mono' : ''}>{row[ci]}</td>)}</tr>)}
                     </tbody>
                 </table>
             </div>
