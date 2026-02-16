@@ -142,7 +142,8 @@
             "initializing": "Initializing...",
             "fetchingFirst": "Finding first files...",
             "syncingRemaining": "Syncing remaining files ({count})...",
-            "failed": "Sync failed"
+            "failed": "Sync failed",
+            "loadingFiles": "Loading files..."
         }
     },
     "syllabus": {
@@ -209,6 +210,8 @@
     "all": "All",
     "seminar": "Seminar",
     "search": "Search...",
-    "noneFound": "No classmates found"
+    "noneFound": "No classmates found",
+    "loadingAll": "Loading classmates...",
+    "loadingSeminar": "Loading seminar classmates..."
   }
 }

@@ -142,7 +142,8 @@
       "initializing": "Inicializace...",
       "fetchingFirst": "Vyhledávání prvních souborů...",
       "syncingRemaining": "Synchronizace zbývajících souborů ({count})...",
-      "failed": "Synchronizace selhala"
+      "failed": "Synchronizace selhala",
+      "loadingFiles": "Načítání souborů..."
     }
   },
   "syllabus": {
@@ -209,6 +210,8 @@
     "all": "Všichni",
     "seminar": "Cvičení",
     "search": "Vyhledat...",
-    "noneFound": "Žádní spolužáci nenalezeni"
+    "noneFound": "Žádní spolužáci nenalezeni",
+    "loadingAll": "Načítání spolužáků...",
+    "loadingSeminar": "Načítání spolužáků ze cvičení..."
   }
 }
