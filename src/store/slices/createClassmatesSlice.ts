@@ -1,4 +1,5 @@
 import type { ClassmatesSlice, AppSlice } from '../types';
+import type { ClassmatesData } from '../../types/classmates';
 import { IndexedDBService } from '../../services/storage';
 
 export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set) => ({
@@ -10,9 +11,12 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set) => ({
         }));
 
         try {
-            const data = await IndexedDBService.get('classmates', courseCode);
+            const data = await IndexedDBService.get('classmates', courseCode) as ClassmatesData | null;
             set((state) => ({
-                classmates: { ...state.classmates, [courseCode]: data || [] },
+                classmates: {
+                    ...state.classmates,
+                    [courseCode]: data || { all: [], seminar: [] }
+                },
                 classmatesLoading: { ...state.classmatesLoading, [courseCode]: false }
             }));
         } catch (error) {
@@ -21,5 +25,8 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set) => ({
                 classmatesLoading: { ...state.classmatesLoading, [courseCode]: false }
             }));
         }
+    },
+    invalidateClassmates: () => {
+        set({ classmates: {} });
     },
 });

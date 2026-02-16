@@ -3,5 +3,10 @@ export interface Classmate {
     photoUrl: string;
     name: string;
     studyInfo: string;
-    email?: string;
+    messageUrl?: string;
+}
+
+export interface ClassmatesData {
+    all: Classmate[];
+    seminar: Classmate[];
 }

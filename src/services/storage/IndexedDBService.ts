@@ -2,7 +2,7 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { SubjectsData, Assessment, SyllabusRequirements, ParsedFile } from '../../types/documents';
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { ExamSubject } from '../../types/exams';
-import type { Classmate } from '../../types/classmates';
+import type { ClassmatesData } from '../../types/classmates';
 import { StoreSchemas, type StoreName } from '../../types/storage';
 
 interface ReisDB extends DBSchema {
@@ -20,7 +20,7 @@ interface ReisDB extends DBSchema {
     };
     classmates: {
         key: string;
-        value: Classmate[]; // Key is courseCode
+        value: ClassmatesData; // Key is courseCode
     };
     exams: {
         key: string;

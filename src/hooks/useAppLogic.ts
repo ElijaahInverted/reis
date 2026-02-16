@@ -10,7 +10,7 @@ import { useAppStore, initializeStore } from '../store/useAppStore';
 import { signalReady, requestData, isInIframe } from '../api/proxyClient';
 import type { AppView, SelectedSubject } from '../types/app';
 import { isContentMessage } from '../types/messages';
-import type { Classmate } from '../types/classmates';
+import type { ClassmatesData } from '../types/classmates';
 
 interface SyncedData {
   schedule?: unknown;
@@ -125,7 +125,7 @@ export function useAppLogic() {
 
             if (r.classmates) {
                 for (const [c, cl] of Object.entries(r.classmates)) {
-                    await IndexedDBService.set('classmates', c, cl as Classmate[]);
+                    await IndexedDBService.set('classmates', c, cl as ClassmatesData);
                 }
             }
 
@@ -140,6 +140,7 @@ export function useAppLogic() {
             } else {
                 try {
                     await useAppStore.getState().fetchAllFiles();
+                    useAppStore.getState().invalidateClassmates();
                 } finally {
                     useAppStore.getState().setSyncStatus({ isSyncing: false });
                 }

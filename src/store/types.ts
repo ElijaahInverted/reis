@@ -2,7 +2,7 @@ import type { StateCreator } from 'zustand';
 import type { BlockLesson } from '../types/calendarTypes';
 import type { ExamSubject } from '../types/exams';
 import type { SyllabusRequirements, ParsedFile, Assessment, SubjectsData, SubjectSuccessRate } from '../types/documents';
-import type { Classmate } from '../types/classmates';
+import type { ClassmatesData } from '../types/classmates';
 import type { SyncStatus } from '../services/sync';
 
 export type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -58,9 +58,10 @@ export interface AssessmentsSlice {
 }
 
 export interface ClassmatesSlice {
-    classmates: Record<string, Classmate[]>;
+    classmates: Record<string, ClassmatesData>;
     classmatesLoading: Record<string, boolean>;
     fetchClassmates: (courseCode: string) => Promise<void>;
+    invalidateClassmates: () => void;
 }
 
 export interface SubjectsSlice {

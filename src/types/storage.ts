@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { ParsedFile, Assessment, SyllabusRequirements, SubjectsData } from '../types/documents';
 import type { ExamSubject } from '../types/exams';
 import type { BlockLesson } from '../types/calendarTypes';
-import type { Classmate } from '../types/classmates';
+import type { ClassmatesData } from '../types/classmates';
 
 // --- Base Types using Zod ---
 
@@ -48,8 +48,8 @@ export const SubjectsSchema = SubjectsDataSchema;
 // 'success_rates' store - Validating partial object structure
 export const SuccessRatesSchema = z.record(z.string(), z.any());
 
-// 'classmates' store - Array of Classmate
-export const ClassmatesSchema = z.custom<Classmate[]>();
+// 'classmates' store - { all: Classmate[], seminar: Classmate[] }
+export const ClassmatesSchema = z.custom<ClassmatesData>();
 
 // 'meta' store - Generic metadata object
 export const MetaSchema = z.any();
