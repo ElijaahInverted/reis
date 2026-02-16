@@ -88,11 +88,7 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
                 <ClassmatesListSkeleton message={getProgressMessage()} />
             ) : (
                 <div className="flex-1 overflow-y-auto p-4">
-                    {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-base-content/40">
-                             <span className="loading loading-spinner loading-md"></span>
-                        </div>
-                    ) : filteredClassmates.length === 0 ? (
+                    {filteredClassmates.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-base-content/40">
                             <Users size={48} className="mb-4 opacity-20" />
                             <p>{translate('classmates.noneFound', 'Žádní spolužáci nenalezeni')}</p>
