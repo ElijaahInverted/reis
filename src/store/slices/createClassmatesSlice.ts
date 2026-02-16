@@ -20,12 +20,15 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
                     ...state.classmates,
                     [courseCode]: data || { all: [], seminar: [] }
                 },
-                classmatesLoading: { ...state.classmatesLoading, [courseCode]: false }
+                classmatesLoading: { ...state.classmatesLoading, [courseCode]: false },
+                // Also clear priority loading if it was active
+                classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false }
             }));
         } catch (error) {
             console.error(`[ClassmatesSlice] Fetch failed for ${courseCode}:`, error);
             set((state) => ({
-                classmatesLoading: { ...state.classmatesLoading, [courseCode]: false }
+                classmatesLoading: { ...state.classmatesLoading, [courseCode]: false },
+                classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false }
             }));
         }
     },
@@ -49,9 +52,8 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
                     classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
                 }));
             } else {
-                // If no cache, wait for sync service to populate
+                // If no cache, keep priority loading true until sync service populates data
                 set((state) => ({
-                    classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
                     classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'waiting_sync' }
                 }));
             }
