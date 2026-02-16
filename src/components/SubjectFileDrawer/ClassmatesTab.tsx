@@ -19,7 +19,7 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
     
     const [filter, setFilter] = useState<'all' | 'seminar'>(skupinaId ? 'seminar' : 'all');
     const [searchQuery, setSearchQuery] = useState('');
-    const { classmates, isLoading, isPriorityLoading } = useClassmates(courseCode, filter);
+    const { classmates, isPriorityLoading } = useClassmates(courseCode, filter);
 
     const translate = (key: string, fallback: string) => {
         const result = t(key);
