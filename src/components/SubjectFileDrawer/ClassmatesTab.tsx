@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Mail, User, Users, School } from 'lucide-react';
 import { useClassmates } from '../../hooks/data/useClassmates';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -17,14 +17,9 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
     const subjectInfo = useAppStore(state => state.subjects?.data?.[courseCode]);
     const skupinaId = propsSkupinaId || subjectInfo?.skupinaId;
     
-    const [filter, setFilter] = useState<'all' | 'seminar'>(skupinaId ? 'seminar' : 'all');
+    const [filter, setFilter] = useState<'all' | 'seminar'>(() => skupinaId ? 'seminar' : 'all');
     const [searchQuery, setSearchQuery] = useState('');
     const { classmates, isPriorityLoading } = useClassmates(courseCode, filter);
-
-    // Update filter default when skupinaId becomes available after initial mount
-    useEffect(() => {
-        if (skupinaId) setFilter('seminar');
-    }, [skupinaId]);
 
     const translate = (key: string, fallback: string) => {
         const result = t(key);
@@ -36,7 +31,7 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
         const q = searchQuery.toLowerCase();
         return classmates.filter(c =>
             c.name.toLowerCase().includes(q) ||
-            (c.personId && c.personId.toString().includes(q))
+            c.personId.toString().includes(q)
         );
     }, [classmates, searchQuery]);
     

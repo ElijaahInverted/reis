@@ -6,7 +6,7 @@ import { ClassmatesTab } from './ClassmatesTab';
 import { SuccessRateTab } from '../SuccessRateTab';
 import { SelectionBox, DragHint } from './DragHint';
 import type { FileGroup } from './types';
-import type { SyllabusRequirements } from '../../types/documents';
+import type { SyllabusRequirements, ParsedFile } from '../../types/documents';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { SelectedSubject } from '../../types/app';
@@ -15,11 +15,11 @@ import type { SelectedSubject } from '../../types/app';
 interface SubjectFileDrawerContentProps {
     activeTab: 'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates';
     lesson: BlockLesson | SelectedSubject | null;
-    files: unknown[] | null;
+    files: ParsedFile[] | null;
     isFilesLoading: boolean;
     isSyncing: boolean;
     isPriorityLoading?: boolean;
-    progressStatus?: string;
+    totalCount?: number;
     isDragging: boolean;
 
     selectionBoxStyle: { left: number; top: number; width: number; height: number; } | null;
@@ -36,16 +36,18 @@ interface SubjectFileDrawerContentProps {
 }
 
 export function SubjectFileDrawerContent({
-    activeTab, lesson, files, isFilesLoading, isSyncing, isPriorityLoading, progressStatus, isDragging, selectionBoxStyle, showDragHint,
+    activeTab, lesson, files, isFilesLoading, isSyncing, isPriorityLoading, totalCount, isDragging, selectionBoxStyle, showDragHint,
     groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, resolvedCourseId, syllabusResult, folderUrl
 }: SubjectFileDrawerContentProps) {
     const { t, language } = useTranslation();
     if (activeTab === 'files') {
         const isEmpty = !files || files.length === 0;
-        const showSkeleton = (isFilesLoading || (isPriorityLoading && isEmpty)) && !isSyncing;
-        // Show progress message whenever skeleton shows OR when syncing with no data
-        const showProgress = showSkeleton || (isSyncing && isEmpty);
-        
+        // Show skeleton only when we have no data yet — never suppress it with isSyncing
+        const showSkeleton = isFilesLoading || (isPriorityLoading && isEmpty);
+        // Show progress bar when skeleton shows, when still fetching remaining files after first chunk,
+        // or when syncing with no data yet
+        const showProgress = showSkeleton || isPriorityLoading || (isSyncing && isEmpty);
+
         return (
             <>
                 <SelectionBox isDragging={isDragging} style={selectionBoxStyle} />
@@ -55,7 +57,9 @@ export function SubjectFileDrawerContent({
                         <Loader2 size={12} className="text-primary animate-spin" />
                         <span>{t('course.sync.loadingFiles') || 'Loading files...'}</span>
                         {files && files.length > 0 && (
-                            <span className="text-base-content/50">({files.length})</span>
+                            <span className="text-base-content/50">
+                                ({files.length}{totalCount !== undefined && totalCount > files.length ? ` / ${totalCount}` : ''})
+                            </span>
                         )}
                     </div>
                 )}

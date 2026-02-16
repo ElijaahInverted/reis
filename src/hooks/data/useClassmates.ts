@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
+import type { Classmate } from '../../types/classmates';
 
 export interface UseClassmatesResult {
-    classmates: any[];
+    classmates: Classmate[];
     isLoading: boolean;
     isPriorityLoading: boolean;
     progressStatus: string;

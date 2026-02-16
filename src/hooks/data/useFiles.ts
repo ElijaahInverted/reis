@@ -7,6 +7,7 @@ export interface UseFilesResult {
     isLoading: boolean;
     isPriorityLoading: boolean;
     progressStatus: string;
+    totalCount: number | undefined;
 }
 
 /**
@@ -20,7 +21,7 @@ export function useFiles(courseCode?: string): UseFilesResult {
     const isSubjectLoading = useAppStore(state => courseCode ? !!state.filesLoading[courseCode] : false);
     const isPriorityLoading = useAppStore(state => courseCode ? !!state.filesPriorityLoading[courseCode] : false);
     const progressStatus = useAppStore(state => courseCode ? state.filesProgress[courseCode] || '' : '');
-    const isSyncing = useAppStore(state => state.syncStatus.isSyncing);
+    const totalCount = useAppStore(state => courseCode ? state.filesTotalCount[courseCode] : undefined);
 
     useEffect(() => {
         if (courseCode) {
@@ -43,7 +44,8 @@ export function useFiles(courseCode?: string): UseFilesResult {
         files: subjectFiles ?? null,
         isLoading,
         isPriorityLoading,
-        progressStatus
+        progressStatus,
+        totalCount
     };
 }
 
