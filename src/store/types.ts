@@ -45,6 +45,7 @@ export interface FilesSlice {
     filesLoading: Record<string, boolean>;
     filesPriorityLoading: Record<string, boolean>;
     filesProgress: Record<string, string>;
+    filesTotalCount: Record<string, number>;
     fetchFiles: (courseCode: string) => Promise<void>;
     fetchFilesPriority: (courseCode: string) => Promise<void>;
     fetchAllFiles: () => Promise<void>;

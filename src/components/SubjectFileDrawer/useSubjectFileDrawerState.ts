@@ -10,7 +10,7 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
     const { getSubject } = useSubjects();
     const isExam = lesson && 'isExam' in lesson ? lesson.isExam : false;
     const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates'>(isExam ? 'stats' : 'files');
-    const { files, isLoading: isFilesLoading, isPriorityLoading, progressStatus } = useFiles(isOpen ? lesson?.courseCode : undefined);
+    const { files, isLoading: isFilesLoading, isPriorityLoading, progressStatus, totalCount } = useFiles(isOpen ? lesson?.courseCode : undefined);
     const { isSyncing } = useSyncStatus();
 
     const subjectInfo = useMemo(() => {
@@ -41,6 +41,6 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
         }
     }
 
-    return { activeTab, setActiveTab, files, isFilesLoading, isSyncing, isPriorityLoading, progressStatus, resolvedCourseId, syllabusResult, subjectInfo, containerRef, contentRef, fileRefs, ...drag };
+    return { activeTab, setActiveTab, files, isFilesLoading, isSyncing, isPriorityLoading, progressStatus, totalCount, resolvedCourseId, syllabusResult, subjectInfo, containerRef, contentRef, fileRefs, ...drag };
 }
 

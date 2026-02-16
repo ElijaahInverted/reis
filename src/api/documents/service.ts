@@ -91,7 +91,7 @@ export async function fetchFilesFromFolder(
 
             const subResults = await processWithDelay(folders, async f => {
                 try {
-                    const results = await fetchFilesFromFolder(f.url, lang, true, currentDepth + 1, maxDepth, onChunk);
+                    const results = await fetchFilesFromFolder(f.url, lang, true, currentDepth + 1, maxDepth);
                     results.forEach(r => r.subfolder = f.name);
                     return results;
                 } catch (err) {

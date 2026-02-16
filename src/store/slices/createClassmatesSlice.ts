@@ -7,7 +7,7 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
     classmatesLoading: {},
     classmatesPriorityLoading: {},
     classmatesProgress: {},
-    
+
     fetchClassmates: async (courseCode) => {
         set((state) => ({
             classmatesLoading: { ...state.classmatesLoading, [courseCode]: true }
@@ -27,16 +27,17 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
         } catch (error) {
             console.error(`[ClassmatesSlice] Fetch failed for ${courseCode}:`, error);
             set((state) => ({
+                classmates: { ...state.classmates, [courseCode]: state.classmates[courseCode] ?? { all: [], seminar: [] } },
                 classmatesLoading: { ...state.classmatesLoading, [courseCode]: false },
                 classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false }
             }));
         }
     },
-    
+
     fetchClassmatesPriority: async (courseCode) => {
         // Avoid duplicate priority fetches
         if (get().classmatesPriorityLoading[courseCode]) return;
-        
+
         set((state) => ({
             classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: true },
             classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'fetching' }
@@ -51,21 +52,43 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
                     classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
                     classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
                 }));
-            } else {
-                // If no cache, keep priority loading true until sync service populates data
-                set((state) => ({
-                    classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'waiting_sync' }
-                }));
+                return;
             }
+
+            // No IDB cache — only wait if sync is actively running
+            const isSyncCurrentlyRunning = get().syncStatus.isSyncing;
+            if (!isSyncCurrentlyRunning) {
+                // Sync already finished with no data for this course
+                set((state) => ({
+                    classmates: { ...state.classmates, [courseCode]: { all: [], seminar: [] } },
+                    classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
+                    classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
+                }));
+                return;
+            }
+
+            // Sync is running: subscribe to its completion then re-check IDB
+            set((state) => ({
+                classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'waiting_sync' }
+            }));
+
+            const { useAppStore } = await import('../useAppStore');
+            const unsubscribe = useAppStore.subscribe(async (state, prevState) => {
+                if (prevState.syncStatus.isSyncing && !state.syncStatus.isSyncing) {
+                    unsubscribe();
+                    await get().fetchClassmates(courseCode);
+                }
+            });
         } catch (error) {
             console.error(`[ClassmatesSlice] Priority fetch failed for ${courseCode}:`, error);
             set((state) => ({
+                classmates: { ...state.classmates, [courseCode]: { all: [], seminar: [] } },
                 classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
                 classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'error' }
             }));
         }
     },
-    
+
     invalidateClassmates: () => {
         set({ classmates: {}, classmatesPriorityLoading: {}, classmatesProgress: {} });
     },

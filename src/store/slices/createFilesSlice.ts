@@ -7,6 +7,7 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
     filesLoading: {},
     filesPriorityLoading: {},
     filesProgress: {},
+    filesTotalCount: {},
     fetchFiles: async (courseCode) => {
         const { files, filesLoading } = get();
 
@@ -93,7 +94,8 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             set((state) => ({
                 files: { ...state.files, [courseCode]: fullFilesList },
                 filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
-                filesProgress: { ...state.filesProgress, [courseCode]: 'success' }
+                filesProgress: { ...state.filesProgress, [courseCode]: 'success' },
+                filesTotalCount: { ...state.filesTotalCount, [courseCode]: fullFilesList.length }
             }));
         } catch (error) {
             console.error(`[FilesSlice] Priority fetch failed for ${courseCode}:`, error);
@@ -162,6 +164,7 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
         } catch (error) {
             console.error(`[FilesSlice] Fetch failed for ${courseCode}:`, error);
             set((state) => ({
+                files: { ...state.files, [courseCode]: state.files[courseCode] ?? [] },
                 filesLoading: { ...state.filesLoading, [courseCode]: false }
             }));
         }
