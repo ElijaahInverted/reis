@@ -44,14 +44,26 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             const subject = subjectsData?.data?.[courseCode];
 
             if (!subject?.folderUrl) {
-                console.warn(`[FilesSlice] No folder URL found for ${courseCode}`);
-                throw new Error('No folder URL for subject');
+                console.warn(`[FilesSlice] No folder URL found for ${courseCode}, setting empty files`);
+                // Set empty array for subjects without folder URL (e.g., some exam-only courses)
+                set((state) => ({
+                    files: { ...state.files, [courseCode]: [] },
+                    filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
+                    filesProgress: { ...state.filesProgress, [courseCode]: 'success' }
+                }));
+                return;
             }
 
             const folderId = subject.folderUrl.match(/[?&;]id=(\d+)/)?.[1];
             if (!folderId) {
                 console.warn(`[FilesSlice] Invalid folder URL for ${courseCode}: ${subject.folderUrl}`);
-                throw new Error('Invalid folder URL');
+                // Set empty array for invalid folder URLs
+                set((state) => ({
+                    files: { ...state.files, [courseCode]: [] },
+                    filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
+                    filesProgress: { ...state.filesProgress, [courseCode]: 'success' }
+                }));
+                return;
             }
 
             const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
@@ -85,7 +97,9 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             }));
         } catch (error) {
             console.error(`[FilesSlice] Priority fetch failed for ${courseCode}:`, error);
+            // On error, set empty array so UI doesn't keep trying to load
             set((state) => ({
+                files: { ...state.files, [courseCode]: [] },
                 filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
                 filesProgress: { ...state.filesProgress, [courseCode]: 'error' }
             }));

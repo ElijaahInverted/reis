@@ -126,13 +126,6 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
                                                 </>
                                             )}
                                         </div>
-                                        <div className="flex flex-col gap-0.5 mt-0.5">
-                                             {student.personId !== 0 && (
-                                                <span className="text-xs text-base-content/50 font-mono">
-                                                    ID: {student.personId}
-                                                </span>
-                                            )}
-                                        </div>
                                     </div>
                                 </div>
 
