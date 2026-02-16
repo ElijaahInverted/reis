@@ -40,7 +40,7 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
 
         set((state) => ({
             classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: true },
-            classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'fetching' }
+            classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'initializing' }
         }));
 
         try {
@@ -55,30 +55,98 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
                 return;
             }
 
-            // No IDB cache — only wait if sync is actively running
-            const isSyncCurrentlyRunning = get().syncStatus.isSyncing;
-            if (!isSyncCurrentlyRunning) {
-                // Sync already finished with no data for this course
-                set((state) => ({
-                    classmates: { ...state.classmates, [courseCode]: { all: [], seminar: [] } },
-                    classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
-                    classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
-                }));
+            // No IDB cache — wait for subjects metadata and sync handshake
+            let syncStatus = get().syncStatus;
+            let subjects = get().subjects;
+
+            set((state) => ({
+                classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'waiting_metadata' }
+            }));
+
+            // Wait for handshake and subjects if needed
+            if (!syncStatus.handshakeDone || !subjects) {
+                const { useAppStore } = await import('../useAppStore');
+                await new Promise<void>((resolve) => {
+                    const unsubscribe = useAppStore.subscribe((state) => {
+                        if (state.syncStatus.handshakeDone && state.subjects) {
+                            unsubscribe();
+                            syncStatus = state.syncStatus;
+                            subjects = state.subjects;
+                            resolve();
+                        }
+                    });
+                    // Safety timeout
+                    setTimeout(() => { unsubscribe(); resolve(); }, 5000);
+                });
+            }
+
+            if (!subjects?.data[courseCode]?.subjectId) {
+                const isSyncActive = syncStatus.isSyncing || !syncStatus.handshakeDone;
+                if (!isSyncActive) {
+                    console.log(`[ClassmatesSlice] No cache/id and sync finished for ${courseCode}. Setting empty.`);
+                    set((state) => ({
+                        classmates: { ...state.classmates, [courseCode]: { all: [], seminar: [] } },
+                        classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
+                        classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
+                    }));
+                    return;
+                }
+                // Still waiting for sync...
+                set((state) => ({ classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'waiting_sync' } }));
                 return;
             }
 
-            // Sync is running: subscribe to its completion then re-check IDB
+            const subject = subjects.data[courseCode];
+            const { getUserParams } = await import('../../utils/userParams');
+            const userParams = await getUserParams();
+
+            if (!userParams?.studium || !userParams?.obdobi) {
+                throw new Error('User parameters missing');
+            }
+
+            const { fetchClassmates } = await import('../../api/classmates');
+            set((state) => ({ classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'fetching' } }));
+
+            // Progressive fetch for 'all' classmates
+            const allPromise = fetchClassmates(subject.subjectId!, userParams.studium, userParams.obdobi, undefined, (chunk) => {
+                set((state) => {
+                    const current = state.classmates[courseCode] || { all: [], seminar: [] };
+                    return {
+                        classmates: {
+                            ...state.classmates,
+                            [courseCode]: { ...current, all: chunk }
+                        }
+                    };
+                });
+            });
+
+            // Progressive fetch for 'seminar' classmates if group ID exists
+            let seminarPromise = Promise.resolve([] as Classmate[]);
+            if (subject.skupinaId) {
+                seminarPromise = fetchClassmates(subject.subjectId!, userParams.studium, userParams.obdobi, subject.skupinaId, (chunk) => {
+                    set((state) => {
+                        const current = state.classmates[courseCode] || { all: [], seminar: [] };
+                        return {
+                            classmates: {
+                                ...state.classmates,
+                                [courseCode]: { ...current, seminar: chunk }
+                            }
+                        };
+                    });
+                });
+            }
+
+            const [all, seminar] = await Promise.all([allPromise, seminarPromise]);
+            const finalData = { all, seminar };
+
+            // Final update and persistence
+            await IndexedDBService.set('classmates', courseCode, finalData);
             set((state) => ({
-                classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'waiting_sync' }
+                classmates: { ...state.classmates, [courseCode]: finalData },
+                classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
+                classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
             }));
 
-            const { useAppStore } = await import('../useAppStore');
-            const unsubscribe = useAppStore.subscribe(async (state, prevState) => {
-                if (prevState.syncStatus.isSyncing && !state.syncStatus.isSyncing) {
-                    unsubscribe();
-                    await get().fetchClassmates(courseCode);
-                }
-            });
         } catch (error) {
             console.error(`[ClassmatesSlice] Priority fetch failed for ${courseCode}:`, error);
             set((state) => ({

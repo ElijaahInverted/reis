@@ -1,6 +1,6 @@
 import { IndexedDBService } from '../storage';
 
-export type SyncStatus = { isSyncing: boolean; lastSync: number | null; error: string | null; };
+export type SyncStatus = { isSyncing: boolean; lastSync: number | null; error: string | null; handshakeDone?: boolean; };
 
 /**
  * SyncService — Event bus for the iframe app.

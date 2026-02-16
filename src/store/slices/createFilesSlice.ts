@@ -40,25 +40,60 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
         }));
 
         try {
+            // Check IndexedDB first
+            const cached = await IndexedDBService.get('files', courseCode);
+            if (cached) {
+                const data = (cached as { cz?: ParsedFile[], en?: ParsedFile[] })[currentLang] || [];
+                set((state) => ({
+                    files: { ...state.files, [courseCode]: data },
+                    filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
+                    filesProgress: { ...state.filesProgress, [courseCode]: 'success' },
+                    filesTotalCount: { ...state.filesTotalCount, [courseCode]: data.length }
+                }));
+                return;
+            }
+
+            // Wait for metadata and handshake
+            let subjects = get().subjects;
+            let syncStatus = get().syncStatus;
+
+            if (!syncStatus.handshakeDone || !subjects) {
+                set((state) => ({ filesProgress: { ...state.filesProgress, [courseCode]: 'waiting_metadata' } }));
+                const { useAppStore } = await import('../useAppStore');
+                await new Promise<void>((resolve) => {
+                    const unsubscribe = useAppStore.subscribe((state) => {
+                        if (state.syncStatus.handshakeDone && state.subjects) {
+                            unsubscribe();
+                            subjects = state.subjects;
+                            syncStatus = state.syncStatus;
+                            resolve();
+                        }
+                    });
+                    setTimeout(() => { unsubscribe(); resolve(); }, 5000);
+                });
+            }
+
             const { fetchFilesFromFolder } = await import('../../api/documents/service');
-            const subjectsData = await IndexedDBService.get('subjects', 'current');
-            const subject = subjectsData?.data?.[courseCode];
+            const subject = subjects?.data?.[courseCode];
 
             if (!subject?.folderUrl) {
-                console.warn(`[FilesSlice] No folder URL found for ${courseCode}, setting empty files`);
-                // Set empty array for subjects without folder URL (e.g., some exam-only courses)
-                set((state) => ({
-                    files: { ...state.files, [courseCode]: [] },
-                    filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
-                    filesProgress: { ...state.filesProgress, [courseCode]: 'success' }
-                }));
+                const isSyncActive = syncStatus.isSyncing || !syncStatus.handshakeDone;
+                if (!isSyncActive) {
+                    console.warn(`[FilesSlice] No folder URL found and sync finished for ${courseCode}, setting empty files`);
+                    set((state) => ({
+                        files: { ...state.files, [courseCode]: [] },
+                        filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
+                        filesProgress: { ...state.filesProgress, [courseCode]: 'success' }
+                    }));
+                } else {
+                    set((state) => ({ filesProgress: { ...state.filesProgress, [courseCode]: 'waiting_sync' } }));
+                }
                 return;
             }
 
             const folderId = subject.folderUrl.match(/[?&;]id=(\d+)/)?.[1];
             if (!folderId) {
                 console.warn(`[FilesSlice] Invalid folder URL for ${courseCode}: ${subject.folderUrl}`);
-                // Set empty array for invalid folder URLs
                 set((state) => ({
                     files: { ...state.files, [courseCode]: [] },
                     filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
@@ -86,7 +121,8 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             console.log(`[FilesSlice] Priority fetch complete for ${courseCode}. Total files: ${fullFilesList.length}`);
             
             // Store full data in IndexedDB
-            const data = await IndexedDBService.get('files', courseCode) || { cz: [], en: [] };
+            const cachedFiles = await IndexedDBService.get('files', courseCode);
+            const data = (cachedFiles || { cz: [], en: [] }) as { cz: ParsedFile[], en: ParsedFile[] };
             if (currentLang === 'en') data.en = fullFilesList; else data.cz = fullFilesList;
             await IndexedDBService.set('files', courseCode, data);
             console.log(`[FilesSlice] Persisted ${fullFilesList.length} files to IndexedDB for ${courseCode}`);
@@ -99,7 +135,6 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             }));
         } catch (error) {
             console.error(`[FilesSlice] Priority fetch failed for ${courseCode}:`, error);
-            // On error, set empty array so UI doesn't keep trying to load
             set((state) => ({
                 files: { ...state.files, [courseCode]: [] },
                 filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },

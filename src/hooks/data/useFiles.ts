@@ -22,6 +22,7 @@ export function useFiles(courseCode?: string): UseFilesResult {
     const isPriorityLoading = useAppStore(state => courseCode ? !!state.filesPriorityLoading[courseCode] : false);
     const progressStatus = useAppStore(state => courseCode ? state.filesProgress[courseCode] || '' : '');
     const totalCount = useAppStore(state => courseCode ? state.filesTotalCount[courseCode] : undefined);
+    const lastSync = useAppStore(state => state.syncStatus.lastSync);
 
     useEffect(() => {
         if (courseCode) {
@@ -34,7 +35,7 @@ export function useFiles(courseCode?: string): UseFilesResult {
                 state.fetchFiles(courseCode);
             }
         }
-    }, [courseCode]);
+    }, [courseCode, lastSync]);
 
     const isLoading = courseCode
         ? (isSubjectLoading || subjectFiles === undefined || (isPriorityLoading && (!subjectFiles || subjectFiles.length === 0)))

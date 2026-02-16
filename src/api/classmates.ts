@@ -71,7 +71,8 @@ export async function fetchClassmates(
     predmetId: string,
     studium: string,
     obdobi: string,
-    skupinaId?: string
+    skupinaId?: string,
+    onChunk?: (classmates: Classmate[]) => void
 ): Promise<Classmate[]> {
     const allClassmates: Classmate[] = [];
     let page = 0;
@@ -93,7 +94,7 @@ export async function fetchClassmates(
 
         const rows = table.querySelectorAll('tr');
         console.log(`[fetchClassmates] predmet=${predmetId} rows=${rows.length}`);
-        let rowCount = 0;
+        const allClassmatesFromPage: Classmate[] = [];
 
         for (const row of rows) {
             const cells = row.querySelectorAll('td');
@@ -119,13 +120,13 @@ export async function fetchClassmates(
             const photoUrl = photoImg?.getAttribute('src') || '';
             const name = cells[nameIdx]?.textContent?.trim() || '';
             
-            if (rowCount === 0) console.log(`[fetchClassmates] first row sample: cells=${cells.length} photoIdx=${photoIdx} name="${name}"`);
+            if (allClassmatesFromPage.length === 0) console.log(`[fetchClassmates] first row sample: cells=${cells.length} photoIdx=${photoIdx} name="${name}"`);
             if (!name) continue;
 
             const studyInfo = cells[studyInfoIdx]?.textContent?.trim() || '';
 
             let personId = 0;
-            const idMatch = photoUrl.match(/[?\&;]id=(\d+)/);
+            const idMatch = photoUrl.match(/[?&;]id=(\d+)/);
             if (idMatch) personId = parseInt(idMatch[1], 10);
 
             // Extract message URL from remaining cells after studyInfo
@@ -138,9 +139,14 @@ export async function fetchClassmates(
                 }
             }
 
-            allClassmates.push({ personId, photoUrl, name, studyInfo, messageUrl });
-            rowCount++;
+            allClassmatesFromPage.push({ personId, photoUrl, name, studyInfo, messageUrl });
         }
+        
+        allClassmates.push(...allClassmatesFromPage);
+        if (onChunk && allClassmatesFromPage.length > 0) {
+            onChunk([...allClassmates]);
+        }
+        const rowCount = allClassmatesFromPage.length;
 
         console.log(`[fetchClassmates] predmet=${predmetId} page=${page} parsed=${rowCount}`);
         // If fewer rows than page size, we've reached the last page

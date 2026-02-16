@@ -19,7 +19,7 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
     
     const [filter, setFilter] = useState<'all' | 'seminar'>(() => skupinaId ? 'seminar' : 'all');
     const [searchQuery, setSearchQuery] = useState('');
-    const { classmates, isPriorityLoading } = useClassmates(courseCode, filter);
+    const { classmates, isLoading } = useClassmates(courseCode, filter);
 
     const translate = (key: string, fallback: string) => {
         const result = t(key);
@@ -35,8 +35,8 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
         );
     }, [classmates, searchQuery]);
     
-    // Keep skeleton visible during priority loading
-    const showSkeleton = isPriorityLoading;
+    // Keep skeleton visible during loading
+    const showSkeleton = isLoading;
     
     // Create progress message for skeleton
     const getProgressMessage = () => {

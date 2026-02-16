@@ -57,7 +57,7 @@ describe('createFilesSlice', () => {
         await slice.fetchFiles('ALG');
 
         expect(slice.filesLoading['ALG']).toBe(false);
-        expect(slice.files['ALG']).toBeUndefined();
+        expect(slice.files['ALG']).toEqual([]);
     });
 
     it('should fetch files with priority progressively', async () => {

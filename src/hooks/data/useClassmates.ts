@@ -20,6 +20,7 @@ export function useClassmates(courseCode: string | undefined, filter: 'all' | 's
     const isClassmatesLoading = useAppStore(state => courseCode ? !!state.classmatesLoading[courseCode] : false);
     const isPriorityLoading = useAppStore(state => courseCode ? !!state.classmatesPriorityLoading[courseCode] : false);
     const progressStatus = useAppStore(state => courseCode ? state.classmatesProgress[courseCode] || '' : '');
+    const lastSync = useAppStore(state => state.syncStatus.lastSync);
 
     useEffect(() => {
         if (courseCode) {
@@ -32,10 +33,10 @@ export function useClassmates(courseCode: string | undefined, filter: 'all' | 's
                 state.fetchClassmates(courseCode);
             }
         }
-    }, [courseCode]);
+    }, [courseCode, lastSync]);
 
     const isLoading = courseCode
-        ? (isClassmatesLoading || classmatesData === undefined || (isPriorityLoading && (!classmatesData || (classmatesData.all.length === 0 && classmatesData.seminar.length === 0))))
+        ? (isClassmatesLoading || classmatesData === undefined || (isPriorityLoading && (!classmatesData || classmatesData[filter].length === 0)))
         : false;
 
     return {
