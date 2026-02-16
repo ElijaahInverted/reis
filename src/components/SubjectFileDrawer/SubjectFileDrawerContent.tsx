@@ -43,7 +43,8 @@ export function SubjectFileDrawerContent({
     if (activeTab === 'files') {
         const isEmpty = !files || files.length === 0;
         const showSkeleton = (isFilesLoading || (isPriorityLoading && isEmpty)) && !isSyncing;
-        const showProgress = isPriorityLoading || (isSyncing && isEmpty);
+        // Show progress message whenever skeleton shows OR when syncing with no data
+        const showProgress = showSkeleton || (isSyncing && isEmpty);
         
         return (
             <>
@@ -53,6 +54,9 @@ export function SubjectFileDrawerContent({
                     <div className="flex items-center gap-2 text-xs text-base-content/70 font-medium px-6 py-4 bg-base-200/30 border-b border-base-300 animate-in fade-in slide-in-from-top-1">
                         <Loader2 size={12} className="text-primary animate-spin" />
                         <span>{t('course.sync.loadingFiles') || 'Loading files...'}</span>
+                        {files && files.length > 0 && (
+                            <span className="text-base-content/50">({files.length})</span>
+                        )}
                     </div>
                 )}
                 {showSkeleton ? <FileListSkeleton /> :
