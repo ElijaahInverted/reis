@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Mail, User, Users, School } from 'lucide-react';
 import { useClassmates } from '../../hooks/data/useClassmates';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -21,6 +21,11 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
     const [searchQuery, setSearchQuery] = useState('');
     const { classmates, isPriorityLoading } = useClassmates(courseCode, filter);
 
+    // Update filter default when skupinaId becomes available after initial mount
+    useEffect(() => {
+        if (skupinaId) setFilter('seminar');
+    }, [skupinaId]);
+
     const translate = (key: string, fallback: string) => {
         const result = t(key);
         return result === key ? fallback : result;
@@ -35,9 +40,8 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
         );
     }, [classmates, searchQuery]);
     
-    const isEmpty = !classmates || classmates.length === 0;
-    // Keep skeleton visible during priority loading OR if we're still loading and have no data
-    const showSkeleton = isPriorityLoading || (isEmpty && !classmates);
+    // Keep skeleton visible during priority loading
+    const showSkeleton = isPriorityLoading;
     
     // Create progress message for skeleton
     const getProgressMessage = () => {
@@ -98,15 +102,20 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
                     <div className="grid grid-cols-1 gap-3">
                         {filteredClassmates.map((student) => (
                             <div key={student.personId} className="flex items-center justify-between p-3 rounded-xl border border-base-200 bg-base-100 hover:border-primary/20 hover:shadow-sm transition-all group">
-                                <div className="flex items-center gap-4">
+                                <a 
+                                    href={`https://is.mendelu.cz/auth/lide/clovek.pl?id=${student.personId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-4 group/profile flex-1"
+                                >
                                     {/* Avatar */}
                                     <div className="avatar">
-                                        <div className="w-12 h-12 rounded-full ring-1 ring-base-200 ring-offset-base-100 ring-offset-2">
+                                        <div className="w-14 h-14 rounded-full ring-1 ring-base-200 ring-offset-base-100 ring-offset-2 group-hover/profile:ring-primary/40 transition-all">
                                             {student.photoUrl ? (
                                                 <img src={student.photoUrl.startsWith('http') ? student.photoUrl : `https://is.mendelu.cz${student.photoUrl}`} alt={student.name} />
                                             ) : (
                                                 <div className="bg-neutral text-neutral-content w-full h-full flex items-center justify-center">
-                                                    <User size={20} />
+                                                    <User size={24} strokeWidth={1.5} />
                                                 </div>
                                             )}
                                         </div>
@@ -128,7 +137,7 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
                                             )}
                                         </div>
                                     </div>
-                                </div>
+                                </a>
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-2">
@@ -140,11 +149,11 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
                                             className="btn btn-circle btn-sm btn-ghost text-base-content/40 hover:text-primary hover:bg-primary/10"
                                             title={student.name}
                                         >
-                                            <Mail size={18} />
+                                            <Mail size={24} strokeWidth={1.5} />
                                         </a>
                                     ) : (
                                         <span className="btn btn-circle btn-sm btn-ghost text-base-content/20 cursor-not-allowed">
-                                            <Mail size={18} />
+                                            <Mail size={24} strokeWidth={1.5} />
                                         </span>
                                     )}
                                 </div>
