@@ -60,9 +60,9 @@ export function WelcomeModal() {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 30 }}
                         transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
-                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-full max-w-sm sm:max-w-lg"
+                        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-full transition-all duration-300 ${step === 1 ? 'max-w-sm sm:max-w-lg' : 'max-w-sm md:max-w-2xl lg:max-w-3xl'}`}
                     >
-                        <div className="bg-base-100 rounded-2xl shadow-2xl border border-base-200 overflow-hidden p-6 flex flex-col gap-4">
+                        <div className="bg-base-100 rounded-3xl shadow-2xl border border-base-200 p-6 sm:p-8 flex flex-col gap-4">
                             <AnimatePresence mode="wait">
                                 {step === 1 ? (
                                     <motion.div
@@ -113,55 +113,65 @@ export function WelcomeModal() {
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
-                                        className="flex flex-col items-center text-center gap-6"
+                                        className="flex flex-col md:flex-row items-center md:items-stretch gap-8 lg:gap-12"
                                     >
-                                        <div className="relative">
-                                            <img 
-                                                src="/calendar_phone.png" 
-                                                alt="Phone Sync" 
-                                                className="w-80 h-auto rounded-2xl shadow-xl border border-base-content/10 relative z-10"
-                                            />
+                                        <div className="w-full md:w-1/2 flex items-center justify-center">
+                                            <div className="relative group">
+                                                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                                                <img 
+                                                    src="/calendar_phone.png" 
+                                                    alt="Phone Sync" 
+                                                    className="w-full max-w-[280px] h-auto rounded-2xl shadow-2xl border border-white/10 relative z-10"
+                                                />
+                                            </div>
                                         </div>
                                         
-                                        <div className="space-y-1">
-                                            <h3 className="text-xl font-bold text-base-content tracking-tight">{t('onboarding.syncTitle')}</h3>
-                                            <p className="text-sm text-base-content/70 font-semibold leading-tight px-4 whitespace-pre-line">{t('onboarding.syncDescription')}</p>
-                                        </div>
-
-                                        <div className="w-full flex items-center justify-between py-2.5 px-4 bg-base-200/50 rounded-2xl border border-transparent">
-                                            <div className="flex flex-col items-start translate-y-0.5">
-                                                <span className="text-sm font-semibold">{t('onboarding.syncToggle')}</span>
+                                        <div className="w-full md:w-1/2 flex flex-col justify-center text-center md:text-left gap-6">
+                                            <div className="space-y-3">
+                                                <h3 className="text-2xl font-black text-base-content tracking-tight leading-none">{t('onboarding.syncTitle')}</h3>
+                                                <p className="text-sm text-base-content/70 font-medium leading-relaxed whitespace-pre-line">{t('onboarding.syncDescription')}</p>
                                             </div>
-                                            <input 
-                                                type="checkbox" 
-                                                className="toggle toggle-primary"
-                                                checked={!!isEnabled}
-                                                onChange={toggle}
-                                                disabled={isLoading}
-                                            />
+
+                                            <div className="space-y-4">
+                                                <div className="w-full flex items-center justify-between py-3.5 px-5 bg-base-200/80 backdrop-blur-sm rounded-2xl border border-base-300/50 shadow-inner">
+                                                    <div className="flex flex-col items-start translate-y-0.5">
+                                                        <span className="text-sm font-bold tracking-tight">{t('onboarding.syncToggle')}</span>
+                                                    </div>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        className="toggle toggle-primary toggle-md"
+                                                        checked={!!isEnabled}
+                                                        onChange={toggle}
+                                                        disabled={isLoading}
+                                                    />
+                                                </div>
+
+                                                <AnimatePresence>
+                                                    {isEnabled && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: -10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -10 }}
+                                                            className="w-full"
+                                                        >
+                                                            <div className="flex items-center gap-2 text-primary/80 px-1">
+                                                                <Info className="w-4 h-4" />
+                                                                <p className="text-xs italic font-semibold">
+                                                                    {t('onboarding.syncCoffeeBreak')}
+                                                                </p>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+
+                                            <button
+                                                onClick={handleDismiss}
+                                                className="btn btn-primary btn-lg w-full rounded-2xl font-bold tracking-wider shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                            >
+                                                {t('common.close')}
+                                            </button>
                                         </div>
-
-                                        <AnimatePresence>
-                                            {isEnabled && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: -10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    className="w-full"
-                                                >
-                                                    <p className="text-sm text-base-content/50 italic font-medium">
-                                                        {t('onboarding.syncCoffeeBreak')}
-                                                    </p>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-
-                                        <button
-                                            onClick={handleDismiss}
-                                            className="btn btn-primary btn-md w-full rounded-xl mt-2 font-bold tracking-wide shadow-lg shadow-primary/20"
-                                        >
-                                            {t('common.close')}
-                                        </button>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
