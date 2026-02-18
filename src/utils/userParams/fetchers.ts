@@ -10,11 +10,10 @@ export async function fetchUserBaseIds() {
     // We sanitize the HTML by removing sidebars (e.g., Zapsané termíny) that might contain course names with "Erasmus".
     const sanitizedHtml = h.replace(/<div class="sideportlet">[\s\S]*?<\/div>/g, '');
     
-    const isErasmus = /Erasmus\s*\+/i.test(sanitizedHtml) && (
-        sanitizedHtml.includes('studijní program') || 
-        sanitizedHtml.includes('study program') || 
-        sanitizedHtml.includes('stáž')
-    );
+    const isErasmus =
+        /Erasmus\s*\+/i.test(sanitizedHtml) ||
+        /exchange\s+programs?/i.test(sanitizedHtml) ||
+        /výměnné\s+programy/i.test(sanitizedHtml);
 
     return m ? { 
         studium: m[1], 

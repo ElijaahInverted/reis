@@ -16,7 +16,13 @@ export async function getUserParams(): Promise<UserParams | null> {
     try {
         const base = await fetchUserBaseIds(); if (!base) return null;
         const study = await fetchUserStudyDetails(), net = await fetchUserNetId();
-        const params: UserParams = { ...base, ...study, ...net, email: net.username ? `${net.username}@mendelu.cz` : '' };
+        const params: UserParams = { 
+            ...base, 
+            ...study, 
+            ...net, 
+            email: net.username ? `${net.username}@mendelu.cz` : '',
+            isErasmus: base.isErasmus
+        };
         await IndexedDBService.set('meta', STORAGE_KEYS.USER_PARAMS, params);
         return params;
     } catch (e) { console.error(e); return null; }
