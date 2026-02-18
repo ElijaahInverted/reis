@@ -24,7 +24,7 @@ export function useSpolkySettings() {
                   const facultyId = userParams.facultyId;
                   const erasmus = userParams.isErasmus;
 
-                  if (facultyId && FACULTY_TO_ASSOCIATION[facultyId]) {
+                  if (facultyId && FACULTY_TO_ASSOCIATION[facultyId] && !erasmus) {
                     defaults.push(FACULTY_TO_ASSOCIATION[facultyId]);
                   }
                   
