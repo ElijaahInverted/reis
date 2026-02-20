@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Calendar, MapPin, CheckCircle2, Loader2, Send, Sparkle } from 'lucide-react';
+import { X, Calendar, MapPin, CheckCircle2, Loader2, Send, BookOpen } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -121,18 +121,19 @@ export function StudyJamModal({ isOpen, onClose }: StudyJamModalProps) {
                     onSubmit={handleSubmit}
                     className="space-y-6"
                   >
-                    <div className="space-y-5">
+                    <div className="space-y-6">
                       <div className="form-control">
-                        <label className="label py-1">
-                          <span className="label-text text-gray-400 flex items-center gap-2 font-medium">
-                            <MapPin className="w-4 h-4" /> Kde se bude konat: 
-                          </span>
-                        </label>
-                        <p className="text-xs text-white/50 mb-2 px-1">zarezervuj si studovnu nebo napiš místo na univerzitě</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <span className="font-semibold text-gray-200 text-sm">Kde:</span>
+                        </div>
+                        <p className="text-sm text-gray-400 mb-3 pl-6">
+                          Zarezervuj si studovnu nebo napiš místo na univerzitě
+                        </p>
                         <input 
                           type="text" 
                           placeholder="Např. cafeteria PEFky" 
-                          className="input input-bordered w-full bg-[#0d1117] border-white/10 focus:border-primary text-white"
+                          className="input input-bordered w-full bg-[#0d1117] text-white rounded-xl text-sm placeholder:text-white/30"
                           value={where}
                           onChange={(e) => setWhere(e.target.value)}
                           required
@@ -141,27 +142,27 @@ export function StudyJamModal({ isOpen, onClose }: StudyJamModalProps) {
                       </div>
 
                       <div className="form-control">
-                        <label className="label py-1">
-                          <span className="label-text text-gray-400 flex items-center gap-2 font-medium">
-                            <Calendar className="w-4 h-4" /> Kdy:
-                          </span>
-                        </label>
-                        <button 
+                        <div className="flex items-center gap-2 mb-3">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <span className="font-semibold text-gray-200 text-sm">Kdy:</span>
+                        </div>
+                        <button
                           type="button"
                           onClick={() => setIsSelectingTime(true)}
-                          className="w-full text-left px-4 py-3 bg-[#0d1117] border border-white/10 rounded-lg text-white/50 hover:border-primary/50 transition-colors"
+                          className={`input input-bordered w-full text-left bg-[#0d1117] cursor-pointer text-sm rounded-xl flex items-center ${when ? 'text-white' : 'text-white/30'}`}
                         >
                           {when || "Vyber v kalendáři u konk. čas"}
                         </button>
                       </div>
 
                       <div className="form-control">
-                        <label className="label py-1">
-                          <span className="label-text text-gray-400 flex items-center gap-2 font-medium">
-                            <Sparkle className="w-4 h-4" /> Co sebou?
-                          </span>
-                        </label>
-                        <p className="text-xs text-white/50 px-1">Pokud student/ka doučko přijme, dá ti vědět, na co se zaměřit</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <BookOpen className="w-4 h-4 text-gray-400" />
+                          <span className="font-semibold text-gray-200 text-sm">Co sebou?</span>
+                        </div>
+                        <p className="text-sm text-gray-400 pl-6">
+                          Pokud student/ka doučko přijme, dá ti vědět, na co se zaměřit
+                        </p>
                       </div>
                     </div>
 

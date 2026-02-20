@@ -1,11 +1,12 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { CalendarEventCard } from '../CalendarEventCard';
 import { organizeLessons, getEventStyle, DAYS } from './utils';
-import type { BlockLesson } from '../../types/calendarTypes';
+import type { BlockLesson, DateInfo } from '../../types/calendarTypes';
 import { useAppStore } from '../../store/useAppStore';
 
 interface WeeklyCalendarDayProps {
     dayIndex: number;
+    date?: DateInfo;
     lessons: BlockLesson[];
     holiday: string | null;
     isToday: boolean;
@@ -15,141 +16,99 @@ interface WeeklyCalendarDayProps {
 }
 
 export function WeeklyCalendarDay({
-    dayIndex, lessons, holiday, isToday, showSkeleton, onEventClick, language
+    dayIndex, date, lessons, holiday, isToday, showSkeleton, onEventClick, language
 }: WeeklyCalendarDayProps) {
     const { lessons: organizedLessons } = useMemo(() => organizeLessons(lessons), [lessons]);
     const isSelectingTime = useAppStore(s => s.isSelectingTime);
     const pendingTimeSelection = useAppStore(s => s.pendingTimeSelection);
     const setPendingTimeSelection = useAppStore(s => s.setPendingTimeSelection);
-    
+
     const containerRef = useRef<HTMLDivElement>(null);
-    const [dragStartMins, setDragStartMins] = useState<number | null>(null);
-    const [dragCurrentMins, setDragCurrentMins] = useState<number | null>(null);
+    const [isResizing, setIsResizing] = useState(false);
+
+    useEffect(() => {
+        if (!isSelectingTime) {
+            setIsResizing(false);
+        }
+    }, [isSelectingTime]);
 
     const getMinutesFromY = (clientY: number) => {
         if (!containerRef.current) return 0;
         const rect = containerRef.current.getBoundingClientRect();
-        // Clamp Y to the container boundaries
         const y = Math.max(0, Math.min(clientY - rect.top, rect.height));
         const percentage = y / rect.height;
-        
         const totalMinutes = 13 * 60; // 7:00 to 20:00
         const rawMinutes = percentage * totalMinutes;
-        
-        // Snap to nearest 15 mins
         return Math.round(rawMinutes / 15) * 15;
     };
 
-    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.button !== 0 || !isSelectingTime || holiday || showSkeleton) return;
-        
-        // Use composed paths to check if we clicked on an event card when not intended
-        // But for time selection, we allow dragging over events like GCal does.
-        e.preventDefault();
-        
-        // Clear globally stored selection when starting a new drag
-        setPendingTimeSelection(null);
-        
-        const mins = getMinutesFromY(e.clientY);
-        setDragStartMins(mins);
-        setDragCurrentMins(mins);
+    const f = (m: number) => `${7 + Math.floor(m / 60)}:${(m % 60).toString().padStart(2, '0')}`;
+
+    const buildSelection = (startMins: number, endMins: number) => {
+        const dayName = DAYS[dayIndex]?.full || '';
+        const formattedDate = date ? `${dayName} ${parseInt(date.day)}. ${parseInt(date.month)}.` : dayName;
+        return { dayIndex, startMins, endMins, formattedTime: `${formattedDate} | ${f(startMins)} - ${f(endMins)}` };
     };
 
-    useEffect(() => {
-        if (dragStartMins === null) return;
+    const handleColumnClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!isSelectingTime || holiday || showSkeleton) return;
+        const startMins = getMinutesFromY(e.clientY);
+        const endMins = Math.min(startMins + 60, 13 * 60);
+        setPendingTimeSelection(buildSelection(startMins, endMins));
+    };
 
-        const handleMouseMove = (e: MouseEvent) => {
-            e.preventDefault();
-            setDragCurrentMins(getMinutesFromY(e.clientY));
-        };
+    const handleResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setIsResizing(true);
+    };
 
-        const handleMouseUp = (e: MouseEvent) => {
-            e.preventDefault();
-            if (dragCurrentMins !== null) {
-                const start = Math.min(dragStartMins, dragCurrentMins);
-                let end = Math.max(dragStartMins, dragCurrentMins);
-                
-                // Ensure a minimum of 15 min block if clicked without dragging
-                if (start === end) end += 60; // default 1h if just click
-                
-                const formatTime = (totalMins: number) => {
-                    const h = 7 + Math.floor(totalMins / 60);
-                    const m = totalMins % 60;
-                    return `${h}:${m.toString().padStart(2, '0')}`;
-                };
-                
-                const dayName = DAYS[dayIndex]?.short || '';
-                const timeString = `${dayName} ${formatTime(start)} - ${formatTime(end)}`;
-                
-                // Store pending selection globally instead of dispatching immediately
-                setPendingTimeSelection({
-                    dayIndex,
-                    startMins: start,
-                    endMins: end,
-                    formattedTime: timeString
-                });
-            }
-            setDragStartMins(null);
-            setDragCurrentMins(null);
-        };
+    const handleResizePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isResizing || !pendingTimeSelection || pendingTimeSelection.dayIndex !== dayIndex) return;
+        e.preventDefault();
+        const newEnd = Math.max(
+            pendingTimeSelection.startMins + 15,
+            Math.min(getMinutesFromY(e.clientY), 13 * 60)
+        );
+        setPendingTimeSelection(buildSelection(pendingTimeSelection.startMins, newEnd));
+    };
 
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
-    }, [dragStartMins, dragCurrentMins, dayIndex, isSelectingTime, setPendingTimeSelection]);
-
-    // Calculate ghost box styles based on active drag OR completed pending selection
-    let selectionStyle = {};
-    let isActiveSelection = false;
-    let renderStart = 0;
-    let renderEnd = 0;
-
-    if (dragStartMins !== null && dragCurrentMins !== null) {
-        isActiveSelection = true;
-        renderStart = Math.min(dragStartMins, dragCurrentMins);
-        renderEnd = Math.max(dragStartMins, dragCurrentMins);
-        if (renderStart === renderEnd) renderEnd += 15; // Visual minimum during drag
-    } else if (pendingTimeSelection && pendingTimeSelection.dayIndex === dayIndex) {
-        isActiveSelection = true;
-        renderStart = pendingTimeSelection.startMins;
-        renderEnd = pendingTimeSelection.endMins;
-    }
-
-    if (isActiveSelection) {
-        const totalMinutes = 13 * 60;
-        const topPercent = (renderStart / totalMinutes) * 100;
-        const heightPercent = ((renderEnd - renderStart) / totalMinutes) * 100;
-        
-        selectionStyle = {
-            top: `${topPercent}%`,
-            height: `${heightPercent}%`,
-        };
-    }
+    const handleResizePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isResizing) return;
+        e.currentTarget.releasePointerCapture(e.pointerId);
+        setIsResizing(false);
+    };
 
     return (
-        <div 
+        <div
             ref={containerRef}
-            className={`flex-1 relative ${isToday ? 'bg-current-day' : ''} ${isSelectingTime ? 'cursor-crosshair' : ''}`}
-            onMouseDown={handleMouseDown}
+            className={`flex-1 relative ${isToday ? 'bg-current-day' : ''} ${isSelectingTime ? 'cursor-crosshair select-none touch-none' : ''}`}
+            onClick={handleColumnClick}
         >
-            {/* The drag ghost block */}
-            {isActiveSelection && (
-                <div 
-                    className="absolute left-1 right-1 bg-primary/20 border-2 border-primary z-30 rounded-md pointer-events-none shadow-sm backdrop-blur-[1px]"
-                    style={selectionStyle}
-                >
-                    <div className="text-[10px] sm:text-xs font-bold text-primary p-1 bg-white/60 dark:bg-black/40 rounded-t-sm w-max backdrop-blur-md">
-                        {(() => {
-                            const f = (m: number) => `${7 + Math.floor(m / 60)}:${(m % 60).toString().padStart(2, '0')}`;
-                            return `${f(renderStart)} - ${f(renderEnd)}`;
-                        })()}
+            {pendingTimeSelection?.dayIndex === dayIndex && (() => {
+                const { startMins: rs, endMins: re } = pendingTimeSelection;
+                const totalMins = 13 * 60;
+                return (
+                    <div
+                        className="absolute left-1 right-1 bg-primary/20 border-2 border-primary z-30 rounded-md pointer-events-none shadow-sm backdrop-blur-[1px]"
+                        style={{ top: `${(rs / totalMins) * 100}%`, height: `${((re - rs) / totalMins) * 100}%` }}
+                    >
+                        <div className="text-[10px] sm:text-xs font-bold text-primary p-1 bg-white/60 dark:bg-black/40 rounded-t-sm w-max backdrop-blur-md">
+                            {`${f(rs)} - ${f(re)}`}
+                        </div>
+                        <div
+                            className="absolute bottom-0 left-0 right-0 h-3 cursor-ns-resize flex items-center justify-center pointer-events-auto"
+                            onPointerDown={handleResizePointerDown}
+                            onPointerMove={handleResizePointerMove}
+                            onPointerUp={handleResizePointerUp}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="w-8 h-1 rounded-full bg-primary/60" />
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
 
             {holiday && (
                 <div className="absolute inset-0 flex items-center justify-center bg-error/10 z-20">
@@ -183,7 +142,6 @@ export function WeeklyCalendarDay({
                             ...style,
                             left: `${(lesson.row / cols) * 100}%`,
                             width: `${100 / cols}%`,
-                            // Ensure events don't block dragging
                             pointerEvents: isSelectingTime ? 'none' : 'auto'
                         }}
                     >

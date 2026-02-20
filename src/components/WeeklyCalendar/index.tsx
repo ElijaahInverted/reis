@@ -108,8 +108,8 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
                         exit={{ opacity: 0, y: -20 }}
                         className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
                     >
-                        <div className="bg-[#1c2128] border border-white/10 shadow-2xl rounded-2xl p-4 flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-emerald-900/30 flex items-center justify-center text-emerald-500 shrink-0">
+                        <div className="bg-base-200 border border-white/10 shadow-2xl rounded-2xl p-4 flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0">
                                 <MousePointerClick className="w-5 h-5 animate-pulse" />
                             </div>
                             <div className="flex-1 min-w-[200px]">
@@ -137,7 +137,7 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
                                             window.dispatchEvent(event);
                                             setPendingTimeSelection(null);
                                         }}
-                                        className="btn btn-sm bg-emerald-600 hover:bg-emerald-500 border-none text-white font-medium px-4"
+                                        className="btn btn-sm btn-success border-none text-white font-medium px-4"
                                     >
                                         Potvrdit
                                     </button>
@@ -162,7 +162,7 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
                         <CalendarHint show={!isSeen} eventPosition={targetEventPosition || undefined} onDismiss={markSeen} />
                         <WeeklyCalendarGrid />
                         {[0, 1, 2, 3, 4].map(i => (
-                            <WeeklyCalendarDay key={i} dayIndex={i} lessons={lessonsByDay[i] || []}
+                            <WeeklyCalendarDay key={i} dayIndex={i} date={weekDates[i]} lessons={lessonsByDay[i] || []}
                                                holiday={holidaysByDay[i]} isToday={i === todayIndex}
                                                showSkeleton={showSkeleton} onEventClick={handleEventClick}
                                                language={language} />
