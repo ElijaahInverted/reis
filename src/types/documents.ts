@@ -95,6 +95,7 @@ export interface Assessment {
 export interface CourseGrade {
     period: string;        // "ZS 2025/2026 - PEF"
     predmetId: string;     // "159410"
+    courseCode?: string;   // "DSND" — short code from second table cell
     courseName: string;    // "Algoritmizace"
     examType: string;      // "zk" | "záp" | "zak"
     attempt: number | null;

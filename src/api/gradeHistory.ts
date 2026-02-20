@@ -52,6 +52,7 @@ function parseGradeHistory(html: string, studium: string): GradeHistory {
             const courseName = courseLink.textContent?.trim().replace(/\u00a0/g, ' ') ?? '';
 
             const cells = row.querySelectorAll('td');
+            const courseCode = cells[1]?.textContent?.trim().replace(/\u00a0/g, ' ') || undefined;
             const examType = cells[4]?.textContent?.trim() ?? '';
             const attemptText = cells[5]?.textContent?.trim() ?? '';
             const attempt = attemptText ? parseInt(attemptText, 10) : null;
@@ -65,7 +66,7 @@ function parseGradeHistory(html: string, studium: string): GradeHistory {
             const credits = creditsText ? parseInt(creditsText, 10) : null;
 
             if (predmetId && courseName) {
-                grades.push({ period, predmetId, courseName, examType, attempt, gradeText, gradeLetter, credits });
+                grades.push({ period, predmetId, courseCode, courseName, examType, attempt, gradeText, gradeLetter, credits });
             }
         }
     }

@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MousePointerClick } from 'lucide-react';
 import { CalendarHint } from '../CalendarHint';
 import { SubjectFileDrawer } from '../SubjectFileDrawer';
 import { useAppStore } from '../../store/useAppStore';
@@ -15,6 +17,10 @@ const TOTAL_HOURS = 13;
 export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Date }) {
     const language = useAppStore((state) => state.language);
     const isLanguageLoading = useAppStore((state) => state.isLanguageLoading);
+    const isSelectingTime = useAppStore((state) => state.isSelectingTime);
+    const setIsSelectingTime = useAppStore((state) => state.setIsSelectingTime);
+    const pendingTimeSelection = useAppStore((state) => state.pendingTimeSelection);
+    const setPendingTimeSelection = useAppStore((state) => state.setPendingTimeSelection);
     const { weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton: dataLoading } = useCalendarData(initialDate);
     
     const [selected, setSelected] = useState<BlockLesson | null>(null);
@@ -92,6 +98,56 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
     return (
         <div className="flex h-full overflow-hidden flex-col font-inter bg-base-100">
             <WeeklyCalendarHeader weekDates={weekDates} todayIndex={todayIndex} holidaysByDay={holidaysByDay} />
+            
+            {/* Study Jam Time Selection Hint Banner */}
+            <AnimatePresence>
+                {isSelectingTime && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
+                    >
+                        <div className="bg-[#1c2128] border border-white/10 shadow-2xl rounded-2xl p-4 flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-emerald-900/30 flex items-center justify-center text-emerald-500 shrink-0">
+                                <MousePointerClick className="w-5 h-5 animate-pulse" />
+                            </div>
+                            <div className="flex-1 min-w-[200px]">
+                                <h4 className="font-bold text-white text-sm">Vyberte čas pro doučování</h4>
+                                <p className="text-xs text-gray-400">
+                                    {pendingTimeSelection 
+                                        ? `Vybráno: ${pendingTimeSelection.formattedTime}` 
+                                        : "Klikněte na volné místo v kalendáři"}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={() => {
+                                        setPendingTimeSelection(null);
+                                        setIsSelectingTime(false);
+                                    }}
+                                    className="btn btn-sm btn-ghost text-gray-400 hover:text-white"
+                                >
+                                    Zrušit
+                                </button>
+                                {pendingTimeSelection && (
+                                    <button 
+                                        onClick={() => {
+                                            const event = new CustomEvent('studyjam-time-selected', { detail: pendingTimeSelection.formattedTime });
+                                            window.dispatchEvent(event);
+                                            setPendingTimeSelection(null);
+                                        }}
+                                        className="btn btn-sm bg-emerald-600 hover:bg-emerald-500 border-none text-white font-medium px-4"
+                                    >
+                                        Potvrdit
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="flex-1 overflow-hidden">
                 <div className="flex h-full">
                     <div className="w-12 flex-shrink-0 border-r border-base-300 bg-base-200 relative">

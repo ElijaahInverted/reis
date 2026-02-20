@@ -39,7 +39,9 @@ export function useAppLogic() {
 
   useEffect(() => {
     outlookSyncService.init();
-    syncGradeHistory().catch(e => console.warn('[useAppLogic] grade history sync failed:', e));
+    syncGradeHistory()
+      .then(() => useAppStore.getState().loadStudyJamSuggestions())
+      .catch(e => console.warn('[useAppLogic] grade history sync failed:', e));
     let unsub: (() => void) | undefined;
     initializeStore().then(unsubscribe => {
       unsub = unsubscribe;
@@ -142,7 +144,9 @@ export function useAppLogic() {
                 try {
                     await useAppStore.getState().fetchAllFiles();
                     useAppStore.getState().invalidateClassmates();
-                    syncGradeHistory().catch(e => console.warn('[useAppLogic] grade history sync failed:', e));
+                    syncGradeHistory()
+                      .then(() => useAppStore.getState().loadStudyJamSuggestions())
+                      .catch(e => console.warn('[useAppLogic] grade history sync failed:', e));
                 } finally {
                     useAppStore.getState().setSyncStatus({ isSyncing: false });
                 }

@@ -102,6 +102,29 @@ export interface SuccessRateSlice {
     fetchSuccessRate: (courseCode: string) => Promise<void>;
 }
 
+export interface StudyJamSuggestion {
+    courseCode: string;
+    courseName: string;
+    role: 'tutor' | 'tutee';
+}
+
+export interface StudyJamsSlice {
+    isStudyJamOpen: boolean;
+    setIsStudyJamOpen: (isOpen: boolean) => void;
+    isSelectingTime: boolean;
+    setIsSelectingTime: (isSelecting: boolean) => void;
+    pendingTimeSelection: { dayIndex: number; startMins: number; endMins: number; formattedTime: string } | null;
+    setPendingTimeSelection: (selection: { dayIndex: number; startMins: number; endMins: number; formattedTime: string } | null) => void;
+    studyJamSuggestions: StudyJamSuggestion[];
+    studyJamOptIns: Record<string, { id: string; role: 'tutor' | 'tutee' }>;
+    studyJamMatch: { courseCode: string; courseName: string } | null;
+    loadStudyJamSuggestions: () => Promise<void>;
+    optInStudyJam: (courseCode: string, courseName: string, role: 'tutor' | 'tutee') => Promise<void>;
+    requestTutorMatch: (courseCode: string, courseName: string) => Promise<void>;
+    cancelOptIn: (courseCode: string) => Promise<void>;
+    dismissStudyJamMatch: () => void;
+}
+
 export interface UseThemeResult {
   theme: Theme;
   isDark: boolean;
@@ -110,6 +133,6 @@ export interface UseThemeResult {
   setTheme: (theme: Theme) => void;
 }
 
-export type AppState = ScheduleSlice & ExamSlice & SyllabusSlice & FilesSlice & AssessmentsSlice & ClassmatesSlice & SubjectsSlice & SyncSlice & ThemeSlice & I18nSlice & SuccessRateSlice;
+export type AppState = ScheduleSlice & ExamSlice & SyllabusSlice & FilesSlice & AssessmentsSlice & ClassmatesSlice & SubjectsSlice & SyncSlice & ThemeSlice & I18nSlice & SuccessRateSlice & StudyJamsSlice;
 
 export type AppSlice<T> = StateCreator<AppState, [], [], T>;

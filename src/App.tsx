@@ -23,7 +23,8 @@ function App() {
     <div className="flex h-screen overflow-hidden bg-base-200 font-sans text-base-content">
       <Toaster position="top-center" />
       <Sidebar currentView={s.currentView} onViewChange={s.setCurrentView}
-               onOpenFeedback={() => s.setIsFeedbackOpen(true)} tutorials={s.tutorials} onSelectTutorial={s.setSelectedTutorial}
+               onOpenFeedback={() => s.setIsFeedbackOpen(true)} 
+               tutorials={s.tutorials} onSelectTutorial={s.setSelectedTutorial}
                onOpenSubject={s.handleOpenSubjectFromSearch} />
       
       <AppMain currentView={s.currentView} currentDate={s.currentDate} dateRangeLabel={getDateRangeLabel()}
@@ -32,7 +33,8 @@ function App() {
 
       <AppOverlays selectedSubject={s.selectedSubject} setSelectedSubject={s.setSelectedSubject}
                    isFeedbackOpen={s.isFeedbackOpen}
-                   setIsFeedbackOpen={s.setIsFeedbackOpen} selectedTutorial={s.selectedTutorial}
+                   setIsFeedbackOpen={s.setIsFeedbackOpen} 
+                   selectedTutorial={s.selectedTutorial}
                    setSelectedTutorial={s.setSelectedTutorial} />
     </div>
   )

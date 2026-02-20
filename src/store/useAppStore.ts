@@ -11,6 +11,7 @@ import { createSyncSlice } from './slices/createSyncSlice';
 import { createThemeSlice } from './slices/createThemeSlice';
 import { createI18nSlice } from './slices/createI18nSlice';
 import { createSuccessRateSlice } from './slices/createSuccessRateSlice';
+import { createStudyJamsSlice } from './slices/createStudyJamsSlice';
 import { syncService } from '../services/sync';
 import { initMockData } from '../utils/initMockData';
 
@@ -26,6 +27,7 @@ export const useAppStore = create<AppState>()((...a) => ({
   ...createThemeSlice(...a),
   ...createI18nSlice(...a),
   ...createSuccessRateSlice(...a),
+  ...createStudyJamsSlice(...a),
 }));
 
 // Initialize store and subscribe to sync updates
