@@ -55,9 +55,9 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
     optInStudyJam: async (courseCode, _courseName, role) => {
         const userParams = await getUserParams();
         if (!userParams) return;
-        const id = await registerAvailability(userParams.studium, courseCode, role, userParams.obdobi);
-        if (!id) return;
-        const optIns = { ...get().studyJamOptIns, [courseCode]: { id, role } };
+        const ok = await registerAvailability(userParams.studium, courseCode, role, userParams.obdobi);
+        if (!ok) return;
+        const optIns = { ...get().studyJamOptIns, [courseCode]: { role } };
         await IndexedDBService.set('meta', OPT_INS_KEY, optIns);
         set(state => ({
             studyJamOptIns: optIns,
@@ -65,11 +65,12 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
         }));
     },
 
-
     cancelOptIn: async (courseCode) => {
         const optIn = get().studyJamOptIns[courseCode];
         if (!optIn) return;
-        await deleteAvailability(optIn.id);
+        const userParams = await getUserParams();
+        if (!userParams) return;
+        await deleteAvailability(userParams.studium, courseCode);
         const optIns = { ...get().studyJamOptIns };
         delete optIns[courseCode];
         await IndexedDBService.set('meta', OPT_INS_KEY, optIns);

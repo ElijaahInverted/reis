@@ -17,17 +17,15 @@ export async function registerAvailability(
     course_code: string,
     role: 'tutor' | 'tutee',
     semester_id: string,
-): Promise<string | null> {
-    const { data, error } = await supabase
+): Promise<boolean> {
+    const { error } = await supabase
         .from('study_jam_availability')
-        .insert({ studium, course_code, role, semester_id })
-        .select('id')
-        .single();
+        .insert({ studium, course_code, role, semester_id });
     if (error) {
         console.error('[studyJams] registerAvailability error', error);
-        return null;
+        return false;
     }
-    return (data as { id: string } | null)?.id ?? null;
+    return true;
 }
 
 export async function insertTutoringMatch(
@@ -62,6 +60,6 @@ export async function fetchMyTutoringMatch(
     return data as { tutor_studium: string; tutee_studium: string; course_code: string } | null;
 }
 
-export async function deleteAvailability(id: string): Promise<void> {
-    await supabase.from('study_jam_availability').delete().eq('id', id);
+export async function deleteAvailability(studium: string, course_code: string): Promise<void> {
+    await supabase.from('study_jam_availability').delete().eq('studium', studium).eq('course_code', course_code);
 }
