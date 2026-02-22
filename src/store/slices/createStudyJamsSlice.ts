@@ -1,6 +1,6 @@
 import type { AppSlice, StudyJamsSlice } from '../types';
 import { IndexedDBService } from '../../services/storage';
-import { fetchKillerCourses, registerAvailability, deleteAvailability, fetchMyTutoringMatch, fetchMyAvailability } from '../../api/studyJams';
+import { fetchKillerCourses, registerAvailability, deleteAvailability, fetchMyTutoringMatch, fetchMyAvailability, fetchMyDismissals, dismissStudyJam } from '../../api/studyJams';
 import { checkStudyJamEligibility } from '../../services/studyJams/studyJamEligibility';
 import { getUserParams } from '../../utils/userParams';
 
