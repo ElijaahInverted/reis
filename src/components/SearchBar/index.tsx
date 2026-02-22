@@ -27,7 +27,7 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
   const handleSelect = (result: SearchResult) => {
     saveToHistory(result);
     if (result.type === 'subject' && onOpenSubject) {
-      onOpenSubject(result.subjectCode!, result.title, result.subjectId);
+      onOpenSubject(result.subjectCode!, result.title, result.subjectId, result.faculty);
     } else if (result.link) {
       window.open(injectUserParams(result.link, studiumId), '_blank');
     }
@@ -54,8 +54,8 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
             <div className="flex-1 flex items-center h-12 px-4">
               <Search className={`w-5 h-5 mr-3 transition-colors ${isOpen ? 'text-base-content' : 'text-base-content/50'}`} />
               <input ref={inputRef} type="text" value={query} onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
-                     onFocus={() => query.trim().length > 0 && setIsOpen(true)} onKeyDown={handleKeyDown} placeholder={finalPlaceholder}
-                     className="w-full bg-transparent text-sm text-base-content placeholder-base-content/50 focus:outline-none" />
+                onFocus={() => query.trim().length > 0 && setIsOpen(true)} onKeyDown={handleKeyDown} placeholder={finalPlaceholder}
+                className="w-full bg-transparent text-sm text-base-content placeholder-base-content/50 focus:outline-none" />
               {query && (<button onClick={() => { setQuery(''); inputRef.current?.focus(); }} className="p-1 hover:bg-base-200 rounded-full"><X className="w-4 h-4 text-base-content/50" /></button>)}
             </div>
           </div>
@@ -66,7 +66,7 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
               <div className="max-h-[min(400px,50vh)] overflow-y-auto pb-2">
                 {displayResults.length > 0 ? displayResults.map((result, index) => (
                   <SearchResultItem key={result.id} result={result} isRecent={query === ''} isSelected={selectedIndex === index}
-                                    onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(result); }} />
+                    onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(result); }} />
                 )) : (
                   <div className="px-4 py-8 text-center text-sm text-base-content/50">
                     {isLoading ? <div className="flex flex-col items-center gap-2"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-base-content/50"></div><span>{t('search.loading')}</span></div> :

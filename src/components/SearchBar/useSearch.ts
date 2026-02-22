@@ -20,17 +20,17 @@ export function useSearch(query: string) {
 
   useEffect(() => {
     import('../../utils/userParams').then(async ({ getUserParams }) => {
-        try {
-            const params = await getUserParams();
-            if (params?.studium) setStudiumId(String(params.studium));
-        } catch (err) { console.error("Failed to load user params", err); }
+      try {
+        const params = await getUserParams();
+        if (params?.studium) setStudiumId(String(params.studium));
+      } catch (err) { console.error("Failed to load user params", err); }
     });
-    
+
     const loadRecent = async () => {
-        try {
-            const stored = await IndexedDBService.get('meta', 'recent_searches');
-            if (stored) setRecentSearches(stored);
-        } catch { console.error('Failed to load recent searches'); }
+      try {
+        const stored = await IndexedDBService.get('meta', 'recent_searches');
+        if (stored) setRecentSearches(stored);
+      } catch { console.error('Failed to load recent searches'); }
     };
     loadRecent();
   }, []);
@@ -41,9 +41,9 @@ export function useSearch(query: string) {
     const updated = [newItem, ...filtered].slice(0, MAX_RECENT_SEARCHES);
     setRecentSearches(updated);
     try {
-        await IndexedDBService.set('meta', 'recent_searches', updated);
+      await IndexedDBService.set('meta', 'recent_searches', updated);
     } catch {
-        console.error('Failed to save recent searches');
+      console.error('Failed to save recent searches');
     }
   };
 
@@ -60,7 +60,7 @@ export function useSearch(query: string) {
       try {
         const searchQuery = query.toLowerCase();
         const { people, subjects } = await searchGlobal(query);
-        
+
         const personResults: SearchResult[] = people.map((p, i) => ({
           id: p.id || `unknown-${i}`, title: p.name, type: 'person',
           detail: p.type === 'student' ? t('search.student') : p.type === 'teacher' ? t('search.teacher') : t('search.employee'),
@@ -70,7 +70,7 @@ export function useSearch(query: string) {
         const subjectResults: SearchResult[] = subjects.map(s => ({
           id: `subject-${s.id}`, title: s.name, type: 'subject',
           detail: [s.code, s.semester, s.faculty].filter(p => p && p !== 'N/A').join(' · '),
-          link: s.link, subjectCode: s.code, subjectId: s.id
+          link: s.link, subjectCode: s.code, subjectId: s.id, faculty: s.faculty
         }));
 
         const pageResults: SearchResult[] = [];

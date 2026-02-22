@@ -6,4 +6,5 @@ export interface SelectedSubject {
     courseId: string;
     id: string;
     isFromSearch?: boolean;
+    facultyCode?: string;
 }

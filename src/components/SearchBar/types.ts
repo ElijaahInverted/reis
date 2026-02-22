@@ -1,7 +1,7 @@
 export interface SearchBarProps {
   placeholder?: string;
   onSearch?: (query: string) => void;
-  onOpenSubject?: (courseCode: string, courseName?: string, courseId?: string) => void;
+  onOpenSubject?: (courseCode: string, courseName?: string, courseId?: string, facultyCode?: string) => void;
 }
 
 export interface SearchResult {
@@ -14,4 +14,5 @@ export interface SearchResult {
   category?: string;
   subjectCode?: string;
   subjectId?: string;
+  faculty?: string;
 }
