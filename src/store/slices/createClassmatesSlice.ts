@@ -1,163 +1,185 @@
 import type { ClassmatesSlice, AppSlice } from '../types';
-import type { ClassmatesData, Classmate } from '../../types/classmates';
 import { IndexedDBService } from '../../services/storage';
 
 export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
     classmates: {},
-    classmatesLoading: {},
-    classmatesPriorityLoading: {},
-    classmatesProgress: {},
+    classmatesAllLoading: {},
+    classmatesAllProgress: {},
+    classmatesSeminarLoading: {},
+    classmatesSeminarProgress: {},
 
-    fetchClassmates: async (courseCode) => {
+    fetchClassmatesAll: async (courseCode) => {
+        if (get().classmatesAllLoading[courseCode]) return;
+
         set((state) => ({
-            classmatesLoading: { ...state.classmatesLoading, [courseCode]: true }
+            classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: true },
+            classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'initializing' },
         }));
 
         try {
-            const data = await IndexedDBService.get('classmates', courseCode) as ClassmatesData | null;
-            set((state) => ({
-                classmates: {
-                    ...state.classmates,
-                    [courseCode]: data || { all: [], seminar: [] }
-                },
-                classmatesLoading: { ...state.classmatesLoading, [courseCode]: false },
-                // Also clear priority loading if it was active
-                classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false }
-            }));
-        } catch (error) {
-            console.error(`[ClassmatesSlice] Fetch failed for ${courseCode}:`, error);
-            set((state) => ({
-                classmates: { ...state.classmates, [courseCode]: state.classmates[courseCode] ?? { all: [], seminar: [] } },
-                classmatesLoading: { ...state.classmatesLoading, [courseCode]: false },
-                classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false }
-            }));
-        }
-    },
-
-    fetchClassmatesPriority: async (courseCode) => {
-        // Avoid duplicate priority fetches
-        if (get().classmatesPriorityLoading[courseCode]) return;
-
-        set((state) => ({
-            classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: true },
-            classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'initializing' }
-        }));
-
-        try {
-            // First try IndexedDB for instant load
-            const cachedData = await IndexedDBService.get('classmates', courseCode) as ClassmatesData | null;
-            if (cachedData) {
+            const cached = await IndexedDBService.get('classmates', `${courseCode}:all`);
+            if (cached !== undefined) {
                 set((state) => ({
-                    classmates: { ...state.classmates, [courseCode]: cachedData },
-                    classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
-                    classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
+                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), all: cached.all } },
+                    classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
+                    classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'success' },
                 }));
                 return;
             }
 
-            // No IDB cache — wait for subjects metadata and sync handshake
-            let syncStatus = get().syncStatus;
             let subjects = get().subjects;
+            let syncStatus = get().syncStatus;
 
-            set((state) => ({
-                classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'waiting_metadata' }
-            }));
-
-            // Wait for handshake and subjects if needed
             if (!syncStatus.handshakeDone || !subjects) {
+                set((state) => ({ classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'waiting_metadata' } }));
                 const { useAppStore } = await import('../useAppStore');
                 await new Promise<void>((resolve) => {
-                    const unsubscribe = useAppStore.subscribe((state) => {
-                        if (state.syncStatus.handshakeDone && state.subjects) {
-                            unsubscribe();
-                            syncStatus = state.syncStatus;
-                            subjects = state.subjects;
-                            resolve();
+                    const unsub = useAppStore.subscribe((s) => {
+                        if (s.syncStatus.handshakeDone && s.subjects) {
+                            unsub(); subjects = s.subjects; syncStatus = s.syncStatus; resolve();
                         }
                     });
-                    // Safety timeout
-                    setTimeout(() => { unsubscribe(); resolve(); }, 5000);
+                    setTimeout(() => { unsub(); resolve(); }, 5000);
                 });
             }
 
-            if (!subjects?.data[courseCode]?.subjectId) {
-                const isSyncActive = syncStatus.isSyncing || !syncStatus.handshakeDone;
-                if (!isSyncActive) {
-                    console.log(`[ClassmatesSlice] No cache/id and sync finished for ${courseCode}. Setting empty.`);
-                    set((state) => ({
-                        classmates: { ...state.classmates, [courseCode]: { all: [], seminar: [] } },
-                        classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
-                        classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
-                    }));
-                    return;
-                }
-                // Still waiting for sync...
-                set((state) => ({ classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'waiting_sync' } }));
+            if (!subjects?.data[courseCode]?.subjectId && syncStatus.isSyncing) {
+                set((state) => ({ classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'waiting_sync' } }));
+                const { useAppStore } = await import('../useAppStore');
+                await new Promise<void>((resolve) => {
+                    const unsub = useAppStore.subscribe((s) => {
+                        if (s.subjects?.data[courseCode]?.subjectId || !s.syncStatus.isSyncing) {
+                            unsub(); subjects = s.subjects; syncStatus = s.syncStatus; resolve();
+                        }
+                    });
+                    setTimeout(() => { unsub(); resolve(); }, 10000);
+                });
+            }
+
+            const subject = subjects?.data[courseCode];
+            if (!subject?.subjectId) {
+                set((state) => ({
+                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), all: [] } },
+                    classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
+                    classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'success' },
+                }));
                 return;
             }
 
-            const subject = subjects.data[courseCode];
             const { getUserParams } = await import('../../utils/userParams');
             const userParams = await getUserParams();
-
-            if (!userParams?.studium || !userParams?.obdobi) {
-                throw new Error('User parameters missing');
-            }
+            if (!userParams?.studium || !userParams?.obdobi) throw new Error('User parameters missing');
 
             const { fetchClassmates } = await import('../../api/classmates');
-            set((state) => ({ classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'fetching' } }));
+            set((state) => ({ classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'fetching' } }));
 
-            // Progressive fetch for 'all' classmates
-            const allPromise = fetchClassmates(subject.subjectId!, userParams.studium, userParams.obdobi, undefined, (chunk) => {
-                set((state) => {
-                    const current = state.classmates[courseCode] || { all: [], seminar: [] };
-                    return {
-                        classmates: {
-                            ...state.classmates,
-                            [courseCode]: { ...current, all: chunk }
-                        }
-                    };
-                });
+            const all = await fetchClassmates(subject.subjectId, userParams.studium, userParams.obdobi, undefined, (chunk) => {
+                set((state) => ({ classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), all: chunk } } }));
             });
 
-            // Progressive fetch for 'seminar' classmates if group ID exists
-            let seminarPromise = Promise.resolve([] as Classmate[]);
-            if (subject.skupinaId) {
-                seminarPromise = fetchClassmates(subject.subjectId!, userParams.studium, userParams.obdobi, subject.skupinaId, (chunk) => {
-                    set((state) => {
-                        const current = state.classmates[courseCode] || { all: [], seminar: [] };
-                        return {
-                            classmates: {
-                                ...state.classmates,
-                                [courseCode]: { ...current, seminar: chunk }
-                            }
-                        };
+            await IndexedDBService.set('classmates', `${courseCode}:all`, { all, seminar: [] });
+            set((state) => ({
+                classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), all } },
+                classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
+                classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'success' },
+            }));
+        } catch (error) {
+            console.error(`[ClassmatesSlice] fetchClassmatesAll failed for ${courseCode}:`, error);
+            set((state) => ({
+                classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
+                classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'error' },
+            }));
+        }
+    },
+
+    fetchClassmatesSeminar: async (courseCode) => {
+        if (get().classmatesSeminarLoading[courseCode]) return;
+
+        set((state) => ({
+            classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: true },
+            classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'initializing' },
+        }));
+
+        try {
+            const cached = await IndexedDBService.get('classmates', `${courseCode}:seminar`);
+            if (cached !== undefined) {
+                set((state) => ({
+                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), seminar: cached.seminar } },
+                    classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
+                    classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'success' },
+                }));
+                return;
+            }
+
+            let subjects = get().subjects;
+            let syncStatus = get().syncStatus;
+
+            if (!syncStatus.handshakeDone || !subjects) {
+                set((state) => ({ classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'waiting_metadata' } }));
+                const { useAppStore } = await import('../useAppStore');
+                await new Promise<void>((resolve) => {
+                    const unsub = useAppStore.subscribe((s) => {
+                        if (s.syncStatus.handshakeDone && s.subjects) {
+                            unsub(); subjects = s.subjects; syncStatus = s.syncStatus; resolve();
+                        }
                     });
+                    setTimeout(() => { unsub(); resolve(); }, 5000);
                 });
             }
 
-            const [all, seminar] = await Promise.all([allPromise, seminarPromise]);
-            const finalData = { all, seminar };
+            // skupinaId arrives after fetchSeminarGroupIds — wait for it or sync completion
+            if (!subjects?.data[courseCode]?.skupinaId && syncStatus.isSyncing) {
+                set((state) => ({ classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'waiting_sync' } }));
+                const { useAppStore } = await import('../useAppStore');
+                await new Promise<void>((resolve) => {
+                    const unsub = useAppStore.subscribe((s) => {
+                        if (s.subjects?.data[courseCode]?.skupinaId || !s.syncStatus.isSyncing) {
+                            unsub(); subjects = s.subjects; syncStatus = s.syncStatus; resolve();
+                        }
+                    });
+                    setTimeout(() => { unsub(); resolve(); }, 15000);
+                });
+            }
 
-            // Final update and persistence
-            await IndexedDBService.set('classmates', courseCode, finalData);
+            const subject = subjects?.data[courseCode];
+            if (!subject?.skupinaId || !subject?.subjectId) {
+                // No seminar group — cache empty so we skip this path next time
+                await IndexedDBService.set('classmates', `${courseCode}:seminar`, { all: [], seminar: [] });
+                set((state) => ({
+                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), seminar: [] } },
+                    classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
+                    classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'success' },
+                }));
+                return;
+            }
+
+            const { getUserParams } = await import('../../utils/userParams');
+            const userParams = await getUserParams();
+            if (!userParams?.studium || !userParams?.obdobi) throw new Error('User parameters missing');
+
+            const { fetchClassmates } = await import('../../api/classmates');
+            set((state) => ({ classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'fetching' } }));
+
+            const seminar = await fetchClassmates(subject.subjectId, userParams.studium, userParams.obdobi, subject.skupinaId, (chunk) => {
+                set((state) => ({ classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), seminar: chunk } } }));
+            });
+
+            await IndexedDBService.set('classmates', `${courseCode}:seminar`, { all: [], seminar });
             set((state) => ({
-                classmates: { ...state.classmates, [courseCode]: finalData },
-                classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
-                classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'success' }
+                classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), seminar } },
+                classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
+                classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'success' },
             }));
-
         } catch (error) {
-            console.error(`[ClassmatesSlice] Priority fetch failed for ${courseCode}:`, error);
+            console.error(`[ClassmatesSlice] fetchClassmatesSeminar failed for ${courseCode}:`, error);
             set((state) => ({
-                classmates: { ...state.classmates, [courseCode]: { all: [], seminar: [] } },
-                classmatesPriorityLoading: { ...state.classmatesPriorityLoading, [courseCode]: false },
-                classmatesProgress: { ...state.classmatesProgress, [courseCode]: 'error' }
+                classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
+                classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'error' },
             }));
         }
     },
 
     invalidateClassmates: () => {
-        set({ classmates: {}, classmatesPriorityLoading: {}, classmatesProgress: {} });
+        set({ classmates: {}, classmatesAllLoading: {}, classmatesAllProgress: {}, classmatesSeminarLoading: {}, classmatesSeminarProgress: {} });
     },
 });

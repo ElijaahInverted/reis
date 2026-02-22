@@ -121,7 +121,9 @@ export function useAppLogic() {
 
             if (r.classmates) {
                 for (const [c, cl] of Object.entries(r.classmates)) {
-                    await IndexedDBService.set('classmates', c, cl as ClassmatesData);
+                    const data = cl as ClassmatesData;
+                    await IndexedDBService.set('classmates', `${c}:all`, { all: data.all, seminar: [] });
+                    await IndexedDBService.set('classmates', `${c}:seminar`, { all: [], seminar: data.seminar });
                 }
             }
 

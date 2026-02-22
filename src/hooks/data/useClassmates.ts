@@ -5,44 +5,43 @@ import type { Classmate } from '../../types/classmates';
 export interface UseClassmatesResult {
     classmates: Classmate[];
     isLoading: boolean;
-    isPriorityLoading: boolean;
     progressStatus: string;
 }
 
 /**
  * useClassmates - Hook to access classmates data from store.
  *
- * Reads classmates and loading state from the Zustand store.
- * Triggers a store fetch if data is missing (store action is idempotent).
+ * Triggers fetchClassmatesAll and fetchClassmatesSeminar in parallel on mount.
+ * Each fetch is independently deduped and reads from IDB cache first.
+ * Loading state is scoped to the active filter tab.
  */
 export function useClassmates(courseCode: string | undefined, filter: 'all' | 'seminar' = 'all'): UseClassmatesResult {
     const classmatesData = useAppStore(state => courseCode ? state.classmates[courseCode] : undefined);
-    const isClassmatesLoading = useAppStore(state => courseCode ? !!state.classmatesLoading[courseCode] : false);
-    const isPriorityLoading = useAppStore(state => courseCode ? !!state.classmatesPriorityLoading[courseCode] : false);
-    const progressStatus = useAppStore(state => courseCode ? state.classmatesProgress[courseCode] || '' : '');
+    const isAllLoading = useAppStore(state => courseCode ? !!state.classmatesAllLoading[courseCode] : false);
+    const isSeminarLoading = useAppStore(state => courseCode ? !!state.classmatesSeminarLoading[courseCode] : false);
+    const allProgress = useAppStore(state => courseCode ? state.classmatesAllProgress[courseCode] || '' : '');
+    const seminarProgress = useAppStore(state => courseCode ? state.classmatesSeminarProgress[courseCode] || '' : '');
     const lastSync = useAppStore(state => state.syncStatus.lastSync);
 
     useEffect(() => {
         if (courseCode) {
             const state = useAppStore.getState();
-            // Priority fetch only when classmates have never been loaded (undefined)
-            // { all: [], seminar: [] } means synced with no classmates — use the normal IDB path
-            if (state.classmates[courseCode] === undefined) {
-                state.fetchClassmatesPriority(courseCode);
-            } else {
-                state.fetchClassmates(courseCode);
-            }
+            state.fetchClassmatesAll(courseCode);
+            state.fetchClassmatesSeminar(courseCode);
         }
     }, [courseCode, lastSync]);
 
-    const isLoading = courseCode
-        ? (isClassmatesLoading || classmatesData === undefined || (isPriorityLoading && (!classmatesData || classmatesData[filter].length === 0)))
-        : false;
+    // Show skeleton until data arrives for the active filter.
+    // classmatesData undefined means neither fetch has completed yet.
+    const isLoading = filter === 'all'
+        ? (isAllLoading || classmatesData === undefined)
+        : (isSeminarLoading || classmatesData === undefined);
+
+    const progressStatus = filter === 'all' ? allProgress : seminarProgress;
 
     return {
         classmates: classmatesData?.[filter] || [],
         isLoading,
-        isPriorityLoading,
-        progressStatus
+        progressStatus,
     };
 }
