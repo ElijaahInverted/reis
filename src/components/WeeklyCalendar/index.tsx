@@ -16,7 +16,7 @@ import type { BlockLesson } from '../../types/calendarTypes';
 
 const TOTAL_HOURS = 13;
 
-export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Date }) {
+export function WeeklyCalendar({ initialDate = new Date(), onPrevWeek, onNextWeek }: { initialDate?: Date; onPrevWeek?: () => void; onNextWeek?: () => void }) {
     const language = useAppStore((state) => state.language);
     const isLanguageLoading = useAppStore((state) => state.isLanguageLoading);
     const isSelectingTime = useAppStore((state) => state.isSelectingTime);
@@ -107,6 +107,8 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
                 todayIndex={todayIndex}
                 showSkeleton={showSkeleton}
                 language={language}
+                onPrevWeek={onPrevWeek}
+                onNextWeek={onNextWeek}
             />
         );
     }

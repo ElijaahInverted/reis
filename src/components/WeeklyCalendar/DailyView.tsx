@@ -1,13 +1,13 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { CalendarEventCard } from '../CalendarEventCard';
 import { SubjectFileDrawer } from '../SubjectFileDrawer';
 import { HOURS, getEventStyle, organizeLessons } from './utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useHintStatus } from '../../hooks/ui/useHintStatus';
+import { useSwipeNavigation } from '../../hooks/ui/useSwipeNavigation';
 import type { BlockLesson, DateInfo } from '../../types/calendarTypes';
 
 const TOTAL_HOURS = 13;
-const SWIPE_THRESHOLD = 50;
 
 interface DailyViewProps {
   weekDates: DateInfo[];
@@ -16,9 +16,11 @@ interface DailyViewProps {
   todayIndex: number;
   showSkeleton: boolean;
   language: string;
+  onPrevWeek?: () => void;
+  onNextWeek?: () => void;
 }
 
-export function DailyView({ weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton, language }: DailyViewProps) {
+export function DailyView({ weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton, language, onPrevWeek, onNextWeek }: DailyViewProps) {
   const { t } = useTranslation();
   const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
   const defaultDay = todayIndex >= 0 && todayIndex < 5 ? todayIndex : 0;
@@ -26,22 +28,25 @@ export function DailyView({ weekDates, lessonsByDay, holidaysByDay, todayIndex, 
   const [selected, setSelected] = useState<BlockLesson | null>(null);
   const { isSeen, markSeen } = useHintStatus('calendar_event_click');
 
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    const dy = e.changedTouches[0].clientY - touchStartY.current;
-    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
-      if (dx < 0 && selectedDay < 4) setSelectedDay(selectedDay + 1);
-      if (dx > 0 && selectedDay > 0) setSelectedDay(selectedDay - 1);
+  const goToPrev = () => {
+    if (selectedDay > 0) {
+      setSelectedDay(d => d - 1);
+    } else if (onPrevWeek) {
+      onPrevWeek();
+      setSelectedDay(4); // Jump to Friday of the previous week
     }
   };
+
+  const goToNext = () => {
+    if (selectedDay < 4) {
+      setSelectedDay(d => d + 1);
+    } else if (onNextWeek) {
+      onNextWeek();
+      setSelectedDay(0); // Jump to Monday of the next week
+    }
+  };
+
+  const { onTouchStart, onTouchMove, onTouchEnd, dragStyle } = useSwipeNavigation(goToPrev, goToNext);
 
   const lessons = lessonsByDay[selectedDay] || [];
   const holiday = holidaysByDay[selectedDay];
@@ -85,10 +90,11 @@ export function DailyView({ weekDates, lessonsByDay, holidaysByDay, todayIndex, 
       {/* Swipeable day content */}
       <div
         className="flex-1 overflow-y-auto"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
-        <div className="flex h-full min-h-[780px]">
+        <div className="flex h-full min-h-[780px]" style={dragStyle}>
           {/* Time gutter */}
           <div className="w-12 flex-shrink-0 border-r border-base-300 bg-base-200 relative">
             {HOURS.map((hour, i) => (
