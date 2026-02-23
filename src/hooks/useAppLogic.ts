@@ -133,18 +133,13 @@ export function useAppLogic() {
             }
 
             if (typeof r.isSyncing === 'boolean') {
-                if (r.isSyncing) {
-                    useAppStore.getState().setSyncStatus({ isSyncing: true });
-                } else {
-                    try {
-                        await useAppStore.getState().fetchAllFiles();
-                        useAppStore.getState().invalidateClassmates();
-                        syncGradeHistory()
-                            .then(() => useAppStore.getState().loadStudyJamSuggestions())
-                            .catch(e => console.warn('[useAppLogic] grade history sync failed:', e));
-                    } finally {
-                        useAppStore.getState().setSyncStatus({ isSyncing: false });
-                    }
+                useAppStore.getState().setSyncStatus({ isSyncing: r.isSyncing });
+                if (!r.isSyncing) {
+                    useAppStore.getState().fetchAllFiles();
+                    useAppStore.getState().invalidateClassmates();
+                    syncGradeHistory()
+                        .then(() => useAppStore.getState().loadStudyJamSuggestions())
+                        .catch(e => console.warn('[useAppLogic] grade history sync failed:', e));
                 }
             }
             syncService.triggerRefresh();

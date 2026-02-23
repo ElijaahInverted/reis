@@ -8,7 +8,7 @@ export const createSyncSlice: AppSlice<SyncSlice> = (set) => ({
         error: null,
         handshakeDone: false
     },
-    isSyncing: false,
+    isSyncing: true,
     fetchSyncStatus: async () => {
         const currentStatus = await syncService.getStatus();
         set({ 

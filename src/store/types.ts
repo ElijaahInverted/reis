@@ -17,7 +17,7 @@ export interface ScheduleSlice {
     isPartial?: boolean;
   };
   fetchSchedule: () => Promise<void>;
-  setSchedule: (data: BlockLesson[]) => void;
+  setSchedule: (data: BlockLesson[], isPartial?: boolean) => void;
 }
 
 export interface ExamSlice {
