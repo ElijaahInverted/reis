@@ -30,22 +30,9 @@ export function FileList({
         <div className="p-6 space-y-6">
             {groups.map(group => (
                 <div key={group.name} className="space-y-3">
-                    <div className="flex items-center justify-between text-sm font-semibold text-base-content/50 uppercase tracking-wider px-2">
-                        <div className="flex items-center gap-2">
-                            <Folder size={14} />
-                            {group.displayName}
-                        </div>
-                        {groups.indexOf(group) === 0 && folderUrl && (
-                            <a 
-                                href={folderUrl.includes('?') ? `${folderUrl};lang=${language === 'cz' ? 'cz' : 'en'}` : `${folderUrl}?lang=${language === 'cz' ? 'cz' : 'en'}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="btn btn-ghost btn-sm gap-2 text-base-content/70 hover:text-primary normal-case font-bold"
-                            >
-                                <span>IS MENDELU</span>
-                                <ExternalLink size={16} />
-                            </a>
-                        )}
+                    <div className="flex items-center gap-2 px-2 text-sm font-semibold text-base-content/50 uppercase tracking-wider">
+                        <Folder size={14} />
+                        {group.displayName}
                     </div>
                     <div className="grid grid-cols-1 gap-1">
                         {group.files.map((file, i) => (
@@ -100,6 +87,19 @@ export function FileList({
                     </div>
                 </div>
             ))}
+            {folderUrl && (
+                <div className="flex justify-center pt-2 pb-2">
+                    <a
+                        href={folderUrl.includes('?') ? `${folderUrl};lang=${language === 'cz' ? 'cz' : 'en'}` : `${folderUrl}?lang=${language === 'cz' ? 'cz' : 'en'}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-ghost btn-sm gap-2 text-base-content/50 hover:text-primary normal-case font-bold"
+                    >
+                        <span>IS MENDELU</span>
+                        <ExternalLink size={16} />
+                    </a>
+                </div>
+            )}
         </div>
     );
 }
