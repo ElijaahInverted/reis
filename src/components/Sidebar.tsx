@@ -21,7 +21,7 @@ export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, onOpenSubje
   const handleLeave = () => { timeout.current = setTimeout(() => setHovered(null), 300); };
 
   return (
-    <aside className="hidden md:flex flex-col w-20 h-screen bg-base-200 border-r border-base-300 fixed left-0 top-0 z-40 items-center py-6">
+    <aside className="hidden md:flex flex-col w-20 h-screen bg-base-200 border-r border-base-300 items-center py-6 shrink-0 relative z-40">
       <button onClick={() => onViewChange('calendar')} className="mb-8 w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center border border-base-300/50 hover:shadow-md transition-shadow">
         <img src={MENDELU_LOGO_PATH} alt="Logo" className="w-8 h-8 object-contain" />
       </button>

@@ -47,9 +47,9 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
   };
 
   return (
-    <div className="flex-1 flex items-center px-4">
+    <div className="w-full h-full flex items-center">
       <div className="flex-1 max-w-3xl mx-auto flex items-center gap-2">
-        <div ref={containerRef} className="relative flex-1 z-50">
+        <div ref={containerRef} className="relative w-full z-50">
           <div className={`relative flex items-center w-full max-w-3xl bg-base-100 rounded-xl border shadow-sm transition-all duration-200 ${isOpen ? 'border-primary shadow-[0_0_0_3px_rgba(121,190,21,0.15)]' : 'border-base-300 hover:border-base-content/30'}`}>
             <div className="flex-1 flex items-center h-12 px-4">
               <Search className={`w-5 h-5 mr-3 transition-colors ${isOpen ? 'text-base-content' : 'text-base-content/50'}`} />

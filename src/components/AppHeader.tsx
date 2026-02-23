@@ -55,7 +55,7 @@ export function AppHeader({
             </div>
           )}
 
-          <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+          <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
             <NotificationFeed />
 
             {/* Mobile: search icon button */}
@@ -68,7 +68,7 @@ export function AppHeader({
             </button>
 
             {/* Desktop: inline search bar */}
-            <div className="hidden md:block w-full max-w-[480px] mr-2">
+            <div className="hidden md:block w-full max-w-[480px] min-w-[200px]">
               <SearchBar onOpenSubject={onOpenSubject} />
             </div>
           </div>

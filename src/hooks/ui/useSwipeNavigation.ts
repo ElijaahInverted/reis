@@ -35,10 +35,12 @@ export function useSwipeNavigation(onPrev: () => void, onNext: () => void) {
         }
     }, [onPrev, onNext]);
 
-    const dragStyle: React.CSSProperties = {
-        transform: `translateX(${dragOffset}px)`,
-        transition: snappingBack ? 'transform 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none',
-    };
+    const dragStyle: React.CSSProperties = (dragOffset !== 0 || snappingBack)
+        ? {
+            transform: `translateX(${dragOffset}px)`,
+            transition: snappingBack ? 'transform 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none',
+          }
+        : {};
 
     return { onTouchStart, onTouchMove, onTouchEnd, dragStyle };
 }

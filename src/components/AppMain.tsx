@@ -25,7 +25,7 @@ export function AppMain({
     const { onTouchStart, onTouchMove, onTouchEnd, dragStyle } = useSwipeNavigation(handlePrevWeek, handleNextWeek);
 
     return (
-        <main className="flex-1 flex flex-col ml-0 md:ml-20 transition-all duration-300 overflow-hidden">
+        <main className="flex-1 flex flex-col transition-all duration-300 overflow-hidden">
             <AppHeader currentView={currentView} dateRangeLabel={dateRangeLabel} onPrevWeek={handlePrevWeek} onNextWeek={handleNextWeek} onToday={handleToday} onOpenSubject={handleOpenSubjectFromSearch} />
             <div
                 className="flex-1 pt-3 px-4 pb-16 md:pb-1 overflow-hidden flex flex-col"
