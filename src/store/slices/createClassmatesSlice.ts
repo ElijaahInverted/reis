@@ -20,7 +20,7 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
             const cached = await IndexedDBService.get('classmates', `${courseCode}:all`);
             if (cached !== undefined) {
                 set((state) => ({
-                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), all: cached.all } },
+                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), all: cached.all } },
                     classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
                     classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'success' },
                 }));
@@ -59,7 +59,7 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
             const subject = subjects?.data[courseCode];
             if (!subject?.subjectId) {
                 set((state) => ({
-                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), all: [] } },
+                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), all: [] } },
                     classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
                     classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'success' },
                 }));
@@ -74,12 +74,12 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
             set((state) => ({ classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'fetching' } }));
 
             const all = await fetchClassmates(subject.subjectId, userParams.studium, userParams.obdobi, undefined, (chunk) => {
-                set((state) => ({ classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), all: chunk } } }));
+                set((state) => ({ classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), all: chunk } } }));
             });
 
-            await IndexedDBService.set('classmates', `${courseCode}:all`, { all, seminar: [] });
+            await IndexedDBService.set('classmates', `${courseCode}:all`, { all });
             set((state) => ({
-                classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), all } },
+                classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), all } },
                 classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
                 classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'success' },
             }));
@@ -104,7 +104,7 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
             const cached = await IndexedDBService.get('classmates', `${courseCode}:seminar`);
             if (cached !== undefined) {
                 set((state) => ({
-                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), seminar: cached.seminar } },
+                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), seminar: cached.seminar } },
                     classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
                     classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'success' },
                 }));
@@ -144,9 +144,9 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
             const subject = subjects?.data[courseCode];
             if (!subject?.skupinaId || !subject?.subjectId) {
                 // No seminar group — cache empty so we skip this path next time
-                await IndexedDBService.set('classmates', `${courseCode}:seminar`, { all: [], seminar: [] });
+                await IndexedDBService.set('classmates', `${courseCode}:seminar`, { seminar: [] });
                 set((state) => ({
-                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), seminar: [] } },
+                    classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), seminar: [] } },
                     classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
                     classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'success' },
                 }));
@@ -161,12 +161,12 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
             set((state) => ({ classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'fetching' } }));
 
             const seminar = await fetchClassmates(subject.subjectId, userParams.studium, userParams.obdobi, subject.skupinaId, (chunk) => {
-                set((state) => ({ classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), seminar: chunk } } }));
+                set((state) => ({ classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), seminar: chunk } } }));
             });
 
-            await IndexedDBService.set('classmates', `${courseCode}:seminar`, { all: [], seminar });
+            await IndexedDBService.set('classmates', `${courseCode}:seminar`, { seminar });
             set((state) => ({
-                classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? { all: [], seminar: [] }), seminar } },
+                classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), seminar } },
                 classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
                 classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'success' },
             }));

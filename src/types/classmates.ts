@@ -7,6 +7,6 @@ export interface Classmate {
 }
 
 export interface ClassmatesData {
-    all: Classmate[];
-    seminar: Classmate[];
+    all?: Classmate[];
+    seminar?: Classmate[];
 }

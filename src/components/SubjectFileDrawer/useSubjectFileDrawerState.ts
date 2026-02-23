@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { useSchedule, useFiles, useSyncStatus, useSyllabus, useSubjects } from '../../hooks/data';
+import { useSchedule, useFiles, useSyncStatus, useSyllabus, useSubjects, useClassmates } from '../../hooks/data';
 import { useDragSelection } from './useDragSelection';
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { SelectedSubject } from '../../types/app';
@@ -13,6 +13,9 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
     const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates'>(isExam ? 'stats' : (isEnrolled ? 'files' : 'syllabus'));
     const { files, isLoading: isFilesLoading, isPriorityLoading, progressStatus, totalCount } = useFiles(isOpen ? lesson?.courseCode : undefined);
     const { isSyncing } = useSyncStatus();
+
+    // Trigger pre-fetching for classmates when drawer opens
+    useClassmates(isOpen ? lesson?.courseCode : undefined);
 
     const subjectInfo = useMemo(() => {
         if (!isOpen || !lesson?.courseCode) return null;

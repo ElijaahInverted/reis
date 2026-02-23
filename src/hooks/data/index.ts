@@ -7,3 +7,4 @@ export * from './useOutlookSync';
 export * from './useAssessments';
 export * from './useSyllabus';
 export * from './useExams';
+export * from './useClassmates';
