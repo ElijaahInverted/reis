@@ -8,14 +8,14 @@ interface HeaderTabsProps {
 
 export function HeaderTabs({ activeTab, onTabChange, disabledTabs = [] }: HeaderTabsProps) {
     const { t } = useTranslation();
-    const label = t('course.tabs.classmates');
-    const displayLabel = label === 'course.tabs.classmates' ? 'Spolužáci' : label;
+    // const label = t('course.tabs.classmates');
+    // const displayLabel = label === 'course.tabs.classmates' ? 'Spolužáci' : label;
 
     const tabs = [
         { id: 'files', label: t('course.tabs.files') }, 
         { id: 'syllabus', label: t('course.tabs.requirements') }, 
         { id: 'stats', label: t('course.tabs.successRate') },
-        { id: 'classmates', label: displayLabel }
+        // { id: 'classmates', label: displayLabel }
     ];
 
     return (
