@@ -20,6 +20,7 @@ interface UseFileActionsResult {
     isDownloading: boolean;
     downloadProgress: DownloadProgress | null;
     openFile: (link: string) => Promise<void>;
+    downloadSingle: (link: string) => Promise<void>;
     downloadZip: (fileLinks: string[], zipFileName: string) => Promise<void>;
 }
 
@@ -51,6 +52,26 @@ export function useFileActions(): UseFileActionsResult {
             setTimeout(() => URL.revokeObjectURL(blobUrl), 5 * 60 * 1000);
         } catch (e) {
             log.error('Failed to fetch file as blob, falling back to direct link', e);
+            window.open(fullUrl, '_blank');
+        }
+    }, []);
+
+    const downloadSingle = useCallback(async (link: string) => {
+        const fullUrl = normalizeFileUrl(link);
+        try {
+            const response = await fetch(fullUrl, { credentials: 'include' });
+            if (!response.ok) { window.open(fullUrl, '_blank'); return; }
+            const blob = await response.blob();
+            const cd = response.headers.get('content-disposition');
+            const match = cd?.match(/filename="?([^"]+)"?/);
+            const filename = match?.[1] || link.split('/').pop() || 'download';
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl; a.download = filename;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        } catch (e) {
+            log.error('Failed to download file', e);
             window.open(fullUrl, '_blank');
         }
     }, []);
@@ -134,5 +155,5 @@ export function useFileActions(): UseFileActionsResult {
         }
     }, []);
 
-    return { isDownloading, downloadProgress, openFile, downloadZip };
+    return { isDownloading, downloadProgress, openFile, downloadSingle, downloadZip };
 }

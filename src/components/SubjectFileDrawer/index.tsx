@@ -12,7 +12,7 @@ import type { SelectedSubject } from '../../types/app';
 
 export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLesson | SelectedSubject | null; isOpen: boolean; onClose: () => void }) {
     const state = useSubjectFileDrawerState(lesson, isOpen);
-    const { isDownloading, downloadProgress, openFile, downloadZip } = useFileActions();
+    const { isDownloading, downloadProgress, openFile, downloadSingle, downloadZip } = useFileActions();
     const [showDragHint, setShowDragHint] = useState(false);
     const { t } = useTranslation();
 
@@ -60,7 +60,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
                     <DrawerHeader lesson={lesson} courseId={resolvedCourseId || syllabusResult.syllabus?.courseId || ''}
                         courseInfo={syllabusResult.syllabus?.courseInfo} subjectInfo={state.subjectInfo} selectedCount={selectedIds.length}
                         isDownloading={isDownloading} downloadProgress={downloadProgress} activeTab={activeTab} onTabChange={setActiveTab}
-                        onClose={onClose} onDownload={() => downloadZip(selectedIds, `${lesson?.courseCode}_files.zip`)} />
+                        onClose={onClose} onDownload={() => selectedIds.length === 1 ? downloadSingle(selectedIds[0]) : downloadZip(selectedIds, `${lesson?.courseCode}_files.zip`)} />
                     <div ref={containerRef} className="flex-1 overflow-y-auto relative select-none"
                         onMouseDown={activeTab === 'files' ? handleMouseDown : undefined}
                         style={{ cursor: activeTab === 'files' ? 'crosshair' : 'default' }}>
