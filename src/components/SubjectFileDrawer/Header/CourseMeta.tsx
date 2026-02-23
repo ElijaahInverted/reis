@@ -64,7 +64,7 @@ export function CourseMeta({ lesson, courseInfo, isSearchContext }: { lesson: Bl
                                         t.name
                                     )}
                                 </span>
-                                {t.roles && <span className="text-[11px] text-base-content/40">({t.roles.toLowerCase()})</span>}
+                                {t.roles && <span className="hidden sm:inline text-[11px] text-base-content/40">({t.roles.toLowerCase()})</span>}
                             </div>
                         ))}
                         {(courseInfo?.teachers?.length ?? 0) > 3 && <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-1 text-[11px] font-bold text-primary">{expanded ? <><span>{t('course.showLess')}</span><ChevronUp size={12} /></> : <><span>{t('course.showMore')} ({(courseInfo?.teachers?.length ?? 0) - 3})</span><ChevronDown size={12} /></>}</button>}
