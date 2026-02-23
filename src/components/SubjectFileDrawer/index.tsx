@@ -53,10 +53,10 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
 
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-50 flex justify-end items-stretch p-4 isolate">
+        <div className="fixed inset-0 z-50 flex justify-end items-stretch p-0 sm:p-4 isolate">
             <div className="absolute inset-0 bg-black/15 animate-in fade-in" onClick={onClose} />
-            <div className="w-full flex justify-end items-start h-full pt-10 pb-10 relative z-10 pointer-events-none">
-                <div role="dialog" className="w-[600px] bg-base-100 shadow-2xl rounded-2xl flex flex-col h-full animate-in slide-in-from-right pointer-events-auto border border-base-300">
+            <div className="w-full flex justify-end items-start h-full pt-0 pb-0 sm:pt-10 sm:pb-10 relative z-10 pointer-events-none">
+                <div role="dialog" className="w-full sm:w-[600px] bg-base-100 shadow-2xl rounded-2xl flex flex-col h-full animate-in slide-in-from-right pointer-events-auto border border-base-300">
                     <DrawerHeader lesson={lesson} courseId={resolvedCourseId || syllabusResult.syllabus?.courseId || ''}
                         courseInfo={syllabusResult.syllabus?.courseInfo} subjectInfo={state.subjectInfo} selectedCount={selectedIds.length}
                         isDownloading={isDownloading} downloadProgress={downloadProgress} activeTab={activeTab} onTabChange={setActiveTab}

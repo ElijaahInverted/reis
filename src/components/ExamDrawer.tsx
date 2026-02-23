@@ -23,10 +23,10 @@ export function ExamDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
     return (
         <>
-            <div className="fixed inset-0 z-50 flex justify-end items-stretch p-4 isolate">
+            <div className="fixed inset-0 z-50 flex justify-end items-stretch p-0 sm:p-4 isolate">
                 <div className="absolute inset-0 bg-black/15 transition-opacity" onClick={onClose} />
-                <div className="w-full flex justify-end items-start h-full pt-10 pb-10 relative z-10 pointer-events-none">
-                    <div className="w-[600px] bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden border border-gray-100 h-full animate-in slide-in-from-right duration-300 pointer-events-auto">
+                <div className="w-full flex justify-end items-start h-full pt-0 pb-0 sm:pt-10 sm:pb-10 relative z-10 pointer-events-none">
+                    <div className="w-full sm:w-[600px] bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden border border-gray-100 h-full animate-in slide-in-from-right duration-300 pointer-events-auto">
                         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-5 bg-white border-b border-slate-100">
                             <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Zkoušky</h2>
                             <button onClick={onClose} className="btn btn-ghost btn-circle btn-sm -mr-2 text-slate-400 hover:text-slate-600"><X size={20} /></button>

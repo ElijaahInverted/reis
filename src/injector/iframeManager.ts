@@ -20,12 +20,17 @@ export function injectIframe() {
     fontLink.href = chrome.runtime.getURL("fonts/inter.css");
     document.head.appendChild(fontLink);
 
+    const viewport = document.createElement("meta");
+    viewport.name = "viewport";
+    viewport.content = "width=device-width, initial-scale=1.0";
+    document.head.appendChild(viewport);
+
     iframeElement = document.createElement("iframe");
     iframeElement.id = IFRAME_ID;
     iframeElement.src = chrome.runtime.getURL("main.html");
 
     Object.assign(iframeElement.style, {
-        position: "fixed", top: "0", left: "0", width: "100vw", height: "100vh",
+        position: "fixed", top: "0", left: "0", width: "100%", height: "100%",
         border: "none", margin: "0", padding: "0", overflow: "hidden",
         zIndex: "2147483647", backgroundColor: "#f8fafc",
     });

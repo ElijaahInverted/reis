@@ -28,7 +28,7 @@ export function ProfilePopup({ isOpen, onOpenFeedback }: { isOpen: boolean; onOp
   
   if (!isOpen) return null;
   return (
-    <AnimatePresence><motion.div initial={{ opacity: 0, x: 10, scale: 0.95 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 10, scale: 0.95 }} className="absolute left-14 bottom-0 w-80 bg-base-100 rounded-xl shadow-popover-heavy border border-base-300 p-3 z-50">
+    <AnimatePresence><motion.div initial={{ opacity: 0, x: 10, scale: 0.95 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 10, scale: 0.95 }} className="absolute left-14 bottom-0 w-80 max-w-[calc(100vw-5rem)] bg-base-100 rounded-xl shadow-popover-heavy border border-base-300 p-3 z-50">
         <div className="px-1 pt-1 pb-3 border-b border-base-200">
             <h3 className="font-bold text-base mb-3 ">{t('sidebar.profile')}</h3>
             {params && (

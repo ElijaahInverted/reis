@@ -1,4 +1,4 @@
-import { Home, User, GraduationCap, Book, LayoutDashboard, FileText, PenTool, FileQuestion, Upload, BookOpen, Wifi, ClipboardList, CalendarCheck } from 'lucide-react';
+import { Home, User, Book, LayoutDashboard, FileText, PenTool, FileQuestion, Upload, BookOpen, Wifi, ClipboardList, CalendarCheck } from 'lucide-react';
 import type { MenuItem } from '../menuConfig';
 
 export const mainItems = (sid: string, oid: string, t: (key: string) => string, lang: string = 'cz'): MenuItem[] => [
@@ -13,9 +13,7 @@ export const mainItems = (sid: string, oid: string, t: (key: string) => string, 
         { id: 'cvicne-testy', label: t('sidebar.practiceTests'), icon: <FileQuestion className="w-4 h-4" />, href: `https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl?studium=${sid};obdobi=${oid};lang=${lang}` },
         { id: 'odevzdavarna', label: t('sidebar.assignments'), icon: <Upload className="w-4 h-4" />, href: `https://is.mendelu.cz/auth/student/odevzdavarny.pl?studium=${sid};obdobi=${oid};lang=${lang}` },
         { id: 'kontrola-planu', label: t('sidebar.planControl'), icon: <ClipboardList className="w-4 h-4" />, href: `https://is.mendelu.cz/auth/studijni/studijni_povinnosti.pl?studium=${sid};obdobi=${oid};lang=${lang}` },
-        { id: 'zapisy-predmetu', label: t('sidebar.registrations'), icon: <BookOpen className="w-4 h-4" />, href: `https://is.mendelu.cz/auth/student/registrace.pl?studium=${sid};obdobi=${oid};lang=${lang}` }
-    ]},
-    { id: 'o-studiu', label: t('sidebar.study'), icon: <GraduationCap className="w-5 h-5" />, expandable: true, children: [
+        { id: 'zapisy-predmetu', label: t('sidebar.registrations'), icon: <BookOpen className="w-4 h-4" />, href: `https://is.mendelu.cz/auth/student/registrace.pl?studium=${sid};obdobi=${oid};lang=${lang}` },
         { id: 'studijni-plany-ut', label: t('sidebar.studyPlans'), icon: <BookOpen className="w-4 h-4" />, href: `https://is.mendelu.cz/auth/katalog/plany.pl?lang=${lang}` },
         { id: 'hodnoceni-uspesnosti', label: t('sidebar.successRating'), icon: <Award className="w-4 h-4" />, href: `https://is.mendelu.cz/auth/student/hodnoceni.pl?_m=3167;lang=${lang}` },
         { id: 'wifi', label: t('sidebar.wifi'), icon: <Wifi className="w-4 h-4" />, href: `https://is.mendelu.cz/auth/wifi/certifikat.pl?_m=177;lang=${lang}` },

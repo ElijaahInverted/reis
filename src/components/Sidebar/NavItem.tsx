@@ -45,7 +45,7 @@ export function NavItem({ item, isActive, isHovered, onMouseEnter, onMouseLeave,
             exit={{ opacity: 0, x: 10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
             className={`absolute left-14 -top-4 bg-base-100 rounded-xl shadow-popover-heavy border border-base-300 p-2 z-50 ${
-                item.id === 'subjects' && item.children && item.children.length > 4 ? 'w-[500px]' : 'w-64'
+                item.id === 'subjects' && item.children && item.children.length > 4 ? 'w-[500px] max-w-[calc(100vw-5rem)]' : 'w-64 max-w-[calc(100vw-5rem)]'
             }`}
           >
             <div className={`gap-0.5 ${

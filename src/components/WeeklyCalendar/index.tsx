@@ -9,7 +9,9 @@ import { useCalendarData } from './useCalendarData';
 import { WeeklyCalendarHeader } from './WeeklyCalendarHeader';
 import { WeeklyCalendarGrid } from './WeeklyCalendarGrid';
 import { WeeklyCalendarDay } from './WeeklyCalendarDay';
+import { DailyView } from './DailyView';
 import { useHintStatus } from '../../hooks/ui/useHintStatus';
+import { useIsMobile } from '../../hooks/ui/useIsMobile';
 import type { BlockLesson } from '../../types/calendarTypes';
 
 const TOTAL_HOURS = 13;
@@ -21,8 +23,9 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
     const setIsSelectingTime = useAppStore((state) => state.setIsSelectingTime);
     const pendingTimeSelection = useAppStore((state) => state.pendingTimeSelection);
     const setPendingTimeSelection = useAppStore((state) => state.setPendingTimeSelection);
+    const isMobile = useIsMobile();
     const { weekDates, lessonsByDay, holidaysByDay, todayIndex, showSkeleton: dataLoading } = useCalendarData(initialDate);
-    
+
     const [selected, setSelected] = useState<BlockLesson | null>(null);
     const { isSeen, markSeen } = useHintStatus('calendar_event_click');
 
@@ -94,6 +97,19 @@ export function WeeklyCalendar({ initialDate = new Date() }: { initialDate?: Dat
         setSelected(lesson);
         if (!isSeen) markSeen();
     };
+
+    if (isMobile) {
+        return (
+            <DailyView
+                weekDates={weekDates}
+                lessonsByDay={lessonsByDay}
+                holidaysByDay={holidaysByDay}
+                todayIndex={todayIndex}
+                showSkeleton={showSkeleton}
+                language={language}
+            />
+        );
+    }
 
     return (
         <div className="flex h-full overflow-hidden flex-col font-inter bg-base-100">

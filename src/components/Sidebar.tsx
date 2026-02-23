@@ -1,15 +1,9 @@
 import { useState, useRef } from 'react';
-import { Layers } from 'lucide-react';
 import { MENDELU_LOGO_PATH } from '../constants/icons';
-import { getMainMenuItems } from './menuConfig';
 import type { AppView } from '../types/app';
 import { NavItem } from './Sidebar/NavItem';
 import { BottomActions } from './Sidebar/BottomActions';
-import { useSubjects } from '../hooks/data/useSubjects';
-import { useUserParams } from '../hooks/useUserParams';
-import { useAppStore } from '../store/useAppStore';
-import { useTranslation } from '../hooks/useTranslation';
-import type { SubjectInfo } from '../types/documents';
+import { useMenuItems } from '../hooks/ui/useMenuItems';
 
 interface SidebarProps {
   currentView: AppView;
@@ -21,68 +15,10 @@ interface SidebarProps {
 export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, onOpenSubject }: SidebarProps) => {
   const [hovered, setHovered] = useState<string | null>(null);
   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { subjects } = useSubjects();
-  const { params } = useUserParams();
-  const files = useAppStore(state => state.files);
-  const syllabuses = useAppStore(state => state.syllabuses.cache); // ✅ Subscribe to changes
-  const language = useAppStore(state => state.language); // ✅ Subscribe to language
-  const { t } = useTranslation();
+  const menuItems = useMenuItems({ interleaveColumns: true });
 
   const handleEnter = (id: string) => { if (timeout.current) clearTimeout(timeout.current); setHovered(id); };
   const handleLeave = () => { timeout.current = setTimeout(() => setHovered(null), 300); };
-
-  const menuItems = getMainMenuItems(params?.studium ?? '', params?.obdobi ?? '', t, language).map(item => {
-    const p = { ...item };
-    if (item.id === 'subjects' && subjects) {
-      p.expandable = true;
-      const sortedSubjects = Object.values(subjects.data).sort((a: SubjectInfo, b: SubjectInfo) => {
-        const aHasFiles = (files[a.subjectCode]?.length ?? 0) > 0;
-        const bHasFiles = (files[b.subjectCode]?.length ?? 0) > 0;
-
-        if (aHasFiles && !bHasFiles) return -1;
-        if (!aHasFiles && bHasFiles) return 1;
-
-        const aName = a.displayName.replace(a.subjectCode, '').trim();
-        const bName = b.displayName.replace(b.subjectCode, '').trim();
-        return aName.localeCompare(bName);
-      });
-
-      // Interleave for column-major display in 2-column grid
-      const numRows = Math.ceil(sortedSubjects.length / 2);
-      const columnMajorSubjects = [];
-      for (let i = 0; i < numRows; i++) {
-        columnMajorSubjects.push(sortedSubjects[i]);
-        if (i + numRows < sortedSubjects.length) {
-          columnMajorSubjects.push(sortedSubjects[i + numRows]);
-        }
-      }
-
-      p.children = columnMajorSubjects.map((s: SubjectInfo) => {
-        // Try to get course name from syllabus (language-aware)
-        const syllabus = syllabuses[s.subjectCode];
-        
-        // Select name based on current language
-        // Priority: 1. names from record list (s.nameCs/En), 2. names from syllabus, 3. schedule-based s.displayName
-        const storeName = language === 'cz' ? s.nameCs : s.nameEn;
-        
-        const syllabusName = language === 'cz'
-          ? (syllabus?.courseInfo?.courseNameCs || syllabus?.courseInfo?.courseName)
-          : (syllabus?.courseInfo?.courseNameEn || syllabus?.courseInfo?.courseName);
-        
-        const displayLabel = storeName || syllabusName || s.displayName.replace(s.subjectCode, '').trim();
-        
-        return {
-          id: `subject-${s.subjectCode}`, 
-          label: displayLabel, 
-          icon: <Layers className="w-4 h-4" />, 
-          isSubject: true, 
-          courseCode: s.subjectCode, 
-          subjectId: s.subjectId 
-        };
-      });
-    }
-    return p;
-  });
 
   return (
     <aside className="hidden md:flex flex-col w-20 h-screen bg-base-200 border-r border-base-300 fixed left-0 top-0 z-40 items-center py-6">
