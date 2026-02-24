@@ -185,7 +185,8 @@
     "title": "Novinky",
     "loading": "Načítá se...",
     "empty": "Žádné nové novinky",
-    "yesterday": "Včera"
+    "yesterday": "Včera",
+    "tomorrow": "Zítra"
   },
   "sync": {
     "schedule": "Synchronizace kalendáře",

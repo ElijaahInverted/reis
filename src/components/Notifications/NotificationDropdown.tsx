@@ -30,9 +30,11 @@ export function NotificationDropdown({ notifications, loading, onClose, onVisibl
           {notifications.map((n) => (
             <NotificationItem key={n.id} notification={n} onVisible={() => onVisible(n.id)}
               onClick={() => {
-                if (!n.associationId?.startsWith('academic_')) trackNotificationClick(n.id);
-                if (n.link) window.open(n.link, '_blank');
-                onClose();
+                if (n.link) {
+                  if (!n.associationId?.startsWith('academic_')) trackNotificationClick(n.id);
+                  window.open(n.link, '_blank');
+                  onClose();
+                }
               }} />
           ))}
         </div>

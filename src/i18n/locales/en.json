@@ -185,7 +185,8 @@
     "title": "News",
     "loading": "Loading...",
     "empty": "No new news",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow"
   },
   "sync": {
     "schedule": "Calendar synchronization",
