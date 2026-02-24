@@ -90,9 +90,9 @@ export function DailyView({ weekDates, lessonsByDay, holidaysByDay, todayIndex, 
       {/* Swipeable day content */}
       <div
         className="flex-1 overflow-y-auto"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        onTouchStart={!selected ? onTouchStart : undefined}
+        onTouchMove={!selected ? onTouchMove : undefined}
+        onTouchEnd={!selected ? onTouchEnd : undefined}
       >
         <div className="flex h-full min-h-[780px]" style={dragStyle}>
           {/* Time gutter */}

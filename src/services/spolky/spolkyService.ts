@@ -49,6 +49,7 @@ export async function fetchNotifications(): Promise<SpolekNotification[]> {
       .from('notifications')
       .select('*')
       .gt('expires_at', new Date().toISOString())
+      .or('visible_from.is.null,visible_from.lte.' + new Date().toISOString())
       .order('created_at', { ascending: false })
       .limit(50);
 
