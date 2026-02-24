@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useFileActions } from '../../hooks/ui/useFileActions';
 import { DrawerHeader } from './DrawerHeader';
 import { IndexedDBService } from '../../services/storage';
 import { cleanFolderName } from '../../utils/fileUrl';
 import { useSubjectFileDrawerState } from './useSubjectFileDrawerState';
 import { SubjectFileDrawerContent } from './SubjectFileDrawerContent';
+import { PdfViewer } from './PdfViewer';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '../ui/resizable';
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { ParsedFile } from '../../types/documents';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -12,8 +14,10 @@ import type { SelectedSubject } from '../../types/app';
 
 export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLesson | SelectedSubject | null; isOpen: boolean; onClose: () => void }) {
     const state = useSubjectFileDrawerState(lesson, isOpen);
-    const { isDownloading, downloadProgress, openFile, downloadSingle, downloadZip } = useFileActions();
+    const { isDownloading, downloadProgress, openFile, openPdfInline, downloadSingle, downloadZip } = useFileActions();
     const [showDragHint, setShowDragHint] = useState(false);
+    const [activePdfUrl, setActivePdfUrl] = useState<string | null>(null);
+    const [isPdfLoading, setIsPdfLoading] = useState(false);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -27,6 +31,38 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
             });
         }
     }, [isOpen, state.files]);
+
+    // Clean up blob URL when drawer closes or PDF changes
+    useEffect(() => {
+        if (!isOpen && activePdfUrl) {
+            URL.revokeObjectURL(activePdfUrl);
+            setActivePdfUrl(null);
+        }
+    }, [isOpen, activePdfUrl]);
+
+    const handleViewPdf = useCallback(async (link: string) => {
+        setIsPdfLoading(true);
+        const oldUrl = activePdfUrl;
+        const blobUrl = await openPdfInline(link);
+        if (blobUrl) {
+            if (oldUrl) URL.revokeObjectURL(oldUrl);
+            setActivePdfUrl(blobUrl);
+        } else {
+            openFile(link);
+        }
+        setIsPdfLoading(false);
+    }, [activePdfUrl, openPdfInline, openFile]);
+
+    const handleClosePdf = useCallback(() => {
+        if (activePdfUrl) URL.revokeObjectURL(activePdfUrl);
+        setActivePdfUrl(null);
+    }, [activePdfUrl]);
+
+    const handleClose = useCallback(() => {
+        if (activePdfUrl) URL.revokeObjectURL(activePdfUrl);
+        setActivePdfUrl(null);
+        onClose();
+    }, [activePdfUrl, onClose]);
 
     const groupedFiles = useMemo(() => {
         if (!state.files) return [];
@@ -50,33 +86,59 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
         handleMouseDown, toggleSelect, selectionBoxStyle
     } = state;
 
+    const hasPdf = activePdfUrl !== null;
 
     if (!isOpen) return null;
+
+    const fileListContent = (
+        <>
+            <DrawerHeader lesson={lesson} courseId={resolvedCourseId || syllabusResult.syllabus?.courseId || ''}
+                courseInfo={syllabusResult.syllabus?.courseInfo} subjectInfo={state.subjectInfo} selectedCount={selectedIds.length}
+                isDownloading={isDownloading} downloadProgress={downloadProgress} activeTab={activeTab} onTabChange={setActiveTab}
+                onClose={handleClose} onDownload={() => selectedIds.length === 1 ? downloadSingle(selectedIds[0]) : downloadZip(selectedIds, `${lesson?.courseCode}_files.zip`)} />
+            <div ref={containerRef} className="flex-1 overflow-y-auto relative select-none"
+                onMouseDown={activeTab === 'files' ? handleMouseDown : undefined}
+                style={{ cursor: activeTab === 'files' ? 'crosshair' : 'default' }}>
+                <div ref={contentRef} className="min-h-full pb-20 relative">
+                    <SubjectFileDrawerContent
+                        activeTab={activeTab} lesson={lesson} files={files} isFilesLoading={isFilesLoading}
+                        isSyncing={isSyncing} isPriorityLoading={isPriorityLoading} totalCount={totalCount}
+                        isDragging={isDragging} selectionBoxStyle={selectionBoxStyle}
+                        showDragHint={showDragHint} groupedFiles={groupedFiles} selectedIds={selectedIds}
+                        fileRefs={fileRefs} ignoreClickRef={ignoreClickRef} toggleSelect={toggleSelect}
+                        openFile={openFile} onViewPdf={handleViewPdf} resolvedCourseId={resolvedCourseId}
+                        syllabusResult={syllabusResult} folderUrl={state.subjectInfo?.folderUrl}
+                    />
+                </div>
+            </div>
+        </>
+    );
+
     return (
         <div className="fixed inset-0 z-50 flex justify-end items-stretch p-0 sm:p-4 isolate">
-            <div className="absolute inset-0 bg-black/15 animate-in fade-in" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/15 animate-in fade-in" onClick={handleClose} />
             <div className="w-full flex justify-end items-start h-full pt-0 pb-0 sm:pt-10 sm:pb-10 relative z-10 pointer-events-none">
-                <div role="dialog" className="w-full sm:w-[600px] bg-base-100 shadow-2xl rounded-2xl flex flex-col h-full animate-in slide-in-from-right pointer-events-auto border border-base-300">
-                    <DrawerHeader lesson={lesson} courseId={resolvedCourseId || syllabusResult.syllabus?.courseId || ''}
-                        courseInfo={syllabusResult.syllabus?.courseInfo} subjectInfo={state.subjectInfo} selectedCount={selectedIds.length}
-                        isDownloading={isDownloading} downloadProgress={downloadProgress} activeTab={activeTab} onTabChange={setActiveTab}
-                        onClose={onClose} onDownload={() => selectedIds.length === 1 ? downloadSingle(selectedIds[0]) : downloadZip(selectedIds, `${lesson?.courseCode}_files.zip`)} />
-                    <div ref={containerRef} className="flex-1 overflow-y-auto relative select-none"
-                        onMouseDown={activeTab === 'files' ? handleMouseDown : undefined}
-                        style={{ cursor: activeTab === 'files' ? 'crosshair' : 'default' }}>
-                        <div ref={contentRef} className="min-h-full pb-20 relative">
-                            <SubjectFileDrawerContent 
-                                activeTab={activeTab} lesson={lesson} files={files} isFilesLoading={isFilesLoading}
-                                isSyncing={isSyncing} isPriorityLoading={isPriorityLoading} totalCount={totalCount}
-                                isDragging={isDragging} selectionBoxStyle={selectionBoxStyle}
-                                showDragHint={showDragHint} groupedFiles={groupedFiles} selectedIds={selectedIds}
-                                fileRefs={fileRefs} ignoreClickRef={ignoreClickRef} toggleSelect={toggleSelect}
-                                openFile={openFile} resolvedCourseId={resolvedCourseId} syllabusResult={syllabusResult}
-                                folderUrl={state.subjectInfo?.folderUrl}
-                            />
-
-                        </div>
-                    </div>
+                <div role="dialog" className={`bg-base-100 shadow-2xl rounded-2xl flex flex-col h-full animate-in slide-in-from-right pointer-events-auto border border-base-300 transition-[width] duration-300 ${hasPdf ? 'w-full sm:w-[90vw]' : 'w-full sm:w-[600px]'}`}>
+                    {hasPdf ? (
+                        <ResizablePanelGroup direction="horizontal" className="h-full rounded-2xl">
+                            <ResizablePanel defaultSize={35} minSize={20} className="flex flex-col">
+                                {fileListContent}
+                            </ResizablePanel>
+                            <ResizableHandle withHandle />
+                            <ResizablePanel defaultSize={65} minSize={30}>
+                                <PdfViewer blobUrl={activePdfUrl} onClose={handleClosePdf} />
+                            </ResizablePanel>
+                        </ResizablePanelGroup>
+                    ) : (
+                        <>
+                            {isPdfLoading && (
+                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-base-100/50 rounded-2xl">
+                                    <span className="loading loading-spinner loading-md text-primary" />
+                                </div>
+                            )}
+                            {fileListContent}
+                        </>
+                    )}
                 </div>
             </div>
         </div>

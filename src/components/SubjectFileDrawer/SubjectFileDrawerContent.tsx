@@ -30,6 +30,7 @@ interface SubjectFileDrawerContentProps {
     ignoreClickRef: React.MutableRefObject<boolean>;
     toggleSelect: (id: string, e: React.MouseEvent) => void;
     openFile: (link: string) => void;
+    onViewPdf?: (link: string) => void;
     resolvedCourseId: string;
     syllabusResult: { syllabus: SyllabusRequirements | null; isLoading: boolean };
     folderUrl?: string;
@@ -37,7 +38,7 @@ interface SubjectFileDrawerContentProps {
 
 export function SubjectFileDrawerContent({
     activeTab, lesson, files, isFilesLoading, isSyncing, isPriorityLoading, totalCount, isDragging, selectionBoxStyle, showDragHint,
-    groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, resolvedCourseId, syllabusResult, folderUrl
+    groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, onViewPdf, resolvedCourseId, syllabusResult, folderUrl
 }: SubjectFileDrawerContentProps) {
     const { t, language } = useTranslation();
     if (activeTab === 'files') {
@@ -85,8 +86,8 @@ export function SubjectFileDrawerContent({
                     </div>
                  ) : (
                     <FileList groups={groupedFiles} selectedIds={selectedIds} fileRefs={fileRefs}
-                               ignoreClickRef={ignoreClickRef} onToggleSelect={toggleSelect} onOpenFile={openFile} 
-                               folderUrl={folderUrl} />
+                               ignoreClickRef={ignoreClickRef} onToggleSelect={toggleSelect} onOpenFile={openFile}
+                               onViewPdf={onViewPdf} folderUrl={folderUrl} />
                  )}
             </>
         );

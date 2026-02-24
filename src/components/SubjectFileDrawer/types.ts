@@ -35,6 +35,7 @@ export interface FileListProps {
     ignoreClickRef: React.MutableRefObject<boolean>;
     onToggleSelect: (id: string, e: React.MouseEvent) => void;
     onOpenFile: (link: string) => void;
+    onViewPdf?: (link: string) => void;
     folderUrl?: string;
 }
 

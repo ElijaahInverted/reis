@@ -8,6 +8,10 @@ import { Folder, FileText, Check, ExternalLink } from 'lucide-react';
 import type { FileListProps } from './types';
 import { useTranslation } from '../../hooks/useTranslation';
 
+function isPdfFile(subFile: { link: string; type: string }): boolean {
+    return subFile.type === 'pdf' || subFile.link.toLowerCase().endsWith('.pdf');
+}
+
 export function FileList({
     groups,
     selectedIds,
@@ -15,6 +19,7 @@ export function FileList({
     ignoreClickRef,
     onToggleSelect,
     onOpenFile,
+    onViewPdf,
     folderUrl
 }: FileListProps) {
     const { t, language } = useTranslation();
@@ -47,6 +52,8 @@ export function FileList({
                                                 if (ignoreClickRef.current) return;
                                                 if (e.ctrlKey || e.metaKey) {
                                                     onToggleSelect(subFile.link, e);
+                                                } else if (onViewPdf && isPdfFile(subFile)) {
+                                                    onViewPdf(subFile.link);
                                                 } else {
                                                     onOpenFile(subFile.link);
                                                 }

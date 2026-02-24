@@ -20,6 +20,7 @@ interface UseFileActionsResult {
     isDownloading: boolean;
     downloadProgress: DownloadProgress | null;
     openFile: (link: string) => Promise<void>;
+    openPdfInline: (link: string) => Promise<string | null>;
     downloadSingle: (link: string) => Promise<void>;
     downloadZip: (fileLinks: string[], zipFileName: string) => Promise<void>;
 }
@@ -53,6 +54,19 @@ export function useFileActions(): UseFileActionsResult {
         } catch (e) {
             log.error('Failed to fetch file as blob, falling back to direct link', e);
             window.open(fullUrl, '_blank');
+        }
+    }, []);
+
+    const openPdfInline = useCallback(async (link: string): Promise<string | null> => {
+        const fullUrl = normalizeFileUrl(link);
+        try {
+            const response = await fetch(fullUrl, { credentials: 'include' });
+            if (!response.ok) return null;
+            const blob = await response.blob();
+            return URL.createObjectURL(blob);
+        } catch (e) {
+            log.error('Failed to fetch PDF inline', e);
+            return null;
         }
     }, []);
 
@@ -155,5 +169,5 @@ export function useFileActions(): UseFileActionsResult {
         }
     }, []);
 
-    return { isDownloading, downloadProgress, openFile, downloadSingle, downloadZip };
+    return { isDownloading, downloadProgress, openFile, openPdfInline, downloadSingle, downloadZip };
 }
