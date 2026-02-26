@@ -24,14 +24,17 @@ export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
     const onDocumentLoadSuccess = useCallback(async (pdf: PDFDocumentProxy) => {
         console.log('[PDF-DEBUG] Document loaded successfully, pages:', pdf.numPages);
         setNumPages(pdf.numPages);
-        const containerWidth = containerRef.current?.clientWidth;
-        if (containerWidth) {
-            const page = await pdf.getPage(1);
-            const viewport = page.getViewport({ scale: 1 });
-            const fitScale = containerWidth / viewport.width;
-            console.log('[PDF-DEBUG] fit-to-width: container=', containerWidth, 'page=', viewport.width, 'scale=', fitScale);
-            setScale(fitScale);
-        }
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1 });
+        // Wait for the drawer's width transition (duration-300) to finish before measuring
+        setTimeout(() => {
+            const containerWidth = containerRef.current?.clientWidth;
+            if (containerWidth) {
+                const fitScale = containerWidth / viewport.width;
+                console.log('[PDF-DEBUG] fit-to-width: container=', containerWidth, 'page=', viewport.width, 'scale=', fitScale);
+                setScale(fitScale);
+            }
+        }, 350);
     }, []);
 
     return (
