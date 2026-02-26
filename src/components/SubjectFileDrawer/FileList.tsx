@@ -50,11 +50,16 @@ export function FileList({
                                             ref={el => { if (el) fileRefs.current.set(subFile.link, el); }}
                                             onClick={(e) => {
                                                 if (ignoreClickRef.current) return;
+                                                const pdf = isPdfFile(subFile);
+                                                console.log('[PDF-DEBUG] FileList click — link:', subFile.link, 'type:', subFile.type, 'isPdf:', pdf, 'ctrl:', e.ctrlKey);
                                                 if (e.ctrlKey || e.metaKey) {
+                                                    console.log('[PDF-DEBUG] → toggleSelect');
                                                     onToggleSelect(subFile.link, e);
-                                                } else if (onViewPdf && isPdfFile(subFile)) {
+                                                } else if (onViewPdf && pdf) {
+                                                    console.log('[PDF-DEBUG] → viewPdf');
                                                     onViewPdf(subFile.link);
                                                 } else {
+                                                    console.log('[PDF-DEBUG] → openFile');
                                                     onOpenFile(subFile.link);
                                                 }
                                             }}

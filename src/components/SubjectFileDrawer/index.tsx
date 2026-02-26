@@ -35,30 +35,43 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
     // Clean up blob URL when drawer closes or PDF changes
     useEffect(() => {
         if (!isOpen && activePdfUrl) {
+            console.log('[PDF-DEBUG] drawer closed, revoking blob URL:', activePdfUrl);
             URL.revokeObjectURL(activePdfUrl);
             setActivePdfUrl(null);
         }
     }, [isOpen, activePdfUrl]);
 
     const handleViewPdf = useCallback(async (link: string) => {
+        const t0 = performance.now();
+        console.group('[PDF-DEBUG] handleViewPdf');
+        console.log('[PDF-DEBUG] link:', link, 'isPdfLoading:', isPdfLoading, 'currentPdfUrl:', activePdfUrl);
         setIsPdfLoading(true);
         const oldUrl = activePdfUrl;
         const blobUrl = await openPdfInline(link);
         if (blobUrl) {
-            if (oldUrl) URL.revokeObjectURL(oldUrl);
+            if (oldUrl) {
+                console.log('[PDF-DEBUG] revoking old URL:', oldUrl);
+                URL.revokeObjectURL(oldUrl);
+            }
+            console.log('[PDF-DEBUG] setting activePdfUrl:', blobUrl);
             setActivePdfUrl(blobUrl);
         } else {
+            console.warn('[PDF-DEBUG] no blobUrl, falling back to openFile');
             openFile(link);
         }
         setIsPdfLoading(false);
-    }, [activePdfUrl, openPdfInline, openFile]);
+        console.log('[PDF-DEBUG] handleViewPdf done in', (performance.now() - t0).toFixed(1), 'ms');
+        console.groupEnd();
+    }, [activePdfUrl, openPdfInline, openFile, isPdfLoading]);
 
     const handleClosePdf = useCallback(() => {
+        console.log('[PDF-DEBUG] handleClosePdf, revoking:', activePdfUrl);
         if (activePdfUrl) URL.revokeObjectURL(activePdfUrl);
         setActivePdfUrl(null);
     }, [activePdfUrl]);
 
     const handleClose = useCallback(() => {
+        console.log('[PDF-DEBUG] handleClose (drawer), revoking:', activePdfUrl);
         if (activePdfUrl) URL.revokeObjectURL(activePdfUrl);
         setActivePdfUrl(null);
         onClose();
@@ -87,6 +100,9 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
     } = state;
 
     const hasPdf = activePdfUrl !== null;
+    if (hasPdf || isPdfLoading) {
+        console.log('[PDF-DEBUG] render — hasPdf:', hasPdf, 'isPdfLoading:', isPdfLoading, 'activePdfUrl:', activePdfUrl);
+    }
 
     if (!isOpen) return null;
 

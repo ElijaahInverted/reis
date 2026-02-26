@@ -58,13 +58,30 @@ export function useFileActions(): UseFileActionsResult {
     }, []);
 
     const openPdfInline = useCallback(async (link: string): Promise<string | null> => {
+        const t0 = performance.now();
         const fullUrl = normalizeFileUrl(link);
+        console.group('[PDF-DEBUG] openPdfInline');
+        console.log('[PDF-DEBUG] link:', link);
+        console.log('[PDF-DEBUG] normalizedUrl:', fullUrl);
         try {
+            console.log('[PDF-DEBUG] fetching...');
             const response = await fetch(fullUrl, { credentials: 'include' });
-            if (!response.ok) return null;
+            console.log('[PDF-DEBUG] response status:', response.status, 'type:', response.headers.get('content-type'));
+            if (!response.ok) {
+                console.warn('[PDF-DEBUG] fetch failed, returning null');
+                console.groupEnd();
+                return null;
+            }
             const blob = await response.blob();
-            return URL.createObjectURL(blob);
+            console.log('[PDF-DEBUG] blob size:', blob.size, 'type:', blob.type);
+            const blobUrl = URL.createObjectURL(blob);
+            console.log('[PDF-DEBUG] blobUrl:', blobUrl);
+            console.log('[PDF-DEBUG] total time:', (performance.now() - t0).toFixed(1), 'ms');
+            console.groupEnd();
+            return blobUrl;
         } catch (e) {
+            console.error('[PDF-DEBUG] openPdfInline error:', e);
+            console.groupEnd();
             log.error('Failed to fetch PDF inline', e);
             return null;
         }
