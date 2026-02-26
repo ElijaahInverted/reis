@@ -1,29 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CheckSquare, Square, ExternalLink, X } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
-import { searchPeople } from '../../api/search/searchService';
 
 export function TutoringMatchCard() {
     const match = useAppStore(s => s.studyJamMatch);
     const dismissStudyJamMatch = useAppStore(s => s.dismissStudyJamMatch);
     const setIsStudyJamOpen = useAppStore(s => s.setIsStudyJamOpen);
 
-    const [resolvedName, setResolvedName] = useState<string | null>(null);
     const [checklist, setChecklist] = useState([false, false]);
-
-    useEffect(() => {
-        if (!match) return;
-        setResolvedName(null);
-        searchPeople(match.otherPartyStudentId).then(results => {
-            if (results.length > 0) setResolvedName(results[0].name);
-        });
-    }, [match?.otherPartyStudentId]);
 
     if (!match) return null;
 
     const isTutee = match.myRole === 'tutee';
     const teamsUrl = 'https://teams.microsoft.com';
-    const displayName = resolvedName ?? match.otherPartyStudentId;
+
+    // Data is prefetched in the slice; fall back to raw ID while still loading
+    const displayName = match.resolvedName ?? match.otherPartyStudentId;
+    const teamsHandle = match.teamsHandle;
 
     const checklistItems = isTutee
         ? ['Napsal/a jsem tutorovi na Teams', 'Potvrdili jsme čas schůzky']
@@ -38,7 +31,12 @@ export function TutoringMatchCard() {
                     <p className="text-xs font-semibold text-success mb-0.5">
                         {isTutee ? 'Tutor nalezen' : 'Tutee přiřazen'} — {match.courseName}
                     </p>
-                    <p className="text-sm font-medium truncate">{displayName}</p>
+                    <p className="text-sm font-medium truncate">
+                        {displayName}
+                        {teamsHandle && (
+                            <span className="font-normal text-base-content/50"> • {teamsHandle}</span>
+                        )}
+                    </p>
                     <div className="flex flex-wrap gap-2 mt-2">
                         <a
                             href={teamsUrl}

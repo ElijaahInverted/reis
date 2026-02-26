@@ -1,6 +1,7 @@
 export interface Person {
     id: string | null;
     name: string;
+    email?: string; // University email, e.g. xdedecek@node.mendelu.cz
     link: string;
     faculty: string; // The primary faculty or department
     programAndMode: string; // Additional details or roles

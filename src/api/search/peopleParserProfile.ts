@@ -6,6 +6,11 @@ export function parseMendeluProfileResult(doc: Document, baseUrl: string): Perso
     if (!nameElement) return [];
 
     const name = nameElement.textContent?.trim() ?? 'Unknown Name';
+
+    // University email: anchor pointing to the internal mail compose page
+    const univEmailAnchor = doc.querySelector('a[href*="nova_zprava.pl"]');
+    const univEmailRaw = univEmailAnchor?.textContent?.trim() ?? null;
+    const univEmail = univEmailRaw ? univEmailRaw.replace(/\s*\[at\]\s*/g, '@') : undefined;
     let id: string | null = null;
     const allTds = doc.querySelectorAll('td.odsazena');
 
@@ -60,6 +65,7 @@ export function parseMendeluProfileResult(doc: Document, baseUrl: string): Perso
     return [{
         id: id,
         name: sanitizedName,
+        email: univEmail,
         link: validatedLink || personLink,
         faculty: sanitizeString(infoLines.length > 0 ? infoLines[0] : 'N/A', 100),
         programAndMode: isStudent ? 'Student Profile' : 'Staff Profile',

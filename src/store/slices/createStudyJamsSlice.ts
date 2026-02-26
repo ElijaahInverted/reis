@@ -1,6 +1,7 @@
 import type { AppSlice, StudyJamsSlice } from '../types';
 import { IndexedDBService } from '../../services/storage';
 import { fetchKillerCourses, registerAvailability, deleteAvailability, fetchMyTutoringMatch, fetchMyAvailability, fetchMyDismissals, dismissStudyJam } from '../../api/studyJams';
+import { fetchPersonProfile } from '../../api/search/searchService';
 import { checkStudyJamEligibility } from '../../services/studyJams/studyJamEligibility';
 import { getUserParams } from '../../utils/userParams';
 
@@ -99,12 +100,51 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
                         const killerCourse = killerCourses.find(kc => kc.course_code === existingMatch.course_code);
                         const courseName = killerCourse?.course_name ?? existingMatch.course_code;
                         matchCourseCode = existingMatch.course_code;
-                        set({
-                            studyJamMatch: { courseCode: existingMatch.course_code, courseName, otherPartyStudentId, myRole },
-                            studyJamOptIns: optIns,
-                            studyJamDismissals: dismissals,
-                        });
+
+                        const currentMatch = get().studyJamMatch;
+                        const isSameMatch = currentMatch && 
+                                          currentMatch.courseCode === existingMatch.course_code && 
+                                          currentMatch.otherPartyStudentId === otherPartyStudentId;
+
+                        if (isSameMatch && currentMatch.resolvedName) {
+                            console.debug('[StudyJamsSlice] Match unchanged and resolved, keeping data');
+                        } else {
+                            console.debug('[StudyJamsSlice] Setting match payload (preserving existing resolution if same ID):', { courseCode: existingMatch.course_code, otherPartyStudentId });
+                            
+                            // Merge if same ID but just hasn't finished prefetching or was partially set
+                            const existingData = (currentMatch && currentMatch.otherPartyStudentId === otherPartyStudentId)
+                                ? { resolvedName: currentMatch.resolvedName, teamsHandle: currentMatch.teamsHandle }
+                                : {};
+                                
+                            const matchPayload = { 
+                                courseCode: existingMatch.course_code, 
+                                courseName, 
+                                otherPartyStudentId, 
+                                myRole: myRole as 'tutor' | 'tutee',
+                                ...existingData
+                            };
+                            
+                            set({ studyJamMatch: matchPayload, studyJamOptIns: optIns, studyJamDismissals: dismissals });
+
+                            // Only prefetch if we don't have a name yet
+                            if (!matchPayload.resolvedName) {
+                                console.debug('[StudyJamsSlice] Starting prefetch for:', otherPartyStudentId);
+                                fetchPersonProfile(otherPartyStudentId).then(person => {
+                                    if (!person) {
+                                        console.warn('[StudyJamsSlice] Prefetch failed (no person found) for:', otherPartyStudentId);
+                                        return;
+                                    }
+                                    const teamsHandle = person.email ? person.email.split('@')[0] : undefined;
+                                    console.debug('[StudyJamsSlice] Prefetch complete:', { name: person.name, handle: teamsHandle });
+                                    set(state => (state.studyJamMatch && state.studyJamMatch.otherPartyStudentId === otherPartyStudentId)
+                                        ? { studyJamMatch: { ...state.studyJamMatch, resolvedName: person.name, teamsHandle } }
+                                        : {}
+                                    );
+                                });
+                            }
+                        }
                     } else {
+                        if (get().studyJamMatch) console.debug('[StudyJamsSlice] No match found, clearing state');
                         set({ studyJamMatch: null, studyJamDismissals: dismissals });
                     }
                 }

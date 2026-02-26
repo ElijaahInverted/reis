@@ -1,6 +1,28 @@
 import type { Person, Subject } from './types';
 import { parseMendeluResults, parseGlobalPeopleResults } from './peopleParser';
+import { parseMendeluProfileResult } from './peopleParserProfile';
 import { parseSubjectResults } from './subjectParser';
+
+const BASE_LIDE_URL = 'https://is.mendelu.cz/auth/lide/';
+
+/**
+ * Fetch a single person profile directly by their IS student ID.
+ * More reliable than searchPeople() for known IDs (no ambiguous name results).
+ */
+export async function fetchPersonProfile(studentId: string): Promise<Person | null> {
+    try {
+        const url = `${BASE_LIDE_URL}clovek.pl?id=${studentId};lang=cz`;
+        const response = await fetch(url, { credentials: 'include' });
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const results = parseMendeluProfileResult(doc, BASE_LIDE_URL);
+        return results[0] ?? null;
+    } catch (error) {
+        console.error('[searchService] fetchPersonProfile error', error);
+        return null;
+    }
+}
 
 export async function searchPeople(personName: string): Promise<Person[]> {
     const formData = new URLSearchParams();
