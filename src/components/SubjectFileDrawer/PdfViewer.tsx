@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Loader2, ZoomIn, ZoomOut, X } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
@@ -13,15 +14,24 @@ interface PdfViewerProps {
 export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
     const [numPages, setNumPages] = useState<number>(0);
     const [scale, setScale] = useState(1.0);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         console.log('[PDF-DEBUG] PdfViewer mounted, blobUrl:', blobUrl);
         return () => console.log('[PDF-DEBUG] PdfViewer unmounted, blobUrl was:', blobUrl);
     }, [blobUrl]);
 
-    const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-        console.log('[PDF-DEBUG] Document loaded successfully, pages:', numPages);
-        setNumPages(numPages);
+    const onDocumentLoadSuccess = useCallback(async (pdf: PDFDocumentProxy) => {
+        console.log('[PDF-DEBUG] Document loaded successfully, pages:', pdf.numPages);
+        setNumPages(pdf.numPages);
+        const containerWidth = containerRef.current?.clientWidth;
+        if (containerWidth) {
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 1 });
+            const fitScale = containerWidth / viewport.width;
+            console.log('[PDF-DEBUG] fit-to-width: container=', containerWidth, 'page=', viewport.width, 'scale=', fitScale);
+            setScale(fitScale);
+        }
     }, []);
 
     return (
@@ -41,7 +51,7 @@ export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
                     <X size={14} />
                 </button>
             </div>
-            <div className="flex-1 overflow-auto bg-base-300/30 p-4">
+            <div ref={containerRef} className="flex-1 overflow-auto bg-base-300/30">
                 <Document file={blobUrl} onLoadSuccess={onDocumentLoadSuccess}
                     onLoadError={(err: Error) => console.error('[PDF-DEBUG] Document load error:', err)}
                     loading={<div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-primary" size={24} /></div>}>

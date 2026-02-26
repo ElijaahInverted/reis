@@ -42,6 +42,10 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
     }, [isOpen, activePdfUrl]);
 
     const handleViewPdf = useCallback(async (link: string) => {
+        if (isPdfLoading) {
+            console.log('[PDF-DEBUG] handleViewPdf skipped — already loading');
+            return;
+        }
         const t0 = performance.now();
         console.group('[PDF-DEBUG] handleViewPdf');
         console.log('[PDF-DEBUG] link:', link, 'isPdfLoading:', isPdfLoading, 'currentPdfUrl:', activePdfUrl);
