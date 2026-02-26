@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { CheckSquare, Square, ExternalLink, X } from 'lucide-react';
+import { CheckSquare, Square, ExternalLink, X, LogOut } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
 export function TutoringMatchCard() {
     const match = useAppStore(s => s.studyJamMatch);
-    const dismissStudyJamMatch = useAppStore(s => s.dismissStudyJamMatch);
-    const setIsStudyJamOpen = useAppStore(s => s.setIsStudyJamOpen);
+    const hideStudyJamMatch = useAppStore(s => s.hideStudyJamMatch);
+    const withdrawStudyJamMatch = useAppStore(s => s.withdrawStudyJamMatch);
 
     const [checklist, setChecklist] = useState([false, false]);
+    const [confirmWithdraw, setConfirmWithdraw] = useState(false);
 
     if (!match) return null;
 
     const isTutee = match.myRole === 'tutee';
     const teamsUrl = 'https://teams.microsoft.com';
 
-    // Data is prefetched in the slice; fall back to raw ID while still loading
     const displayName = match.resolvedName ?? match.otherPartyStudentId;
     const teamsHandle = match.teamsHandle;
 
@@ -47,6 +47,22 @@ export function TutoringMatchCard() {
                             <ExternalLink size={11} />
                             Napsat na Teams
                         </a>
+                        {!confirmWithdraw ? (
+                            <button
+                                onClick={() => setConfirmWithdraw(true)}
+                                className="btn btn-xs btn-ghost text-base-content/40 hover:text-error gap-1"
+                            >
+                                <LogOut size={11} />
+                                Odhlásit se
+                            </button>
+                        ) : (
+                            <button
+                                onClick={withdrawStudyJamMatch}
+                                className="btn btn-xs btn-error gap-1"
+                            >
+                                Opravdu odhlásit?
+                            </button>
+                        )}
                     </div>
                     <div className="mt-2 space-y-1">
                         {checklistItems.map((label, i) => (
@@ -63,7 +79,7 @@ export function TutoringMatchCard() {
                         ))}
                     </div>
                 </div>
-                <button onClick={dismissStudyJamMatch} className="opacity-50 hover:opacity-100 shrink-0 mt-0.5">
+                <button onClick={hideStudyJamMatch} className="opacity-50 hover:opacity-100 shrink-0 mt-0.5" title="Skrýt">
                     <X size={14} />
                 </button>
             </div>

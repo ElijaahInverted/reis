@@ -14,16 +14,14 @@ export async function fetchKillerCourses(): Promise<{ course_code: string; cours
 
 export async function registerAvailability(
     studentId: string,
-    course_code: string,
+    courseCode: string,
     role: 'tutor' | 'tutee',
-    semester_id: string,
 ): Promise<boolean> {
-    const { error } = await supabase
-        .from('study_jam_availability')
-        .upsert(
-            { student_id: studentId, course_code, role, semester_id },
-            { onConflict: 'student_id, course_code, semester_id' }
-        );
+    const { error } = await supabase.rpc('register_study_jam_availability', {
+        p_student_id: studentId,
+        p_course_code: courseCode,
+        p_role: role,
+    });
     if (error) {
         console.error('[studyJams] registerAvailability error', error);
         return false;
@@ -31,23 +29,8 @@ export async function registerAvailability(
     return true;
 }
 
-export async function insertTutoringMatch(
-    tutor_student_id: string,
-    tutee_student_id: string,
-    course_code: string,
-    semester_id: string,
-): Promise<void> {
-    const { error } = await supabase
-        .from('tutoring_matches')
-        .insert({ tutor_student_id, tutee_student_id, course_code, semester_id });
-    if (error) {
-        console.error('[studyJams] insertTutoringMatch error', error);
-    }
-}
-
 export async function fetchMyTutoringMatch(
     studentId: string,
-    _semester_id?: string,
 ): Promise<{ tutor_student_id: string; tutee_student_id: string; course_code: string } | null> {
     const { data, error } = await supabase
         .from('tutoring_matches')
@@ -74,22 +57,36 @@ export async function fetchMyAvailability(studentId: string): Promise<{ course_c
     return data as { course_code: string; role: 'tutor' | 'tutee' }[] ?? [];
 }
 
-export async function deleteAvailability(studentId: string, course_code: string): Promise<void> {
-    await supabase.from('study_jam_availability').delete().eq('student_id', studentId).eq('course_code', course_code);
+export async function deleteAvailability(studentId: string, courseCode: string): Promise<void> {
+    const { error } = await supabase.rpc('delete_study_jam_availability', {
+        p_student_id: studentId,
+        p_course_code: courseCode,
+    });
+    if (error) {
+        console.error('[studyJams] deleteAvailability error', error);
+    }
 }
 
-export async function dismissStudyJam(studentId: string, courseCode: string, semesterId: string): Promise<boolean> {
-    const { error } = await supabase
-        .from('study_jam_dismissals')
-        .upsert(
-            { student_id: studentId, course_code: courseCode, semester_id: semesterId },
-            { onConflict: 'student_id, course_code, semester_id' }
-        );
+export async function dismissStudyJam(studentId: string, courseCode: string): Promise<boolean> {
+    const { error } = await supabase.rpc('dismiss_study_jam_suggestion', {
+        p_student_id: studentId,
+        p_course_code: courseCode,
+    });
     if (error) {
         console.error('[studyJams] dismissStudyJam error', error);
         return false;
     }
     return true;
+}
+
+export async function withdrawMatch(studentId: string, courseCode: string): Promise<void> {
+    const { error } = await supabase.rpc('withdraw_study_jam_match', {
+        p_student_id: studentId,
+        p_course_code: courseCode,
+    });
+    if (error) {
+        console.error('[studyJams] withdrawMatch error', error);
+    }
 }
 
 export async function fetchMyDismissals(studentId: string): Promise<string[]> {

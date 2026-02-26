@@ -126,7 +126,8 @@ export interface StudyJamsSlice {
     optInStudyJam: (courseCode: string, courseName: string, role: 'tutor' | 'tutee') => Promise<void>;
     dismissStudyJamSuggestion: (courseCode: string) => Promise<void>;
     cancelOptIn: (courseCode: string) => Promise<void>;
-    dismissStudyJamMatch: () => void;
+    hideStudyJamMatch: () => void;
+    withdrawStudyJamMatch: () => Promise<void>;
 }
 
 export interface UseThemeResult {

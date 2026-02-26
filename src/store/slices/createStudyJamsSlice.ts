@@ -1,6 +1,6 @@
 import type { AppSlice, StudyJamsSlice } from '../types';
 import { IndexedDBService } from '../../services/storage';
-import { fetchKillerCourses, registerAvailability, deleteAvailability, fetchMyTutoringMatch, fetchMyAvailability, fetchMyDismissals, dismissStudyJam } from '../../api/studyJams';
+import { fetchKillerCourses, registerAvailability, deleteAvailability, withdrawMatch, fetchMyTutoringMatch, fetchMyAvailability, fetchMyDismissals, dismissStudyJam } from '../../api/studyJams';
 import { fetchPersonProfile } from '../../api/search/searchService';
 import { checkStudyJamEligibility } from '../../services/studyJams/studyJamEligibility';
 import { getUserParams } from '../../utils/userParams';
@@ -93,7 +93,7 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
 
                 let matchCourseCode: string | null = null;
                 if (userParams) {
-                    const existingMatch = await fetchMyTutoringMatch(userParams.studentId, userParams.obdobi);
+                    const existingMatch = await fetchMyTutoringMatch(userParams.studentId);
                     if (existingMatch) {
                         const myRole = existingMatch.tutor_student_id === userParams.studentId ? 'tutor' : 'tutee';
                         const otherPartyStudentId = myRole === 'tutor' ? existingMatch.tutee_student_id : existingMatch.tutor_student_id;
@@ -178,7 +178,7 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
     optInStudyJam: async (courseCode, _courseName, role) => {
         const userParams = await getUserParams();
         if (!userParams) return;
-        const ok = await registerAvailability(userParams.studentId, courseCode, role, userParams.obdobi);
+        const ok = await registerAvailability(userParams.studentId, courseCode, role);
         if (!ok) return;
         const optIns = { ...get().studyJamOptIns, [courseCode]: { role } };
         await IndexedDBService.set('meta', OPT_INS_KEY, optIns);
@@ -199,7 +199,7 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
             studyJamSuggestions: state.studyJamSuggestions.filter(s => s.courseCode !== courseCode),
         }));
         // Persist to server
-        await dismissStudyJam(userParams.studentId, courseCode, userParams.obdobi);
+        await dismissStudyJam(userParams.studentId, courseCode);
     },
 
     cancelOptIn: async (courseCode) => {
@@ -214,7 +214,16 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
         set({ studyJamOptIns: optIns });
     },
 
-    dismissStudyJamMatch: () => {
+    hideStudyJamMatch: () => {
         set({ studyJamMatch: null });
+    },
+
+    withdrawStudyJamMatch: async () => {
+        const match = get().studyJamMatch;
+        if (!match) return;
+        set({ studyJamMatch: null });
+        const userParams = await getUserParams();
+        if (!userParams) return;
+        await withdrawMatch(userParams.studentId, match.courseCode);
     },
 });

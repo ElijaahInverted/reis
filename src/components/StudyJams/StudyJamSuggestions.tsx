@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { TutoringMatchCard } from './TutoringMatchCard';
 import { MENDELU_LOGO_PATH } from '../../constants/icons';
@@ -5,10 +6,13 @@ import { MENDELU_LOGO_PATH } from '../../constants/icons';
 export function StudyJamSuggestions({ onClose }: { onClose: () => void }) {
     const suggestions = useAppStore(s => s.studyJamSuggestions);
     const match = useAppStore(s => s.studyJamMatch);
+    const optIns = useAppStore(s => s.studyJamOptIns);
+    const cancelOptIn = useAppStore(s => s.cancelOptIn);
     const setSelected = useAppStore(s => s.setSelectedStudyJamSuggestion);
     const setIsStudyJamOpen = useAppStore(s => s.setIsStudyJamOpen);
 
-    const hasContent = suggestions.length > 0 || match !== null;
+    const optInEntries = Object.entries(optIns);
+    const hasContent = suggestions.length > 0 || match !== null || optInEntries.length > 0;
 
     if (!hasContent) return null;
 
@@ -22,7 +26,26 @@ export function StudyJamSuggestions({ onClose }: { onClose: () => void }) {
         <>
             {match && <TutoringMatchCard />}
 
-
+            {optInEntries.map(([courseCode, { role }]) => (
+                <div
+                    key={courseCode}
+                    className="w-full p-4 flex items-center gap-3 border-b border-base-300"
+                >
+                    <ReisAvatar />
+                    <div className="flex-1 min-w-0">
+                        <div className="text-sm text-base-content/70 line-clamp-1">
+                            {role === 'tutor' ? 'Čekám na tutee' : 'Čekám na tutora'} — {courseCode}
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => cancelOptIn(courseCode)}
+                        className="btn btn-ghost btn-xs opacity-50 hover:opacity-100"
+                        title="Zrušit registraci"
+                    >
+                        <X size={14} />
+                    </button>
+                </div>
+            ))}
 
             {suggestions.map(s => (
                 <button
