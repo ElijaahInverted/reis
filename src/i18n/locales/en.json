@@ -88,7 +88,9 @@
         "close": "Close",
         "footer": "We automatically send technical info (version, browser) for faster resolution.",
         "toastSuccess": "Thanks for your feedback!",
-        "toastError": "Failed to send feedback."
+        "toastError": "Failed to send feedback.",
+        "npsQuestion": "Would you recommend reIS to a friend? (1-5)",
+        "npsThank": "Thanks for your rating!"
     },
     "common": {
         "loading": "Loading...",

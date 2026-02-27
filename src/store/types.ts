@@ -130,6 +130,14 @@ export interface StudyJamsSlice {
     withdrawStudyJamMatch: () => Promise<void>;
 }
 
+export interface FeedbackSlice {
+    feedbackEligible: boolean;
+    feedbackDismissed: boolean;
+    loadFeedbackState: () => Promise<void>;
+    submitNps: (rating: number) => Promise<void>;
+    dismissFeedback: () => void;
+}
+
 export interface UseThemeResult {
   theme: Theme;
   isDark: boolean;
@@ -138,6 +146,6 @@ export interface UseThemeResult {
   setTheme: (theme: Theme) => void;
 }
 
-export type AppState = ScheduleSlice & ExamSlice & SyllabusSlice & FilesSlice & AssessmentsSlice & ClassmatesSlice & SubjectsSlice & SyncSlice & ThemeSlice & I18nSlice & SuccessRateSlice & StudyJamsSlice;
+export type AppState = ScheduleSlice & ExamSlice & SyllabusSlice & FilesSlice & AssessmentsSlice & ClassmatesSlice & SubjectsSlice & SyncSlice & ThemeSlice & I18nSlice & SuccessRateSlice & StudyJamsSlice & FeedbackSlice;
 
 export type AppSlice<T> = StateCreator<AppState, [], [], T>;

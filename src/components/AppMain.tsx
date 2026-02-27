@@ -4,6 +4,7 @@ import { AppHeader } from './AppHeader'
 import { WeeklyCalendar } from './WeeklyCalendar/index'
 import { ExamPanel } from './ExamPanel'
 import { useSwipeNavigation } from '../hooks/ui/useSwipeNavigation'
+import { NpsBanner } from './Feedback/NpsBanner'
 
 interface AppMainProps {
     currentView: AppView;
@@ -27,6 +28,7 @@ export function AppMain({
     return (
         <main className="flex-1 flex flex-col transition-all duration-300 overflow-hidden">
             <AppHeader currentView={currentView} dateRangeLabel={dateRangeLabel} onPrevWeek={handlePrevWeek} onNextWeek={handleNextWeek} onToday={handleToday} onOpenSubject={handleOpenSubjectFromSearch} />
+            <NpsBanner />
             <div
                 className="flex-1 pt-3 px-4 pb-16 md:pb-1 overflow-hidden flex flex-col"
                 onTouchStart={!isMobile ? onTouchStart : undefined}
