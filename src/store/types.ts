@@ -135,7 +135,7 @@ export interface FeedbackSlice {
     feedbackDismissed: boolean;
     loadFeedbackState: () => Promise<void>;
     submitNps: (rating: number) => Promise<void>;
-    dismissFeedback: () => void;
+    dismissFeedback: () => Promise<void>;
 }
 
 export interface UseThemeResult {
