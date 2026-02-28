@@ -33,7 +33,7 @@ We collect anonymous usage data to improve the extension:
 ### 4. Daily Usage & NPS Feedback
 To understand how actively the extension is used and to improve user experience, we collect:
 - **Daily Usage**: Each day you open the extension, a SHA-256 hash of your student ID is sent to our Supabase backend to record a daily active usage event. Your raw student ID is **never transmitted** — only an irreversible hash. No academic data, browsing history, or page content is sent.
-- **NPS Rating (Voluntary)**: Once per semester, after a few sessions, you may be shown a satisfaction prompt. If you choose to rate, a hashed student ID, faculty, study semester, and numeric rating are sent to Supabase. You can dismiss the prompt without submitting any data.
+- **NPS Rating (Voluntary)**: Once per semester, after a few sessions, you may be shown a satisfaction prompt. If you choose to rate, a hashed student ID and numeric rating are sent to Supabase. You can dismiss the prompt without submitting any data.
 
 This data is used solely for aggregate usage statistics and product improvement. It is **not shared with third parties**.
 

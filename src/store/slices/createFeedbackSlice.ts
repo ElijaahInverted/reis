@@ -62,8 +62,6 @@ export const createFeedbackSlice: AppSlice<FeedbackSlice> = (set) => ({
         const currentSemester = getCurrentSemesterCode(userParams.obdobi);
         await submitFeedback(
             userParams.studentId,
-            userParams.facultyId,
-            userParams.studySemester ?? 0,
             'nps',
             String(rating),
             currentSemester,

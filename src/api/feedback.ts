@@ -8,8 +8,6 @@ async function hashId(raw: string): Promise<string> {
 
 export async function submitFeedback(
     studentId: string,
-    facultyId: string,
-    studySemester: number,
     feedbackType: 'nps' | 'one_change',
     value: string,
     semesterCode: string,
@@ -17,8 +15,8 @@ export async function submitFeedback(
     const hashedId = await hashId(studentId);
     const { error } = await supabase.rpc('submit_feedback', {
         p_student_id: hashedId,
-        p_faculty_id: facultyId,
-        p_study_semester: studySemester,
+        p_faculty_id: null,
+        p_study_semester: null,
         p_feedback_type: feedbackType,
         p_value: value,
         p_semester_code: semesterCode,
