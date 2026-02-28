@@ -117,10 +117,4 @@ export interface SyllabusRequirements {
     requirementsText: string; // Textual description of requirements
     requirementsTable: string[][]; // Grading breakdown table (rows of cells)
     courseInfo?: CourseMetadata; // New: General course info (credits, garant, etc.)
-    assessmentMethods?: string | null;
-    assessmentCriteria?: {
-        requirementType: string;
-        dailyAttendance: string;
-        combinedForm: string;
-    }[];
 }

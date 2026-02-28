@@ -20,15 +20,3 @@ export function parseRequirementsText(doc: Document) {
     clone.querySelectorAll("br").forEach(br => br.replaceWith("\n"));
     return (clone.textContent || '').split('\n').map(l => l.trim().replace(/\s+/g, ' ')).filter(l => l.length > 0).join('\n');
 }
-
-export function parseAssessmentMethods(doc: Document) {
-    const row = findHeaderRow(doc, ["Assessment methods:", "Metody hodnocení:"]);
-    const contentRow = row?.nextElementSibling;
-    const cell = contentRow?.querySelector("td");
-    
-    if (!cell) return null;
-    
-    const clone = cell.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll("br").forEach(br => br.replaceWith("\n"));
-    return (clone.textContent || '').split('\n').map(l => l.trim().replace(/\s+/g, ' ')).filter(l => l.length > 0).join('\n').trim();
-}

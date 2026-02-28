@@ -461,25 +461,10 @@ describe('syllabusParser', () => {
     </html>
     `;
 
-    it('should parse English syllabus with assessment methods and criteria', () => {
+    it('should parse English syllabus with metadata', () => {
         const result = parseSyllabusOffline(ENGLISH_SYLLABUS_HTML);
 
-        expect(result.assessmentMethods).toContain('Final exam (písemná část) - 50 points');
-        expect(result.assessmentMethods).toContain('Project - 50 points');
-
-        expect(result.assessmentCriteria).toHaveLength(2);
-        expect(result.assessmentCriteria[0]).toEqual({
-            requirementType: 'Project',
-            dailyAttendance: '50',
-            combinedForm: '50'
-        });
-        expect(result.assessmentCriteria[1]).toEqual({
-            requirementType: 'Final exam',
-            dailyAttendance: '50',
-            combinedForm: '50'
-        });
-
-        // Verify metadata too
+        // Verify metadata
         expect(result.courseInfo.credits).toBe('Exam');
         expect(result.courseInfo.garant).toEqual({ name: 'John Doe', id: '12345' });
         

@@ -23,12 +23,6 @@ export const SyllabusRequirementsSchema = z.object({
     requirementsText: z.string(),
     requirementsTable: z.array(z.array(z.string())),
     courseInfo: CourseMetadataSchema.optional(),
-    assessmentMethods: z.string().nullable().optional(),
-    assessmentCriteria: z.array(z.object({
-        requirementType: z.string(),
-        dailyAttendance: z.string(),
-        combinedForm: z.string()
-    })).optional(),
 });
 
 export type SyllabusRequirements = z.infer<typeof SyllabusRequirementsSchema>;

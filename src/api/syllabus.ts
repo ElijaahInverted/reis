@@ -26,8 +26,6 @@ export async function fetchSyllabus(predmetId: string, lang: string = 'cz'): Pro
         console.debug(`[fetchSyllabus] Success for predmet=${predmetId}:`, {
             textLength: parsed.requirementsText.length,
             tableRows: parsed.requirementsTable.length,
-            hasAssessmentMethods: !!parsed.assessmentMethods,
-            assessmentCriteriaCount: parsed.assessmentCriteria?.length || 0
         });
         
         return parsed;
