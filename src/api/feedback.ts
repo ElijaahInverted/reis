@@ -1,5 +1,11 @@
 import { supabase } from '../services/spolky/supabaseClient';
 
+async function hashId(raw: string): Promise<string> {
+    const data = new TextEncoder().encode(raw);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export async function submitFeedback(
     studentId: string,
     facultyId: string,
@@ -8,8 +14,9 @@ export async function submitFeedback(
     value: string,
     semesterCode: string,
 ): Promise<boolean> {
+    const hashedId = await hashId(studentId);
     const { error } = await supabase.rpc('submit_feedback', {
-        p_student_id: studentId,
+        p_student_id: hashedId,
         p_faculty_id: facultyId,
         p_study_semester: studySemester,
         p_feedback_type: feedbackType,
@@ -24,8 +31,9 @@ export async function submitFeedback(
 }
 
 export async function trackDailyUsage(studentId: string): Promise<void> {
+    const hashedId = await hashId(studentId);
     const { error } = await supabase.rpc('track_daily_usage', {
-        p_student_id: studentId,
+        p_student_id: hashedId,
     });
     if (error) {
         console.error('[feedback] trackDailyUsage error', error);

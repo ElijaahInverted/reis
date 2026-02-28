@@ -1,6 +1,6 @@
 # Privacy Policy for reIS
 
-**Last Updated: February 23, 2026**
+**Last Updated: February 28, 2026**
 
 ## Introduction
 reIS ("we", "our", or "us") is a Chrome extension designed to modernize and enhance the user experience of the Mendel University Information System (IS Mendelu). We are committed to protecting your privacy and ensuring the security of your data.
@@ -30,7 +30,14 @@ We collect anonymous usage data to improve the extension:
 - **Purpose**: To rank relevance of student association notifications.
 - **Privacy**: This data is **not linked** to your identity, IS credentials, or personal content.
 
-### 4. User Feedback (Voluntary)
+### 4. Daily Usage & NPS Feedback
+To understand how actively the extension is used and to improve user experience, we collect:
+- **Daily Usage**: Each day you open the extension, a SHA-256 hash of your student ID is sent to our Supabase backend to record a daily active usage event. Your raw student ID is **never transmitted** — only an irreversible hash. No academic data, browsing history, or page content is sent.
+- **NPS Rating (Voluntary)**: Once per semester, after a few sessions, you may be shown a satisfaction prompt. If you choose to rate, a hashed student ID, faculty, study semester, and numeric rating are sent to Supabase. You can dismiss the prompt without submitting any data.
+
+This data is used solely for aggregate usage statistics and product improvement. It is **not shared with third parties**.
+
+### 5. User Feedback (Voluntary)
 If you use the built-in "Report Bug / Feedback" feature, the following data is sent to our support channel:
 - **Content**: The message and contact details you explicitly provide.
 - **Technical Context**: Extension version, browser user agent, and screen resolution (to help debug issues).
