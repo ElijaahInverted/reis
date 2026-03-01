@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const PEFBOT_URL = 'https://reis-mendelu.github.io/reis-data/pefbot.html';
 
@@ -7,7 +7,22 @@ interface PefBotProps {
 }
 
 export function PefBot({ visible }: PefBotProps) {
+    const [chatOpen, setChatOpen] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
+
+    useEffect(() => {
+        const handle = (e: MessageEvent) => {
+            if (e.data?.type === 'PEFBOT_STATE') {
+                setChatOpen(e.data.state === 'open');
+            }
+        };
+        window.addEventListener('message', handle);
+        return () => window.removeEventListener('message', handle);
+    }, []);
+
+    const size = chatOpen
+        ? { width: '420px', height: '600px' }
+        : { width: '420px', height: '85px' };
 
     return (
         <iframe
@@ -17,8 +32,8 @@ export function PefBot({ visible }: PefBotProps) {
             className="fixed bottom-0 right-0 z-50 border-none"
             style={{
                 display: visible ? 'block' : 'none',
-                width: '420px',
-                height: '600px',
+                width: size.width,
+                height: size.height,
                 background: 'transparent',
                 colorScheme: 'normal',
             }}
