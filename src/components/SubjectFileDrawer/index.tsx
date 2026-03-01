@@ -138,7 +138,13 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
         <div className="fixed inset-0 z-50 flex justify-end items-stretch p-0 sm:p-4 isolate">
             <div className="absolute inset-0 bg-black/15 animate-in fade-in" onClick={handleClose} />
             <div className="w-full flex justify-end items-start h-full pt-0 pb-0 sm:pt-10 sm:pb-10 relative z-10 pointer-events-none">
-                <div role="dialog" className={`bg-base-100 shadow-2xl rounded-2xl flex flex-col h-full animate-in slide-in-from-right pointer-events-auto border border-base-300 transition-[width] duration-300 ${hasPdf ? 'w-full sm:w-[90vw]' : 'w-full sm:w-[600px]'}`}>
+                <div role="dialog" className={`bg-base-100 shadow-2xl rounded-2xl flex flex-col h-full animate-in slide-in-from-right pointer-events-auto border border-base-300 transition-[width] duration-300 relative ${hasPdf ? 'w-full sm:w-[90vw]' : 'w-full sm:w-[600px]'}`}>
+                    {/* Loading overlay — shown during fetch regardless of hasPdf state */}
+                    {isPdfLoading && (
+                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-base-100/50 rounded-2xl">
+                            <span className="loading loading-spinner loading-lg text-primary" />
+                        </div>
+                    )}
                     {hasPdf ? (
                         <ResizablePanelGroup direction="horizontal" className="h-full rounded-2xl">
                             <ResizablePanel defaultSize={35} minSize={20} className="flex flex-col">
@@ -150,14 +156,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
                             </ResizablePanel>
                         </ResizablePanelGroup>
                     ) : (
-                        <>
-                            {isPdfLoading && (
-                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-base-100/50 rounded-2xl">
-                                    <span className="loading loading-spinner loading-md text-primary" />
-                                </div>
-                            )}
-                            {fileListContent}
-                        </>
+                        fileListContent
                     )}
                 </div>
             </div>
