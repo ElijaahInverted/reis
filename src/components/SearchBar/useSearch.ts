@@ -98,7 +98,8 @@ export function useSearch(query: string) {
       } catch { setFilteredResults([]); } finally { setIsLoading(false); }
     }, 500);
     return () => { if (debounceTimeout.current) clearTimeout(debounceTimeout.current); };
-  }, [query, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   return { isOpen, setIsOpen, selectedIndex, setSelectedIndex, filteredResults, isLoading, recentSearches, studiumId, saveToHistory };
 }
