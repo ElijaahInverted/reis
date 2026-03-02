@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { MobileBottomNav } from './components/MobileNav/MobileBottomNav'
 import { Toaster } from './components/ui/sonner'
@@ -5,8 +6,8 @@ import { getSmartWeekRange } from '@/utils/calendar'
 import { useAppLogic } from './hooks/useAppLogic'
 import { AppMain } from './components/AppMain'
 import { AppOverlays } from './components/AppOverlays'
-import { PefBot } from './components/PefBot'
 import { useUserParams } from './hooks/useUserParams'
+import { Messages } from './types/messages'
 
 function App() {
   const s = useAppLogic();
@@ -14,13 +15,19 @@ function App() {
   const isPef = userParams?.facultyLabel === 'PEF';
   const showPefBot = isPef && !s.selectedSubject && (s.currentView === 'calendar' || s.currentView === 'exams');
 
+  useEffect(() => {
+    if (isPef) {
+      window.parent.postMessage(Messages.pefbotVisibility(showPefBot), '*');
+    }
+  }, [isPef, showPefBot]);
+
   const handlePrevWeek = () => { s.setCurrentDate(prev => { const d = new Date(prev); d.setDate(d.getDate() - 7); return d; }); s.setWeekNavCount(p => p + 1); };
   const handleNextWeek = () => { s.setCurrentDate(prev => { const d = new Date(prev); d.setDate(d.getDate() + 7); return d; }); s.setWeekNavCount(p => p + 1); };
   const handleToday = () => s.setCurrentDate(getSmartWeekRange().start);
 
   const getDateRangeLabel = () => {
     const end = new Date(s.currentDate); end.setDate(s.currentDate.getDate() + 6);
-    return s.currentDate.getMonth() === end.getMonth() 
+    return s.currentDate.getMonth() === end.getMonth()
       ? `${s.currentDate.getDate()}. - ${end.getDate()}.${s.currentDate.getMonth() + 1}.`
       : `${s.currentDate.getDate()}.${s.currentDate.getMonth() + 1}. - ${end.getDate()}.${end.getMonth() + 1}.`;
   };
@@ -34,7 +41,7 @@ function App() {
       <MobileBottomNav currentView={s.currentView} onViewChange={s.setCurrentView}
                onOpenFeedback={() => s.setIsFeedbackOpen(true)}
                onOpenSubject={s.handleOpenSubjectFromSearch} />
-      
+
       <AppMain currentView={s.currentView} currentDate={s.currentDate} dateRangeLabel={getDateRangeLabel()}
                handlePrevWeek={handlePrevWeek} handleNextWeek={handleNextWeek} handleToday={handleToday}
                handleOpenSubjectFromSearch={s.handleOpenSubjectFromSearch} />
@@ -42,8 +49,6 @@ function App() {
       <AppOverlays selectedSubject={s.selectedSubject} setSelectedSubject={s.setSelectedSubject}
                    isFeedbackOpen={s.isFeedbackOpen}
                    setIsFeedbackOpen={s.setIsFeedbackOpen} />
-
-      {isPef && <PefBot visible={showPefBot} />}
     </div>
   )
 }

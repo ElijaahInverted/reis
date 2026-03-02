@@ -5,6 +5,7 @@ import { fetchFullSemesterSchedule } from "./dataFetchers";
 import { fetchExamData, registerExam, unregisterExam } from "../api/exams";
 import { fetchSubjects } from "../api/subjects";
 import type { DataRequestType } from "../types/messages";
+import { setPefBotVisible } from "./pefbot";
 
 let topUpPopupRef: Window | null = null;
 
@@ -29,6 +30,9 @@ export async function handleMessage(event: MessageEvent) {
         case "REIS_ACTION":
             console.log('[messageHandler] 📨 Received action:', data.action, 'with payload:', data.payload);
             await handleAction(data.id, data.action, data.payload);
+            break;
+        case "REIS_PEFBOT_VISIBILITY":
+            setPefBotVisible(data.visible);
             break;
     }
 }

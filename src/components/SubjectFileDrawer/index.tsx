@@ -11,6 +11,7 @@ import type { BlockLesson } from '../../types/calendarTypes';
 import type { ParsedFile } from '../../types/documents';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { SelectedSubject } from '../../types/app';
+import { Messages } from '../../types/messages';
 
 export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLesson | SelectedSubject | null; isOpen: boolean; onClose: () => void }) {
     const state = useSubjectFileDrawerState(lesson, isOpen);
@@ -19,6 +20,10 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
     const [activePdfUrl, setActivePdfUrl] = useState<string | null>(null);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const { t } = useTranslation();
+
+    useEffect(() => {
+        window.parent.postMessage(Messages.pefbotVisibility(!isOpen), '*');
+    }, [isOpen]);
 
     useEffect(() => {
         if (isOpen && state.files?.length) {

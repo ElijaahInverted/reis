@@ -18,11 +18,12 @@ export default defineConfig({
       48: 'mendelu_logo_48.png',
       128: 'mendelu_logo_128.png',
     },
-    permissions: ['storage', 'unlimitedStorage'],
+    permissions: ['storage', 'unlimitedStorage', 'scripting'],
     host_permissions: [
       'https://is.mendelu.cz/*',
       'https://raw.githubusercontent.com/reis-mendelu/reis-data/*',
-      'https://cdn.jsdelivr.net/gh/reis-mendelu/reis-data@main/*'
+      'https://cdn.jsdelivr.net/gh/reis-mendelu/reis-data@main/*',
+      'https://api.citymind.tech/*'
     ],
     action: {
       default_popup: 'main.html',
