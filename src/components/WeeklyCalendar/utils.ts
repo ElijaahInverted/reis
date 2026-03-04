@@ -1,6 +1,6 @@
 import type { BlockLesson, LessonWithRow, OrganizedLessons } from '../../types/calendarTypes';
 
-const TOTAL_HOURS = 13; // 7:00 to 20:00
+const TOTAL_HOURS = 14; // 7:00 to 21:00
 
 export const DAYS = [
     { index: 0, short: 'Po', full: 'Pondělí' },
@@ -10,7 +10,7 @@ export const DAYS = [
     { index: 4, short: 'Pá', full: 'Pátek' },
 ];
 
-export const HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+export const HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
 export function timeToPercent(time: string): number {
     const [hours, minutes] = time.split(':').map(Number);

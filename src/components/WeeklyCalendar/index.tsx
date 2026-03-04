@@ -14,7 +14,7 @@ import { useHintStatus } from '../../hooks/ui/useHintStatus';
 import { useIsMobile } from '../../hooks/ui/useIsMobile';
 import type { BlockLesson } from '../../types/calendarTypes';
 
-const TOTAL_HOURS = 13;
+const TOTAL_HOURS = 14;
 
 export function WeeklyCalendar({ initialDate = new Date(), onPrevWeek, onNextWeek }: { initialDate?: Date; onPrevWeek?: () => void; onNextWeek?: () => void }) {
     const language = useAppStore((state) => state.language);

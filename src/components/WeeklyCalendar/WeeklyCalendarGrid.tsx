@@ -1,6 +1,6 @@
 import { HOURS, DAYS } from './utils';
 
-const TOTAL_HOURS = 13;
+const TOTAL_HOURS = 14;
 
 export function WeeklyCalendarGrid() {
     return (
