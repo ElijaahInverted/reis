@@ -1,12 +1,11 @@
-import { Search, X, Zap } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { injectUserParams } from '../../data/pagesData';
+import { injectUserParams, pagesData } from '../../data/pagesData';
 import { useSearch } from './useSearch';
 import { SearchResultItem } from './SearchResultItem';
 import { SearchFooter } from './SearchFooter';
 import type { SearchBarProps, SearchResult } from './types';
 import { useTranslation } from '../../hooks/useTranslation';
-import { quickActions } from './quickActions';
 
 export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarProps) {
   const { t } = useTranslation();
@@ -48,12 +47,20 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
     setQuery(''); setIsOpen(false); setSelectedIndex(-1);
   };
 
-  const showQuickActions = query.trim() === '' && recentSearches.length === 0;
-  const displayResults = query.trim() === '' ? recentSearches : filteredResults;
+  const isEmptyQuery = query.trim() === '';
+  const displayResults = isEmptyQuery ? [] : filteredResults;
+
+  // Flatten browse items for keyboard navigation (recent + all pages)
+  const browseItems: SearchResult[] = isEmptyQuery
+    ? [
+        ...recentSearches,
+        ...pagesData.flatMap(cat => cat.children.map(p => ({ id: p.id, title: p.label, type: 'page' as const, detail: cat.label, link: p.href, category: cat.label }))),
+      ]
+    : [];
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) { if (e.key === 'Enter' && query.trim() !== '') setIsOpen(true); return; }
-    const items = showQuickActions ? quickActions : displayResults;
+    const items = isEmptyQuery ? browseItems : displayResults;
     const resultsCount = items.length;
     if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex(prev => (prev + 1) % resultsCount); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIndex(prev => prev <= 0 ? resultsCount - 1 : prev - 1); }
@@ -83,30 +90,45 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
           {isOpen && (
             <div className="absolute top-full left-0 right-0 bg-base-100 border border-t-0 border-base-300 rounded-b-lg shadow-lg overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="h-px w-full bg-base-300" />
-              {showQuickActions ? (
-                <>
-                  <div className="px-4 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1 flex items-center gap-1.5">
-                    <Zap className="w-3 h-3" />
-                    <span>{t('search.quickActions')}</span>
-                  </div>
-                  <div className="max-h-[min(400px,50vh)] overflow-y-auto pb-2">
-                    {quickActions.map((action, index) => (
-                      <SearchResultItem key={action.id} result={action} isRecent={false} isSelected={selectedIndex === index}
-                        onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(action); }} />
-                    ))}
-                  </div>
-                </>
+              {isEmptyQuery ? (
+                <div className="max-h-[min(400px,50vh)] overflow-y-auto pb-2">
+                  {recentSearches.length > 0 && (
+                    <div>
+                      <div className="px-4 py-1.5 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1 sticky top-0 bg-base-100">{t('search.recent')}</div>
+                      {recentSearches.map((result, index) => (
+                        <SearchResultItem key={result.id} result={result} isRecent isSelected={selectedIndex === index}
+                          onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(result); }} />
+                      ))}
+                    </div>
+                  )}
+                  {pagesData.map(cat => {
+                    const catOffset = recentSearches.length + pagesData.slice(0, pagesData.indexOf(cat)).reduce((sum, c) => sum + c.children.length, 0);
+                    return (
+                      <div key={cat.id}>
+                        <div className="px-4 py-1.5 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1 sticky top-0 bg-base-100">{cat.label}</div>
+                        {cat.children.map((p, i) => {
+                          const globalIdx = catOffset + i;
+                          return (
+                            <SearchResultItem key={p.id} result={{ id: p.id, title: p.label, type: 'page', detail: cat.label, link: p.href, category: cat.label }}
+                              isRecent={false} isSelected={selectedIndex === globalIdx}
+                              onMouseEnter={() => setSelectedIndex(globalIdx)} onMouseDown={(e) => { e.preventDefault(); handleSelect(browseItems[globalIdx]); }} />
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
                 <>
-                  <div className="px-4 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1"><span>{query ? t('search.results') : t('search.recent')}</span></div>
+                  <div className="px-4 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1"><span>{t('search.results')}</span></div>
                   <div className="max-h-[min(400px,50vh)] overflow-y-auto pb-2">
                     {displayResults.length > 0 ? displayResults.map((result, index) => (
-                      <SearchResultItem key={result.id} result={result} isRecent={query === ''} isSelected={selectedIndex === index}
+                      <SearchResultItem key={result.id} result={result} isRecent={false} isSelected={selectedIndex === index}
                         onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(result); }} />
                     )) : (
                       <div className="px-4 py-8 text-center text-sm text-base-content/50">
                         {isLoading ? <div className="flex flex-col items-center gap-2"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-base-content/50"></div><span>{t('search.loading')}</span></div> :
-                          query.trim() === '' ? <span>{t('search.recentHint')}</span> : t('search.empty')}
+                          t('search.empty')}
                       </div>
                     )}
                   </div>

@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { searchGlobal } from '../../api/search';
 import { pagesData } from '../../data/pagesData';
+import { pageKeywords } from '../../data/pages/keywords';
 import { fuzzyIncludes } from '../../utils/searchUtils';
 import type { SearchResult } from './types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { IndexedDBService } from '../../services/storage';
 
-const MAX_RECENT_SEARCHES = 5;
+const MAX_RECENT_SEARCHES = 3;
 
 export function useSearch(query: string) {
   const { t } = useTranslation();
@@ -75,7 +76,10 @@ export function useSearch(query: string) {
 
         const pageResults: SearchResult[] = [];
         pagesData.forEach(cat => cat.children.forEach(p => {
-          if (fuzzyIncludes(p.label, searchQuery)) {
+          const keywords = pageKeywords[p.id] ?? [];
+          const matchesLabel = fuzzyIncludes(p.label, searchQuery);
+          const matchesKeyword = keywords.some(kw => kw.toLowerCase().includes(searchQuery));
+          if (matchesLabel || matchesKeyword) {
             pageResults.push({ id: p.id, title: p.label, type: 'page', detail: cat.label, link: p.href, category: cat.label });
           }
         }));
