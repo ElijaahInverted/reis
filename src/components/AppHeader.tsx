@@ -27,10 +27,10 @@ export function AppHeader({
 
   return (
     <>
-      <div className="flex-shrink-0 z-30 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-4 py-2">
-        <div className="flex items-center justify-between gap-2 md:gap-4 w-full">
+      <div className="flex-shrink-0 z-30 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-4 pt-5 pb-3">
+        <div className="relative flex items-center justify-between gap-2 md:gap-4 w-full">
           {currentView === 'calendar' && (
-            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+            <div className="flex items-center gap-2 md:gap-4 flex-shrink-0 z-10">
               <div className="flex items-center bg-base-300 rounded-lg p-1">
                 <button
                   onClick={onPrevWeek}
@@ -50,27 +50,28 @@ export function AppHeader({
               <button onClick={onToday} className="btn btn-primary btn-sm border-none shadow-sm">
                 {t('common.today')}
               </button>
-              <span className="hidden md:inline text-lg font-semibold text-base-content whitespace-nowrap">{dateRangeLabel}</span>
-              <span className="md:hidden text-sm font-semibold text-base-content whitespace-nowrap">{dateRangeLabel}</span>
+              <span className="hidden lg:inline text-lg font-semibold text-base-content whitespace-nowrap">{dateRangeLabel}</span>
             </div>
           )}
 
-          <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
-            <NotificationFeed />
-
-            {/* Mobile: search icon button */}
-            <button
-              onClick={() => setMobileSearchOpen(true)}
-              className="md:hidden p-2 hover:bg-base-300 rounded-lg"
-              aria-label="Search"
-            >
-              <Search size={20} />
-            </button>
-
-            {/* Desktop: inline search bar */}
-            <div className="hidden md:block w-full max-w-[480px] min-w-[200px]">
+          {/* Desktop: hero search bar — absolutely centered in header */}
+          <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none">
+            <div className="w-full max-w-2xl pointer-events-auto">
               <SearchBar onOpenSubject={onOpenSubject} />
             </div>
+          </div>
+
+          {/* Mobile: search icon button */}
+          <button
+            onClick={() => setMobileSearchOpen(true)}
+            className="md:hidden p-2 hover:bg-base-300 rounded-lg flex-shrink-0"
+            aria-label="Search"
+          >
+            <Search size={20} />
+          </button>
+
+          <div className="flex-shrink-0 ml-auto z-10">
+            <NotificationFeed />
           </div>
         </div>
       </div>

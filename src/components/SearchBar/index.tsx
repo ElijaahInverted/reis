@@ -1,5 +1,6 @@
 import { Search, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { injectUserParams, pagesData } from '../../data/pagesData';
 import { useSearch } from './useSearch';
 import { SearchResultItem } from './SearchResultItem';
@@ -13,12 +14,17 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
   const finalPlaceholder = placeholder || defaultPlaceholder;
   const [query, setQuery] = useState('');
   const { isOpen, setIsOpen, selectedIndex, setSelectedIndex, filteredResults, isLoading, recentSearches, studiumId, saveToHistory } = useSearch(query);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const inputWrapRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
+  // Close on click outside (check both input and dropdown)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setIsOpen(false);
+      const target = e.target as Node;
+      if (inputWrapRef.current?.contains(target) || dropdownRef.current?.contains(target)) return;
+      setIsOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -36,6 +42,18 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
   }, [setIsOpen]);
 
+  // Track input position for fixed dropdown
+  useEffect(() => {
+    if (!isOpen || !inputWrapRef.current) { setDropdownPos(null); return; }
+    const update = () => {
+      const rect = inputWrapRef.current?.getBoundingClientRect();
+      if (rect) setDropdownPos({ top: rect.bottom, left: rect.left, width: rect.width });
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [isOpen]);
+
   const handleSelect = (result: SearchResult) => {
     saveToHistory(result);
     if (result.type === 'subject' && onOpenSubject) {
@@ -50,7 +68,6 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
   const isEmptyQuery = query.trim() === '';
   const displayResults = isEmptyQuery ? [] : filteredResults;
 
-  // Flatten browse items for keyboard navigation (recent + all pages)
   const browseItems: SearchResult[] = isEmptyQuery
     ? [
         ...recentSearches,
@@ -68,11 +85,68 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
     else if (e.key === 'Escape') { e.preventDefault(); setIsOpen(false); setQuery(''); inputRef.current?.blur(); }
   };
 
+  const dropdownContent = isOpen && dropdownPos && (
+    <>
+      <div className="fixed inset-0 bg-black/20 z-40 animate-in fade-in duration-150" onMouseDown={() => setIsOpen(false)} />
+      <div
+        ref={dropdownRef}
+        className="fixed z-50 bg-base-100 border border-base-300 rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-200"
+        style={{ top: dropdownPos.top + 4, left: dropdownPos.left, width: Math.max(dropdownPos.width, 500) }}
+      >
+        {isEmptyQuery ? (
+          <div className="max-h-[min(500px,60vh)] overflow-y-auto pb-2">
+            {recentSearches.length > 0 && (
+              <div>
+                <div className="px-4 py-1.5 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1 sticky top-0 bg-base-100 z-10">{t('search.recent')}</div>
+                {recentSearches.map((result, index) => (
+                  <SearchResultItem key={result.id} result={result} isRecent isSelected={selectedIndex === index}
+                    onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(result); }} />
+                ))}
+              </div>
+            )}
+            {pagesData.map(cat => {
+              const catOffset = recentSearches.length + pagesData.slice(0, pagesData.indexOf(cat)).reduce((sum, c) => sum + c.children.length, 0);
+              return (
+                <div key={cat.id}>
+                  <div className="px-4 py-1.5 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1 sticky top-0 bg-base-100 z-10">{cat.label}</div>
+                  {cat.children.map((p, i) => {
+                    const globalIdx = catOffset + i;
+                    return (
+                      <SearchResultItem key={p.id} result={{ id: p.id, title: p.label, type: 'page', detail: cat.label, link: p.href, category: cat.label }}
+                        isRecent={false} isSelected={selectedIndex === globalIdx}
+                        onMouseEnter={() => setSelectedIndex(globalIdx)} onMouseDown={(e) => { e.preventDefault(); handleSelect(browseItems[globalIdx]); }} />
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <>
+            <div className="px-4 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1"><span>{t('search.results')}</span></div>
+            <div className="max-h-[min(500px,60vh)] overflow-y-auto pb-2">
+              {displayResults.length > 0 ? displayResults.map((result, index) => (
+                <SearchResultItem key={result.id} result={result} isRecent={false} isSelected={selectedIndex === index}
+                  onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(result); }} />
+              )) : (
+                <div className="px-4 py-8 text-center text-sm text-base-content/50">
+                  {isLoading ? <div className="flex flex-col items-center gap-2"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-base-content/50"></div><span>{t('search.loading')}</span></div> :
+                    t('search.empty')}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+        <SearchFooter />
+      </div>
+    </>
+  );
+
   return (
     <div className="w-full h-full flex items-center">
       <div className="flex-1 max-w-3xl mx-auto flex items-center gap-2">
-        <div ref={containerRef} className="relative w-full z-50">
-          <div className={`relative flex items-center w-full max-w-3xl bg-base-100 rounded-xl border shadow-sm transition-all duration-200 ${isOpen ? 'border-primary shadow-[0_0_0_3px_rgba(121,190,21,0.15)]' : 'border-base-300 hover:border-base-content/30'}`}>
+        <div ref={inputWrapRef} className="relative w-full">
+          <div className={`relative flex items-center w-full max-w-3xl bg-base-100 rounded-xl border shadow-sm transition-all duration-200 z-50 ${isOpen ? 'border-primary shadow-[0_0_0_3px_rgba(121,190,21,0.15)]' : 'border-base-300 hover:border-base-content/30'}`}>
             <div className="flex-1 flex items-center h-12 px-4">
               <Search className={`w-5 h-5 mr-3 transition-colors ${isOpen ? 'text-base-content' : 'text-base-content/50'}`} />
               <input ref={inputRef} type="text" value={query} onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
@@ -87,56 +161,7 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject }: SearchBarPro
               )}
             </div>
           </div>
-          {isOpen && (
-            <div className="absolute top-full left-0 right-0 bg-base-100 border border-t-0 border-base-300 rounded-b-lg shadow-lg overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="h-px w-full bg-base-300" />
-              {isEmptyQuery ? (
-                <div className="max-h-[min(400px,50vh)] overflow-y-auto pb-2">
-                  {recentSearches.length > 0 && (
-                    <div>
-                      <div className="px-4 py-1.5 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1 sticky top-0 bg-base-100">{t('search.recent')}</div>
-                      {recentSearches.map((result, index) => (
-                        <SearchResultItem key={result.id} result={result} isRecent isSelected={selectedIndex === index}
-                          onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(result); }} />
-                      ))}
-                    </div>
-                  )}
-                  {pagesData.map(cat => {
-                    const catOffset = recentSearches.length + pagesData.slice(0, pagesData.indexOf(cat)).reduce((sum, c) => sum + c.children.length, 0);
-                    return (
-                      <div key={cat.id}>
-                        <div className="px-4 py-1.5 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1 sticky top-0 bg-base-100">{cat.label}</div>
-                        {cat.children.map((p, i) => {
-                          const globalIdx = catOffset + i;
-                          return (
-                            <SearchResultItem key={p.id} result={{ id: p.id, title: p.label, type: 'page', detail: cat.label, link: p.href, category: cat.label }}
-                              isRecent={false} isSelected={selectedIndex === globalIdx}
-                              onMouseEnter={() => setSelectedIndex(globalIdx)} onMouseDown={(e) => { e.preventDefault(); handleSelect(browseItems[globalIdx]); }} />
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <>
-                  <div className="px-4 py-2 text-xs font-semibold text-base-content/50 uppercase tracking-wider mt-1"><span>{t('search.results')}</span></div>
-                  <div className="max-h-[min(400px,50vh)] overflow-y-auto pb-2">
-                    {displayResults.length > 0 ? displayResults.map((result, index) => (
-                      <SearchResultItem key={result.id} result={result} isRecent={false} isSelected={selectedIndex === index}
-                        onMouseEnter={() => setSelectedIndex(index)} onMouseDown={(e) => { e.preventDefault(); handleSelect(result); }} />
-                    )) : (
-                      <div className="px-4 py-8 text-center text-sm text-base-content/50">
-                        {isLoading ? <div className="flex flex-col items-center gap-2"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-base-content/50"></div><span>{t('search.loading')}</span></div> :
-                          t('search.empty')}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-              <SearchFooter />
-            </div>
-          )}
+          {createPortal(dropdownContent, document.body)}
         </div>
       </div>
     </div>
