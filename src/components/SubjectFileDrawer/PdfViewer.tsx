@@ -2,12 +2,16 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Loader2, ZoomIn, ZoomOut, X } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+// Dynamic import() of ES modules fails under chrome-extension:// protocol.
+// Fetch the worker script as text and serve it via a blob URL instead.
+import workerPath from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// In a Chrome extension, `?url` resolves to a bare path like `/assets/pdf.worker.min-xxx.mjs`
-// which the browser resolves against the IS page origin (not the extension origin) and 404s.
-// chrome.runtime.getURL() gives the correct chrome-extension:// absolute URL.
-pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL(workerUrl);
+const workerReady = fetch(chrome.runtime.getURL(workerPath))
+    .then(r => r.text())
+    .then(text => {
+        const url = URL.createObjectURL(new Blob([text], { type: 'application/javascript' }));
+        pdfjs.GlobalWorkerOptions.workerSrc = url;
+    });
 
 interface PdfViewerProps {
     blobUrl: string;
@@ -17,7 +21,12 @@ interface PdfViewerProps {
 export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
     const [numPages, setNumPages] = useState<number>(0);
     const [scale, setScale] = useState(1.0);
+    const [ready, setReady] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        workerReady.then(() => setReady(true));
+    }, []);
 
     useEffect(() => {
         console.log('[PDF-DEBUG] PdfViewer mounted, blobUrl:', blobUrl);
@@ -64,7 +73,9 @@ export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
                 </button>
             </div>
             <div ref={containerRef} className="flex-1 overflow-auto bg-base-300/30">
-                <Document file={blobUrl} onLoadSuccess={onDocumentLoadSuccess}
+                {!ready ? (
+                    <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-primary" size={24} /></div>
+                ) : <Document file={blobUrl} onLoadSuccess={onDocumentLoadSuccess}
                     onLoadError={(err: Error) => console.error('[PDF-DEBUG] Document load error:', err)}
                     loading={<div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-primary" size={24} /></div>}>
                     {Array.from({ length: numPages }, (_, i) => (
@@ -72,7 +83,7 @@ export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
                             className="mb-4 shadow-lg mx-auto"
                             renderTextLayer={false} renderAnnotationLayer={false} />
                     ))}
-                </Document>
+                </Document>}
             </div>
         </div>
     );
