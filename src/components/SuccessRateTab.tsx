@@ -4,6 +4,7 @@ import { AlertTriangle, ExternalLink } from 'lucide-react';
 import { sortSemesters } from '../utils/semesterSort';
 import { GradeBarChart } from './SuccessRate/GradeBarChart';
 import { SemesterSelector } from './SuccessRate/SemesterSelector';
+import { TermBreakdown } from './SuccessRate/TermBreakdown';
 import { useTranslation } from '../hooks/useTranslation';
 
 const COLORS: Record<string, string> = { A: 'var(--color-grade-a)', B: 'var(--color-grade-b)', C: 'var(--color-grade-c)', D: 'var(--color-grade-d)', E: 'var(--color-grade-e)', F: 'var(--color-grade-f)', FN: 'var(--color-grade-fn)' };
@@ -23,17 +24,24 @@ export function SuccessRateTab({ courseCode, facultyCode }: { courseCode: string
     const order = isCredit ? ['zap', 'nezap'] : ['A', 'B', 'C', 'D', 'E', 'F', 'FN'];
     const colors = isCredit ? { zap: 'var(--color-success)', nezap: 'var(--color-error)' } : COLORS;
 
-    const grades = current.terms.reduce((acc: Record<string, number>, tRes) => {
-        if (isCredit && tRes.creditGrades) { 
-            acc.zap = (acc.zap || 0) + (tRes.creditGrades.zap || 0); 
-            acc.nezap = (acc.nezap || 0) + (tRes.creditGrades.nezap || 0) + (tRes.creditGrades.zapNedost || 0); 
-        } else if (tRes.grades) {
-            Object.entries(tRes.grades).forEach(([g, c]) => acc[g] = (acc[g] || 0) + c);
-        }
-        return acc;
-    }, {});
+    // Use "Všechny termíny" aggregate if available, otherwise sum all terms (legacy data)
+    const aggregate = current.terms.find(t => t.term === 'Všechny termíny');
+    const grades = aggregate
+        ? (isCredit && aggregate.creditGrades
+            ? { zap: aggregate.creditGrades.zap, nezap: aggregate.creditGrades.nezap + (aggregate.creditGrades.zapNedost || 0) }
+            : aggregate.grades as Record<string, number>)
+        : current.terms.reduce((acc: Record<string, number>, tRes) => {
+            if (isCredit && tRes.creditGrades) {
+                acc.zap = (acc.zap || 0) + (tRes.creditGrades.zap || 0);
+                acc.nezap = (acc.nezap || 0) + (tRes.creditGrades.nezap || 0) + (tRes.creditGrades.zapNedost || 0);
+            } else if (tRes.grades) {
+                Object.entries(tRes.grades).forEach(([g, c]) => acc[g] = (acc[g] || 0) + c);
+            }
+            return acc;
+        }, {});
 
     const max = Math.max(...order.map(g => grades[g] || 0), 1);
+    const individualTerms = current.terms.filter(t => t.term !== 'Všechny termíny');
 
     return (
         <div className="flex flex-col h-full px-4 py-3 select-none font-inter">
@@ -42,6 +50,7 @@ export function SuccessRateTab({ courseCode, facultyCode }: { courseCode: string
                 {current.sourceUrl && <a href={current.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary/50 hover:text-primary"><ExternalLink size={16} /></a>}
             </div>
             <GradeBarChart grades={grades} order={order} colors={colors} max={max} />
+            {individualTerms.length > 0 && <TermBreakdown terms={individualTerms} isCredit={isCredit} />}
             <SemesterSelector stats={stats} activeIndex={sIdx} onSelect={setIdx} />
         </div>
     );
