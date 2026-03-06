@@ -13,6 +13,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import type { SelectedSubject } from '../../types/app';
 
 export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLesson | SelectedSubject | null; isOpen: boolean; onClose: () => void }) {
+    console.log('[REIS_LOUD_DEBUG] SubjectFileDrawer mounting', { isOpen, lessonId: lesson?.id });
     const state = useSubjectFileDrawerState(lesson, isOpen);
     const { isDownloading, downloadProgress, openFile, openPdfInline, downloadSingle, downloadZip } = useFileActions();
     const [showDragHint, setShowDragHint] = useState(false);

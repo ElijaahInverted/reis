@@ -37,6 +37,7 @@ export function FileList({
     folderUrl
 }: FileListProps) {
     const { t, language } = useTranslation();
+    console.log('[REIS_LOUD_DEBUG] FileList Rendering', { groupsCount: groups.length });
     if (groups.length === 0) {
         return (
             <div className="text-center py-12 text-slate-400 italic">

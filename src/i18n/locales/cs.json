@@ -161,7 +161,11 @@
     "noData": "Data nejsou k dispozici",
     "students": "studentů",
     "credit": "Zápočet",
-    "exam": "Zkouška"
+    "exam": "Zkouška",
+    "regular": "Řádný",
+    "retake1": "1. opravný",
+    "retake2": "2. opravný",
+    "passed": "Prošlo"
   },
   "assessment": {
     "noData": "Zatím žádné hodnocení",

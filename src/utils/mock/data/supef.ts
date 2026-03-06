@@ -286,10 +286,30 @@ export const supefDataset: SocietyDataset = {
       periodId: ''
     },
     {
-      id: 'sched-mon-aj1',
+      id: 'sched-mon-alg',
       date: '20260210',
       startTime: '10:00',
       endTime: '11:30',
+      courseCode: 'EBC-ALG',
+      courseName: 'Algoritmizace',
+      room: 'Q11',
+      roomStructured: { name: 'Q11', id: 'q11' },
+      teachers: [{ fullName: 'doc. Ing. Oldřich Trenz, Ph.D.', shortName: 'Trenz', id: 'trenz-oldrich' }],
+      isExam: false,
+      isConsultation: 'false',
+      studyId: '',
+      facultyCode: 'PEF',
+      isDefaultCampus: 'true',
+      courseId: 'ebc-alg',
+      campus: 'Brno',
+      isSeminar: 'false',
+      periodId: ''
+    },
+    {
+      id: 'sched-mon-aj1',
+      date: '20260210',
+      startTime: '12:00',
+      endTime: '13:30',
       courseCode: 'EBA-AJ1',
       courseName: 'Angličtina 1',
       room: 'Q24',
@@ -451,6 +471,52 @@ export const supefDataset: SocietyDataset = {
               fail: 50,
               grades: { A: 100, B: 80, C: 60, D: 40, E: 20, F: 50, FN: 0 }
             }
+          ]
+        }
+      ]
+    },
+    'EBC-ALG': {
+      courseCode: 'EBC-ALG',
+      lastUpdated: '2026-03-06T00:00:00.000Z',
+      stats: [
+        {
+          semesterName: 'ZS 2025/2026 - PEF',
+          semesterId: '801',
+          year: 2025,
+          totalPass: 100,
+          totalFail: 138,
+          type: 'exam',
+          sourceUrl: 'https://is.mendelu.cz/auth/student/hodnoceni.pl?fakulta=2;obdobi=801;predmet=159410;lang=cz',
+          terms: [
+            { term: 'Všechny termíny', pass: 100, fail: 138, grades: { A: 8, B: 8, C: 14, D: 18, E: 52, F: 115, FN: 23 } },
+            { term: 'Řádný termín', pass: 52, fail: 186, grades: { A: 6, B: 7, C: 10, D: 11, E: 18, F: 163, FN: 23 } },
+            { term: '1. opravný', pass: 30, fail: 88, grades: { A: 1, B: 0, C: 3, D: 5, E: 21, F: 88, FN: 0 } },
+            { term: '2. opravný', pass: 18, fail: 57, grades: { A: 1, B: 1, C: 1, D: 2, E: 13, F: 57, FN: 0 } }
+          ]
+        },
+        {
+          semesterName: 'ZS 2024/2025 - PEF',
+          semesterId: '754',
+          year: 2024,
+          totalPass: 51,
+          totalFail: 57,
+          type: 'exam',
+          terms: [
+            { term: 'Všechny termíny', pass: 51, fail: 57, grades: { A: 5, B: 1, C: 12, D: 4, E: 29, F: 42, FN: 15 } },
+            { term: 'Řádný termín', pass: 23, fail: 85, grades: { A: 4, B: 0, C: 7, D: 2, E: 12, F: 67, FN: 16 } },
+            { term: '1. opravný', pass: 12, fail: 42, grades: { A: 0, B: 1, C: 2, D: 1, E: 8, F: 42, FN: 0 } },
+            { term: '2. opravný', pass: 16, fail: 1, grades: { A: 1, B: 0, C: 3, D: 1, E: 9, F: 3, FN: 0 } }
+          ]
+        },
+        {
+          semesterName: 'ZS 2023/2024 - PEF',
+          semesterId: '741',
+          year: 2023,
+          totalPass: 80,
+          totalFail: 40,
+          type: 'exam',
+          terms: [
+            { term: 'Všechny termíny', pass: 80, fail: 40, grades: { A: 10, B: 15, C: 20, D: 15, E: 20, F: 30, FN: 10 } }
           ]
         }
       ]

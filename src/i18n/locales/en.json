@@ -161,7 +161,11 @@
         "noData": "Data not available",
         "students": "students",
         "credit": "Credit",
-        "exam": "Exam"
+        "exam": "Exam",
+        "regular": "Regular",
+        "retake1": "1st retake",
+        "retake2": "2nd retake",
+        "passed": "Passed"
     },
     "assessment": {
         "noData": "No assessment yet",
