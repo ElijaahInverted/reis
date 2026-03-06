@@ -13,7 +13,6 @@ export function parseAssessmentTable(html: string): Assessment[] {
     const table = doc.getElementById('tmtab_1');
     if (!table) {
         // This is expected for subjects without assessments (e.g., sports)
-        console.debug('[parseAssessmentTable] No #tmtab_1 table found');
         return [];
     }
     
@@ -99,6 +98,5 @@ export function parseAssessmentTable(html: string): Assessment[] {
         }
     });
     
-    console.debug(`[parseAssessmentTable] Parsed ${results.length} assessments`);
     return results;
 }

@@ -27,7 +27,6 @@ export function useHintStatus(hintId: string) {
     }, [hintId]);
 
     const markSeen = useCallback(async () => {
-        console.log(`[useHintStatus] Marking hint ${hintId} as seen`);
         setIsSeen(true);
         await HintService.markSeen(hintId);
     }, [hintId]);

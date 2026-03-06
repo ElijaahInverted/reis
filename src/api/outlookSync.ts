@@ -20,13 +20,10 @@ const SOURCES = [1, 4] as const; // 1 = Výuka, 4 = Zkoušky
  * Returns true only if BOTH sources have sync enabled.
  */
 export async function checkOutlookSyncStatus(): Promise<boolean> {
-    logger.debug('Checking Outlook sync status...');
-
     try {
         const results = await Promise.all(
             SOURCES.map(async (id) => {
                 const label = id === 1 ? 'Výuka' : 'Zkoušky';
-                logger.debug(`Fetching status for ${label} (zdroj=${id})`);
 
                 const response = await fetch(`${SYNC_URL}?editace=1;zdroj=${id};lang=cz`, {
                     credentials: 'include'
@@ -42,14 +39,12 @@ export async function checkOutlookSyncStatus(): Promise<boolean> {
                 const activeInput = doc.querySelector('input[name="prenos_o365"][value="1"]');
                 const isActive = activeInput?.hasAttribute('checked') ?? false;
 
-                logger.debug(`${label}: ${isActive ? '✅ ENABLED' : '❌ DISABLED'}`);
                 return isActive;
             })
         );
 
         // Both must be enabled for overall status to be "enabled"
         const allEnabled = results.every(Boolean);
-        logger.info(`Overall sync status: ${allEnabled ? '✅ ENABLED' : '❌ DISABLED'}`);
 
         return allEnabled;
     } catch (error) {
@@ -65,13 +60,11 @@ export async function checkOutlookSyncStatus(): Promise<boolean> {
  */
 export async function setOutlookSyncStatus(enabled: boolean): Promise<boolean> {
     const action = enabled ? 'ENABLING' : 'DISABLING';
-    logger.info(`${action} Outlook sync for all sources...`);
 
     try {
         const results = await Promise.all(
             SOURCES.map(async (id) => {
                 const label = id === 1 ? 'Výuka' : 'Zkoušky';
-                logger.debug(`${action} ${label} (zdroj=${id})`);
 
                 const response = await fetch(SYNC_URL, {
                     method: 'POST',
@@ -85,15 +78,12 @@ export async function setOutlookSyncStatus(enabled: boolean): Promise<boolean> {
                     return false;
                 }
 
-                logger.debug(`${label}: ${action} successful`);
                 return true;
             })
         );
 
         const allSuccess = results.every(Boolean);
-        if (allSuccess) {
-            logger.info(`✅ Sync ${enabled ? 'ENABLED' : 'DISABLED'} for all sources`);
-        } else {
+        if (!allSuccess) {
             logger.warn(`⚠️ Some sources failed to update`);
         }
 

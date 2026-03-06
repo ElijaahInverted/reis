@@ -16,7 +16,7 @@ export function useTranslation() {
       if (result && typeof result === 'object' && (result as Record<string, unknown>)[k] !== undefined) {
         result = (result as Record<string, unknown>)[k];
       } else {
-        console.debug(`[i18n] Translation key not found: ${key} (${language})`); // Debug logging
+        // console.debug(`[i18n] Translation key not found: ${key} (${language})`); // Debug logging
         return key;
       }
     }

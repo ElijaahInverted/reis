@@ -25,12 +25,10 @@ class OutlookSyncServiceClass {
      * Called at app startup.
      */
     async init(): Promise<void> {
-        logger.info('Initializing Outlook Sync Service...');
 
         // Load cached status first for instant UI
         const cached = await IndexedDBService.get('meta', STORAGE_KEYS.OUTLOOK_SYNC);
         if (cached !== null && cached !== undefined) {
-            logger.debug(`Loaded cached status: ${cached ? 'ENABLED' : 'DISABLED'}`);
             this.currentStatus = cached;
             this.notifyListeners();
         }
@@ -44,7 +42,6 @@ class OutlookSyncServiceClass {
      */
     async refreshStatus(): Promise<void> {
         if (this.isChecking) {
-            logger.debug('Already checking, skipping...');
             return;
         }
 
@@ -54,7 +51,6 @@ class OutlookSyncServiceClass {
             const status = await checkOutlookSyncStatus();
             this.currentStatus = status;
             await IndexedDBService.set('meta', STORAGE_KEYS.OUTLOOK_SYNC, status);
-            logger.info(`Status refreshed: ${status ? 'ENABLED' : 'DISABLED'}`);
             this.notifyListeners();
         } catch (error) {
             logger.error('Failed to refresh status:', error);
@@ -69,11 +65,8 @@ class OutlookSyncServiceClass {
      */
     async setStatus(enabled: boolean): Promise<void> {
         if (this.currentStatus === enabled) {
-            logger.debug(`Status already ${enabled}, skipping update`);
             return;
         }
-
-        logger.info(`Setting sync to: ${enabled ? 'ENABLED' : 'DISABLED'}`);
 
         // Optimistic update
         this.currentStatus = enabled;
