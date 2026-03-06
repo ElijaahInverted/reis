@@ -30,8 +30,6 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
 
     // If we're in an iframe, use the proxy client
     if (isInIframe()) {
-        console.debug('[fetchWithAuth] Using proxy (iframe context)');
-
         const text = await fetchViaProxy(url, {
             method: options.method as string | undefined,
             headers,
@@ -47,8 +45,6 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
     }
 
     // Direct fetch in content script context
-    console.debug('[fetchWithAuth] Using direct fetch (content script context)');
-
     const response = await fetch(url, {
         ...options,
         headers,

@@ -11,17 +11,13 @@ function getIdFromUrl(url: string): string | null {
 }
 
 export async function syncFiles(): Promise<void> {
-    console.log('[syncFiles] Starting dual-language files sync...');
-
     const subjectsData = await IndexedDBService.get('subjects', 'current');
 
     if (!subjectsData || !subjectsData.data) {
-        console.log('[syncFiles] No subjects data available, skipping file sync');
         return;
     }
 
     const subjects = Object.entries(subjectsData.data);
-    console.log(`[syncFiles] Syncing files for ${subjects.length} subjects (dual fetch)`);
 
     let successCount = 0;
     let errorCount = 0;
@@ -30,7 +26,6 @@ export async function syncFiles(): Promise<void> {
         try {
             const folderId = getIdFromUrl(subject.folderUrl);
             if (!folderId) {
-                console.warn(`[syncFiles] Could not extract folder ID for ${courseCode}`);
                 continue;
             }
 
@@ -49,11 +44,9 @@ export async function syncFiles(): Promise<void> {
             });
             
             successCount++;
-        } catch (error) {
-            console.error(`[syncFiles] Failed to sync files for ${courseCode}:`, error);
+        } catch {
             errorCount++;
         }
     }
 
-    console.log(`[syncFiles] Completed: ${successCount} subjects synced, ${errorCount} errors`);
 }

@@ -15,8 +15,7 @@ export const createAssessmentsSlice: AppSlice<AssessmentsSlice> = (set) => ({
                 assessments: { ...state.assessments, [courseCode]: data || [] },
                 assessmentsLoading: { ...state.assessmentsLoading, [courseCode]: false }
             }));
-        } catch (error) {
-            console.error(`[AssessmentsSlice] Fetch failed for ${courseCode}:`, error);
+        } catch {
             set((state) => ({
                 assessmentsLoading: { ...state.assessmentsLoading, [courseCode]: false }
             }));

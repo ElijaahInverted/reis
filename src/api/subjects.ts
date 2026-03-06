@@ -22,11 +22,9 @@ export async function fetchSubjects(lang: string = 'cz', studium?: string): Prom
         if (result.success) {
             return result.data;
         } else {
-            console.error("[fetchSubjects] ❌ Validation failed:", result.error.issues);
             return subjectsData;
         }
-    } catch (error) {
-        console.error("Failed to fetch subjects:", error);
+    } catch {
         return null;
     }
 }
@@ -36,8 +34,6 @@ export async function fetchSubjects(lang: string = 'cz', studium?: string): Prom
  */
 export async function fetchDualLanguageSubjects(studium?: string): Promise<SubjectsData | null> {
     try {
-        console.log('[fetchDualLanguageSubjects] Fetching both CZ and EN subject names...');
-        
         const czUrl = studium ? `${STUDENT_LIST_URL}?lang=cz;studium=${studium}` : `${STUDENT_LIST_URL}?lang=cz`;
         const enUrl = studium ? `${STUDENT_LIST_URL}?lang=en;studium=${studium}` : `${STUDENT_LIST_URL}?lang=en`;
 
@@ -87,8 +83,7 @@ export async function fetchDualLanguageSubjects(studium?: string): Promise<Subje
 
         const result = SubjectsDataSchema.safeParse(subjectsData);
         return result.success ? result.data : subjectsData;
-    } catch (error) {
-        console.error("[fetchDualLanguageSubjects] Failed:", error);
+    } catch {
         return null;
     }
 }

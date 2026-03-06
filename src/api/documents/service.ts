@@ -37,13 +37,10 @@ export async function fetchFilesFromFolder(
 
         // Immediate callback for the first "chunk" (page 1)
         if (onChunk && initialFiles.length > 0) {
-            console.log(`[fetchFilesFromFolder] ${folderUrl} - Delivering first chunk of ${initialFiles.length} files`);
             onChunk(initialFiles);
         }
 
         const allFiles = [...initialFiles];
-
-        console.log(`[fetchFilesFromFolder] ${folderUrl} - Page 1: Found ${initialFiles.length} files, ${paginationLinks.length} pagination links`);
 
         // Use Promise.allSettled for pagination to be resilient
         const pageRequests = paginationLinks.map(async (link) => {
@@ -59,7 +56,6 @@ export async function fetchFilesFromFolder(
                     throw new Error(`Pagination page ${pageUrl} returned 0 files, likely a parsing error.`);
                 }
                 
-                console.log(`[fetchFilesFromFolder]   - Paged ${pageUrl}: Found ${pageFiles.length} files`);
                 return pageFiles;
             } catch (err) {
                 console.error(`[fetchFilesFromFolder]   - Paged ${pageUrl} failed CRITICALLY:`, err);
@@ -76,7 +72,6 @@ export async function fetchFilesFromFolder(
         ).length;
 
         if (totalRecords !== undefined && baseFilesCount < totalRecords) {
-            console.error(`[fetchFilesFromFolder] ${folderUrl} - COUNT MISMATCH! Expected ${totalRecords}, found only ${baseFilesCount} base files.`);
             throw new Error(`Data integrity check failed for folder ${folderUrl}: Expected ${totalRecords} items, but parsed only ${baseFilesCount}. This indicates a parser or pagination failure.`);
         }
 
@@ -90,8 +85,6 @@ export async function fetchFilesFromFolder(
                     if (!folderMap.has(url)) folderMap.set(url, { url, name: f.file_name });
                 });
             const folders = Array.from(folderMap.values());
-
-            console.log(`[fetchFilesFromFolder] ${folderUrl} - Found ${folders.length} subfolders to recurse (Depth ${currentDepth})`);
 
             const subResults = await processWithDelay(folders, async f => {
                 try {
@@ -124,7 +117,6 @@ export async function fetchFilesFromFolder(
         // Tag all files with the language they were fetched in
         finalResults.forEach(f => f.language = lang);
 
-        console.log(`[fetchFilesFromFolder] ${folderUrl} - Done. Total unique files: ${finalResults.length}`);
         return finalResults;
     } catch (e) {
         console.error(`[fetchFilesFromFolder] Failed to fetch folder ${folderUrl}:`, e);

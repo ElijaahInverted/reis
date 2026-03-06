@@ -22,8 +22,7 @@ export async function fetchAssessments(
         const response = await fetchWithAuth(url);
         const html = await response.text();
         return parseAssessmentTable(html);
-    } catch (error) {
-        console.error(`[assessments] Failed to fetch for subject ${predmetId}:`, error);
+    } catch {
         return [];
     }
 }

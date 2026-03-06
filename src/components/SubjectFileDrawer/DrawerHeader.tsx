@@ -22,7 +22,6 @@ function getBadge(l: { isExam?: boolean; courseName?: string; sectionName?: stri
 }
 
 export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, selectedCount, isDownloading, downloadProgress, activeTab, onClose, onDownload, onTabChange }: DrawerHeaderProps) {
-    console.log('[REIS_LOUD_DEBUG] DrawerHeader Render', { lessonId: lesson?.id, isSearch: lesson?.isFromSearch, hasCourseInfo: !!courseInfo });
     const { t, language } = useTranslation();
     const badge = getBadge(lesson, t), isSearch = lesson?.isFromSearch;
 

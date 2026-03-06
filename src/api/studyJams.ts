@@ -5,10 +5,8 @@ export async function fetchKillerCourses(): Promise<{ course_code: string; cours
         .from('killer_courses')
         .select('course_code, course_name')
         .eq('is_active', true);
-    if (error) {
-        console.error('[studyJams] fetchKillerCourses error', error);
-        return [];
-    }
+    if (error) return [];
+
     return data ?? [];
 }
 
@@ -22,10 +20,8 @@ export async function registerAvailability(
         p_course_code: courseCode,
         p_role: role,
     });
-    if (error) {
-        console.error('[studyJams] registerAvailability error', error);
-        return false;
-    }
+    if (error) return false;
+
     return true;
 }
 
@@ -38,10 +34,8 @@ export async function fetchMyTutoringMatch(
         .or(`tutor_student_id.eq.${studentId},tutee_student_id.eq.${studentId}`)
         .limit(1)
         .maybeSingle();
-    if (error) {
-        console.error('[studyJams] fetchMyTutoringMatch error', error);
-        return null;
-    }
+    if (error) return null;
+
     return data as { tutor_student_id: string; tutee_student_id: string; course_code: string } | null;
 }
 
@@ -50,10 +44,8 @@ export async function fetchMyAvailability(studentId: string): Promise<{ course_c
         .from('study_jam_availability')
         .select('course_code, role')
         .eq('student_id', studentId);
-    if (error) {
-        console.error('[studyJams] fetchMyAvailability error', error);
-        return [];
-    }
+    if (error) return [];
+
     return data as { course_code: string; role: 'tutor' | 'tutee' }[] ?? [];
 }
 
@@ -62,9 +54,8 @@ export async function deleteAvailability(studentId: string, courseCode: string):
         p_student_id: studentId,
         p_course_code: courseCode,
     });
-    if (error) {
-        console.error('[studyJams] deleteAvailability error', error);
-    }
+    if (error) return;
+
 }
 
 export async function dismissStudyJam(studentId: string, courseCode: string): Promise<boolean> {
@@ -72,10 +63,8 @@ export async function dismissStudyJam(studentId: string, courseCode: string): Pr
         p_student_id: studentId,
         p_course_code: courseCode,
     });
-    if (error) {
-        console.error('[studyJams] dismissStudyJam error', error);
-        return false;
-    }
+    if (error) return false;
+
     return true;
 }
 
@@ -84,9 +73,8 @@ export async function withdrawMatch(studentId: string, courseCode: string): Prom
         p_student_id: studentId,
         p_course_code: courseCode,
     });
-    if (error) {
-        console.error('[studyJams] withdrawMatch error', error);
-    }
+    if (error) return;
+
 }
 
 export async function fetchMyDismissals(studentId: string): Promise<string[]> {
@@ -94,9 +82,7 @@ export async function fetchMyDismissals(studentId: string): Promise<string[]> {
         .from('study_jam_dismissals')
         .select('course_code')
         .eq('student_id', studentId);
-    if (error) {
-        console.error('[studyJams] fetchMyDismissals error', error);
-        return [];
-    }
+    if (error) return [];
+
     return (data as { course_code: string }[] ?? []).map(r => r.course_code);
 }

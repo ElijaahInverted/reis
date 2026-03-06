@@ -7,13 +7,6 @@ import { PersonHoverCard } from '../../PersonHoverCard';
 import { MapHoverCard } from '../../MapHoverCard';
 
 export function CourseMeta({ lesson, courseInfo, isSearchContext }: { lesson: BlockLesson | null; courseInfo: CourseMetadata | undefined; isSearchContext: boolean }) {
-    console.log('[REIS_LOUD_DEBUG] CourseMeta Rendering', { 
-        isSearchContext, 
-        hasCourseInfo: !!courseInfo, 
-        garantId: courseInfo?.garant?.id,
-        teachersWithIds: courseInfo?.teachers?.filter(t => t.id).map(t => t.name),
-        lessonTeachersWithIds: lesson?.teachers?.filter(t => t.id).map(t => t.fullName)
-    });
     const [expanded, setExpanded] = useState(false);
     const { t, language } = useTranslation();
     if (!isSearchContext) {

@@ -6,8 +6,6 @@ import { IndexedDBService } from '../storage';
 import { fetchDualLanguageSchedule } from '../../api/schedule';
 
 export async function syncSchedule(): Promise<void> {
-    console.log('[syncSchedule] 🔄 Starting localized schedule sync...');
-
     // Determine semester boundaries
     // Winter semester: September 1 - February 28
     // Summer semester: February 1 - August 31
@@ -32,20 +30,12 @@ export async function syncSchedule(): Promise<void> {
         end = new Date(currentYear, 7, 31); // Aug 31
     }
 
-    console.log(`[syncSchedule] 📅 Fetching from ${start.toDateString()} to ${end.toDateString()}`);
-
     const data = await fetchDualLanguageSchedule({ start, end });
 
     if (data && data.length > 0) {
-        console.log(`[syncSchedule] ✅ Received ${data.length} lessons`);
-        if (data.length > 0) {
-            console.log(`[syncSchedule] 📝 Sample lesson: ${data[0].courseName} (${data[0].courseCode})`);
-        }
         await IndexedDBService.set('schedule', 'current', data);
         await IndexedDBService.set('meta', 'schedule_week_start', start.toISOString());
-        console.log(`[syncSchedule] 💾 Stored ${data.length} lessons for semester`);
     } else {
-        console.log('[syncSchedule] ⚠️ No schedule data found, clearing stale data');
         await IndexedDBService.delete('schedule', 'current');
     }
 }

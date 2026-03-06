@@ -68,7 +68,6 @@ class IndexedDBServiceImpl {
                 requiredStores.forEach(store => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     if (!db.objectStoreNames.contains(store as any)) {
-                        console.log(`[IndexedDB] Creating missing store: ${store}`);
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         db.createObjectStore(store as any);
                     }
@@ -83,7 +82,6 @@ class IndexedDBServiceImpl {
 
         const result = schema.safeParse(value);
         if (!result.success) {
-            console.error(`[IndexedDB] Validation failed for store "${storeName}":`, result.error);
             return undefined;
         }
         return result.data;
@@ -100,7 +98,6 @@ class IndexedDBServiceImpl {
         // Validate before saving to prevent corrupt data ingress
         const validated = this.validate(storeName, value);
         if (validated === undefined && value !== undefined) {
-             console.warn(`[IndexedDB] Skipping save to "${storeName}" due to validation error.`);
              return;
         }
 

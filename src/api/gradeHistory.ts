@@ -10,8 +10,7 @@ export async function fetchGradeHistory(
         const response = await fetchWithAuth(url);
         const html = await response.text();
         return parseGradeHistory(html, studium);
-    } catch (error) {
-        console.error('[gradeHistory] Fetch failed:', error);
+    } catch {
         return null;
     }
 }

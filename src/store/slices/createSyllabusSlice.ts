@@ -60,8 +60,7 @@ export const createSyllabusSlice: AppSlice<SyllabusSlice> = (set, get) => ({
           loading: { ...state.syllabuses.loading, [courseCode]: false },
         },
       }));
-    } catch (error) {
-      console.error(`[SyllabusSlice] Failed for ${courseCode}:`, error);
+    } catch {
       set((state) => ({
         syllabuses: {
           ...state.syllabuses,

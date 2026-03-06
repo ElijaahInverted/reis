@@ -5,7 +5,6 @@ let iframeReady = false;
 let messageQueue: unknown[] = [];
 
 export function injectIframe() {
-    console.log("[REIS Content] Injecting iframe...");
     document.body.replaceChildren();
     document.head.replaceChildren();
 
@@ -42,7 +41,6 @@ export function injectIframe() {
     document.body.style.cssText = "margin: 0; padding: 0; overflow: hidden;";
     document.documentElement.style.cssText = "margin: 0; padding: 0; overflow: hidden;";
     document.documentElement.style.visibility = "visible";
-    console.log("[REIS Content] Iframe injected successfully");
 }
 
 /**
@@ -52,7 +50,6 @@ export function injectIframe() {
 export function markIframeReady() {
     iframeReady = true;
     if (messageQueue.length > 0 && iframeElement?.contentWindow) {
-        console.log(`[REIS Content] Flushing ${messageQueue.length} queued messages`);
         for (const msg of messageQueue) {
             iframeElement.contentWindow.postMessage(msg, "*");
         }

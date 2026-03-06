@@ -12,8 +12,7 @@ export const createSubjectsSlice: AppSlice<SubjectsSlice> = (set) => ({
                 subjects: data || null,
                 subjectsLoading: false 
             });
-        } catch (error) {
-            console.error('[SubjectsSlice] Fetch failed:', error);
+        } catch {
             set({ subjectsLoading: false });
         }
     },

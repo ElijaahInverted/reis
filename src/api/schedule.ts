@@ -7,20 +7,13 @@ import type { BlockLesson, ScheduleData } from "../types/schedule";
 const SCHEDULE_URL = `${BASE_URL}/auth/katalog/rozvrhy_view.pl`;
 
 export async function fetchWeekSchedule(specific?: { start: Date, end: Date }, lang: string = 'cz'): Promise<BlockLesson[] | null> {
-    console.log('[fetchWeekSchedule] 🌐 API call with lang:', lang);
     const isLang = lang;
     const userId = await getUserId();
-    if (!userId) {
-        console.error("User ID not found");
-        return null;
-    }
+    if (!userId) return null;
 
     const userParams = await getUserParams();
 
-    if (!userParams) {
-        console.error("User params not found for schedule fetch");
-        return null;
-    }
+    if (!userParams) return null;
 
     const studiumId = userParams.studium;
     const obdobiId = userParams.obdobi;
@@ -62,8 +55,6 @@ export async function fetchWeekSchedule(specific?: { start: Date, end: Date }, l
     });
 
     try {
-        console.log('[fetchWeekSchedule] 🔗 Requesting:', `${SCHEDULE_URL}?lang=${isLang}`);
-        console.log('[fetchWeekSchedule] 📦 POST body lang param:', body.get('lang'));
         const response = await fetchWithAuth(`${SCHEDULE_URL}?lang=${isLang}`, {
             method: "POST",
             body: body,
@@ -71,17 +62,14 @@ export async function fetchWeekSchedule(specific?: { start: Date, end: Date }, l
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-            console.log("[fetchWeekSchedule] Received non-JSON response, assuming no schedule available");
             return [];
         }
 
         const text = await response.text();
         try {
             const data: ScheduleData = JSON.parse(text);
-            console.log('[fetchWeekSchedule] ✅ Parsed', data.blockLessons?.length || 0, 'lessons from API');
             return data.blockLessons || [];
-        } catch (parseError) {
-            console.warn("[fetchWeekSchedule] Failed to parse schedule JSON:", parseError);
+        } catch {
             return null;
         }
     } catch (error) {
@@ -96,8 +84,6 @@ export async function fetchWeekSchedule(specific?: { start: Date, end: Date }, l
  */
 export async function fetchDualLanguageSchedule(dateRange: { start: Date, end: Date }): Promise<BlockLesson[] | null> {
     try {
-        console.log('[fetchDualLanguageSchedule] 🌐 Fetching schedule in both CZ and EN...');
-        
         // Fetch both languages in parallel
         const [czLessons, enLessons] = await Promise.all([
             fetchWeekSchedule(dateRange, 'cz'),
@@ -105,12 +91,9 @@ export async function fetchDualLanguageSchedule(dateRange: { start: Date, end: D
         ]);
 
         if (!czLessons || !enLessons) {
-            console.warn('[fetchDualLanguageSchedule] One or both language fetches failed');
             // Fall back to whichever succeeded
             return czLessons || enLessons;
         }
-
-        console.log('[fetchDualLanguageSchedule] ✅ Fetched CZ:', czLessons.length, 'lessons, EN:', enLessons.length, 'lessons');
 
         // Create a map of EN lessons by unique key (id + date + startTime)
         const enMap = new Map<string, BlockLesson>();
@@ -133,7 +116,6 @@ export async function fetchDualLanguageSchedule(dateRange: { start: Date, end: D
             };
         });
 
-        console.log('[fetchDualLanguageSchedule] ✅ Merged', merged.length, 'lessons with dual-language support');
         return merged;
     } catch (error) {
         console.error('[fetchDualLanguageSchedule] Error:', error);

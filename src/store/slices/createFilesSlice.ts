@@ -33,7 +33,6 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             return;
         }
 
-        console.log(`[FilesSlice] Starting priority fetch for ${courseCode}`);
         set((state) => ({
             filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: true },
             filesProgress: { ...state.filesProgress, [courseCode]: 'initializing' }
@@ -79,7 +78,6 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             if (!subject?.folderUrl) {
                 const isSyncActive = syncStatus.isSyncing || !syncStatus.handshakeDone;
                 if (!isSyncActive) {
-                    console.warn(`[FilesSlice] No folder URL found and sync finished for ${courseCode}, setting empty files`);
                     set((state) => ({
                         files: { ...state.files, [courseCode]: [] },
                         filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
@@ -93,7 +91,6 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
 
             const folderId = subject.folderUrl.match(/[?&;]id=(\d+)/)?.[1];
             if (!folderId) {
-                console.warn(`[FilesSlice] Invalid folder URL for ${courseCode}: ${subject.folderUrl}`);
                 set((state) => ({
                     files: { ...state.files, [courseCode]: [] },
                     filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
@@ -103,7 +100,6 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             }
 
             const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
-            console.log(`[FilesSlice] Priority fetch URL for ${courseCode}: ${folderUrl}`);
 
             set((state) => ({
                 filesProgress: { ...state.filesProgress, [courseCode]: 'fetching_first' }
@@ -111,21 +107,17 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
 
             // Fetch with onChunk callback for progressive update
             const fullFilesList = await fetchFilesFromFolder(folderUrl, currentLang, true, 0, 2, (chunk) => {
-                console.log(`[FilesSlice] Received first chunk for ${courseCode}: ${chunk.length} files`);
                 set((state) => ({
                     files: { ...state.files, [courseCode]: chunk },
                     filesProgress: { ...state.filesProgress, [courseCode]: 'syncing_remaining' }
                 }));
             });
 
-            console.log(`[FilesSlice] Priority fetch complete for ${courseCode}. Total files: ${fullFilesList.length}`);
-            
             // Store full data in IndexedDB
             const cachedFiles = await IndexedDBService.get('files', courseCode);
             const data = (cachedFiles || { cz: [], en: [] }) as { cz: ParsedFile[], en: ParsedFile[] };
             if (currentLang === 'en') data.en = fullFilesList; else data.cz = fullFilesList;
             await IndexedDBService.set('files', courseCode, data);
-            console.log(`[FilesSlice] Persisted ${fullFilesList.length} files to IndexedDB for ${courseCode}`);
 
             set((state) => ({
                 files: { ...state.files, [courseCode]: fullFilesList },
@@ -133,8 +125,7 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
                 filesProgress: { ...state.filesProgress, [courseCode]: 'success' },
                 filesTotalCount: { ...state.filesTotalCount, [courseCode]: fullFilesList.length }
             }));
-        } catch (error) {
-            console.error(`[FilesSlice] Priority fetch failed for ${courseCode}:`, error);
+        } catch {
             set((state) => ({
                 files: { ...state.files, [courseCode]: [] },
                 filesPriorityLoading: { ...state.filesPriorityLoading, [courseCode]: false },
@@ -167,7 +158,6 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
             
             if (!languageMatches && data) {
                 // Language mismatch in legacy structure - fetch fresh data from API
-                console.log(`[FilesSlice] Language mismatch for ${courseCode}...`);
                 
                 const { fetchFilesFromFolder } = await import('../../api/documents/service');
                 const subjectsData = await IndexedDBService.get('subjects', 'current');
@@ -185,8 +175,8 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
                             const dualData = { cz: czFiles || [], en: enFiles || [] };
                             await IndexedDBService.set('files', courseCode, dualData);
                             filesList = currentLang === 'en' ? dualData.en : dualData.cz;
-                        } catch (err) {
-                            console.error(`[FilesSlice] Failed to re-fetch:`, err);
+                        } catch {
+                            // Re-fetch failed, use existing data
                         }
                     }
                 }
@@ -196,8 +186,7 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
                 files: { ...state.files, [courseCode]: filesList },
                 filesLoading: { ...state.filesLoading, [courseCode]: false }
             }));
-        } catch (error) {
-            console.error(`[FilesSlice] Fetch failed for ${courseCode}:`, error);
+        } catch {
             set((state) => ({
                 files: { ...state.files, [courseCode]: state.files[courseCode] ?? [] },
                 filesLoading: { ...state.filesLoading, [courseCode]: false }
@@ -218,8 +207,7 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
                 }
             });
             set({ files: filesMap });
-        } catch (error) {
-            console.error('[FilesSlice] Fetch all failed:', error);
+        } catch {
         }
     },
 });

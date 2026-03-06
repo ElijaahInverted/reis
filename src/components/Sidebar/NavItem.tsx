@@ -68,21 +68,16 @@ export function NavItem({ item, isActive, isHovered, onMouseEnter, onMouseLeave,
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => {
-                    console.log(`[NavItem] Child clicked: ${child.label} (ID: ${child.id})`);
                     if (child.id === 'zapisy-zkousky') {
                       e.preventDefault();
-                      console.log('[NavItem] Triggering view change: exams');
                       onViewChange('exams');
                     } else if (child.id === 'studijni-plany') {
                       e.preventDefault();
-                      console.log('[NavItem] Triggering view change: study-program');
                       onViewChange('study-program');
                     } else if (child.isSubject && child.courseCode) {
                       e.preventDefault();
-                      console.log(`[NavItem] Opening subject drawer: ${child.courseCode}`);
                       onOpenSubject?.(child.courseCode, child.label, child.subjectId);
                     } else if (child.isFeature) {
-                       console.log(`[NavItem] Feature clicked but no specific handler: ${child.id}`);
                        e.preventDefault();
                     }
                   }}

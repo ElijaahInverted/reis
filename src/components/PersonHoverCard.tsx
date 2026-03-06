@@ -1,4 +1,3 @@
-console.log('[REIS_LOUD_DEBUG] PersonHoverCard bundle loaded');
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -69,10 +68,8 @@ export function PersonHoverCard({ personId, children, className }: PersonHoverCa
     };
 
     const handleMouseEnter = useCallback(() => {
-        console.log('[REIS_LOUD_DEBUG] Mouse enter PersonHoverCard', personId);
         cancelTimers();
         hoverTimer.current = setTimeout(() => {
-            console.log('[REIS_LOUD_DEBUG] Showing card for', personId);
             if (!anchorRef.current) return;
             const rect = anchorRef.current.getBoundingClientRect();
             setPos(computePosition(rect));

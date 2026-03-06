@@ -21,7 +21,7 @@ class SyncServiceClass {
     setIsSyncing(v: boolean) { this.isSyncing = v; this.notifyListeners(); }
     triggerSync(payload?: unknown) { window.parent.postMessage({ type: 'REIS_ACTION', id: crypto.randomUUID(), action: 'trigger_sync', payload: payload || {} }, '*'); }
     triggerRefresh(a?: string) { this.notifyListeners(a); }
-    private notifyListeners(a?: string) { this.listeners.forEach(cb => { try { cb(a); } catch (e) { console.error(e); } }); }
+    private notifyListeners(a?: string) { this.listeners.forEach(cb => { try { cb(a); } catch { /* listener error */ } }); }
 }
 
 export const syncService = new SyncServiceClass();

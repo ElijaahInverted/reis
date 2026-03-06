@@ -19,12 +19,7 @@ export let isSyncing = false;
 let syncIntervalId: ReturnType<typeof setInterval> | null = null;
 
 export async function syncAllData() {
-    console.log('[syncAllData] 🔄 Sync requested, isSyncing:', isSyncing);
-    
-    if (isSyncing) {
-        console.log('[syncAllData] ⏳ Sync already in progress, skipping...');
-        return;
-    }
+    if (isSyncing) return;
     
     isSyncing = true;
     sendToIframe(Messages.syncUpdate({ isSyncing: true, lastSync: cachedData.lastSync }));
@@ -34,7 +29,6 @@ export async function syncAllData() {
         const studium = userParams?.studium;
 
         // Phase 1: Progressive "First Bite" - fetch (+/- 2 weeks) schedule first
-        console.log('[syncAllData] 🥯 Phase 1: Fetching schedule bite...');
         const scheduleBite = await fetchScheduleBite();
         if (scheduleBite) {
             cachedData.schedule = scheduleBite;
@@ -43,19 +37,16 @@ export async function syncAllData() {
         }
 
         // Phase 2a: Start subjects early — fast fetch, send immediately when ready
-        console.log('[syncAllData] 🍕 Phase 2a: Fetching subjects early...');
         const subjectsPromise = fetchDualLanguageSubjects(studium || undefined)
             .then(subjects => {
                 if (subjects) {
                     cachedData = { ...cachedData, subjects };
                     sendToIframe(Messages.syncUpdate({ ...cachedData, isSyncing: true, isPartial: true }));
-                    console.log('[syncAllData] ✅ Subjects ready, sent early update');
                 }
                 return subjects;
             });
 
         // Phase 2b: Full schedule + exams in parallel (subjects re-uses already-started promise)
-        console.log('[syncAllData] 🍕 Phase 2b: Fetching full semester data...');
         const [fullSchedule, exams, subjects] = await Promise.allSettled([
             fetchFullSemesterSchedule(),
             fetchDualLanguageExams(),
@@ -77,11 +68,9 @@ export async function syncAllData() {
 
         if (subjects.status === "fulfilled" && subjects.value) {
             // Enrich subjects with seminar group IDs for classmates
-            console.log('[syncAllData] 👥 Classmates check:', { studium, obdobi: userParams?.obdobi });
             if (studium && userParams?.obdobi) {
                 try {
                     const groupIds = await fetchSeminarGroupIds(studium, userParams.obdobi);
-                    console.log('[syncAllData] 👥 Seminar group IDs:', groupIds);
                     for (const [code, info] of Object.entries(groupIds)) {
                         if (subjects.value.data[code]) {
                             subjects.value.data[code].skupinaId = info.skupinaId;
@@ -91,8 +80,8 @@ export async function syncAllData() {
                         }
                     }
                     cachedData.subjects = subjects.value;
-                } catch (e) {
-                    console.warn('[syncAllData] Failed to fetch seminar group IDs:', e);
+                } catch (_) {
+                    // Seminar group ID fetch failed — non-critical, continue sync
                 }
             }
 
@@ -103,7 +92,6 @@ export async function syncAllData() {
         cachedData.lastSync = Date.now();
         sendToIframe(Messages.syncUpdate({ ...cachedData, isSyncing: false }));
     } catch (e) {
-        console.error("[REIS Content] Sync failed:", e);
         sendToIframe(Messages.syncUpdate({ isSyncing: false, error: String(e), lastSync: cachedData.lastSync }));
     } finally { 
         isSyncing = false;

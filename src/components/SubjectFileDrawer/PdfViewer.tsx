@@ -28,13 +28,7 @@ export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
         workerReady.then(() => setReady(true));
     }, []);
 
-    useEffect(() => {
-        console.log('[PDF-DEBUG] PdfViewer mounted, blobUrl:', blobUrl);
-        return () => console.log('[PDF-DEBUG] PdfViewer unmounted, blobUrl was:', blobUrl);
-    }, [blobUrl]);
-
     const onDocumentLoadSuccess = useCallback(async (pdf: PDFDocumentProxy) => {
-        console.log('[PDF-DEBUG] Document loaded successfully, pages:', pdf.numPages);
         setNumPages(pdf.numPages);
         const page = await pdf.getPage(1);
         const viewport = page.getViewport({ scale: 1 });
@@ -43,7 +37,6 @@ export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
             const containerWidth = containerRef.current?.clientWidth;
             if (containerWidth) {
                 const fitScale = containerWidth / viewport.width;
-                console.log('[PDF-DEBUG] fit-to-width: container=', containerWidth, 'page=', viewport.width, 'scale=', fitScale);
                 setScale(fitScale);
             }
         }, 350);
@@ -53,11 +46,11 @@ export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
         <div className="flex flex-col h-full">
             <div className="flex items-center justify-between px-3 py-2 border-b border-base-300 bg-base-200/50 shrink-0">
                 <div className="flex items-center gap-1">
-                    <button className="btn btn-ghost btn-xs btn-square" onClick={() => setScale(s => { const n = Math.max(0.5, s - 0.25); console.log('[PDF-DEBUG] scale:', n); return n; })}>
+                    <button className="btn btn-ghost btn-xs btn-square" onClick={() => setScale(s => Math.max(0.5, s - 0.25))}>
                         <ZoomOut size={14} />
                     </button>
                     <span className="text-xs font-mono w-12 text-center">{Math.round(scale * 100)}%</span>
-                    <button className="btn btn-ghost btn-xs btn-square" onClick={() => setScale(s => { const n = Math.min(3, s + 0.25); console.log('[PDF-DEBUG] scale:', n); return n; })}>
+                    <button className="btn btn-ghost btn-xs btn-square" onClick={() => setScale(s => Math.min(3, s + 0.25))}>
                         <ZoomIn size={14} />
                     </button>
                     {numPages > 0 && (
@@ -76,7 +69,7 @@ export function PdfViewer({ blobUrl, onClose }: PdfViewerProps) {
                 {!ready ? (
                     <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-primary" size={24} /></div>
                 ) : <Document file={blobUrl} onLoadSuccess={onDocumentLoadSuccess}
-                    onLoadError={(err: Error) => console.error('[PDF-DEBUG] Document load error:', err)}
+                    onLoadError={() => {}}
                     loading={<div className="flex items-center justify-center h-64"><Loader2 className="animate-spin text-primary" size={24} /></div>}>
                     {Array.from({ length: numPages }, (_, i) => (
                         <Page key={i} pageNumber={i + 1} scale={scale}

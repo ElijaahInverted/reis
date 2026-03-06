@@ -19,9 +19,8 @@ export async function trackNotificationsViewed(notificationIds: string[]): Promi
         supabase.rpc('increment_notification_view', { row_id: id })
       )
     );
-  } catch (error) {
+  } catch {
     // Fail silently if analytics fail (privacy-first, loose coupling)
-    console.error('[SpolkyService] Failed to track views:', error);
   }
 }
 
@@ -35,8 +34,8 @@ export async function trackNotificationClick(notificationId: string): Promise<vo
   try {
     // Call Supabase RPC to increment click count
     await supabase.rpc('increment_notification_click', { row_id: notificationId });
-  } catch (error) {
-    console.error('[SpolkyService] Failed to track click:', error);
+  } catch {
+    // Fail silently
   }
 }
 
@@ -54,7 +53,6 @@ export async function fetchNotifications(): Promise<SpolekNotification[]> {
       .limit(50);
 
     if (error) {
-      console.error('[SpolkyService] Supabase error:', error);
       return [];
     }
 
@@ -79,8 +77,7 @@ interface SupabaseNotification {
       expiresAt: n.expires_at,
       priority: n.priority as 'normal' | 'high'
     }));
-  } catch (error) {
-    console.error('[SpolkyService] Failed to fetch notifications:', error);
+  } catch {
     return [];
   }
 }

@@ -23,8 +23,7 @@ export const createScheduleSlice: AppSlice<ScheduleSlice> = (set) => ({
         },
       });
 
-    } catch (error) {
-      console.error('[ScheduleSlice] Fetch failed:', error);
+    } catch {
       set((state) => ({ schedule: { ...state.schedule, status: 'error' } }));
     }
   },

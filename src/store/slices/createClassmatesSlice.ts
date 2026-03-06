@@ -83,8 +83,7 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
                 classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
                 classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'success' },
             }));
-        } catch (error) {
-            console.error(`[ClassmatesSlice] fetchClassmatesAll failed for ${courseCode}:`, error);
+        } catch {
             set((state) => ({
                 classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
                 classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'error' },
@@ -170,8 +169,7 @@ export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
                 classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
                 classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'success' },
             }));
-        } catch (error) {
-            console.error(`[ClassmatesSlice] fetchClassmatesSeminar failed for ${courseCode}:`, error);
+        } catch {
             set((state) => ({
                 classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
                 classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'error' },

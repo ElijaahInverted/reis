@@ -37,7 +37,6 @@ export function FileList({
     folderUrl
 }: FileListProps) {
     const { t, language } = useTranslation();
-    console.log('[REIS_LOUD_DEBUG] FileList Rendering', { groupsCount: groups.length });
     if (groups.length === 0) {
         return (
             <div className="text-center py-12 text-slate-400 italic">
@@ -65,13 +64,9 @@ export function FileList({
                                             ref={el => { if (el) fileRefs.current.set(subFile.link, el); }}
                                             onClick={(e) => {
                                                 if (ignoreClickRef.current) return;
-                                                const pdf = isPdfFile(subFile);
-                                                console.log('[PDF-DEBUG] FileList click — link:', subFile.link, 'type:', subFile.type, 'isPdf:', pdf, 'ctrl:', e.ctrlKey);
                                                 if (e.ctrlKey || e.metaKey) {
-                                                    console.log('[PDF-DEBUG] → toggleSelect');
                                                     onToggleSelect(subFile.link, e);
                                                 } else {
-                                                    console.log('[PDF-DEBUG] → openFile');
                                                     onOpenFile(subFile.link);
                                                 }
                                             }}

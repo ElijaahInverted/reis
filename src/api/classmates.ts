@@ -89,11 +89,9 @@ export async function fetchClassmates(
         const doc = parser.parseFromString(html, 'text/html');
 
         const table = doc.querySelector('#tmtab_1');
-        console.log(`[fetchClassmates] predmet=${predmetId} page=${page} table=${table ? 'found' : 'NOT FOUND'}`);
         if (!table) break;
 
         const rows = table.querySelectorAll('tr');
-        console.log(`[fetchClassmates] predmet=${predmetId} rows=${rows.length}`);
         const allClassmatesFromPage: Classmate[] = [];
 
         for (const row of rows) {
@@ -120,7 +118,6 @@ export async function fetchClassmates(
             const photoUrl = photoImg?.getAttribute('src') || '';
             const name = cells[nameIdx]?.textContent?.trim() || '';
             
-            if (allClassmatesFromPage.length === 0) console.log(`[fetchClassmates] first row sample: cells=${cells.length} photoIdx=${photoIdx} name="${name}"`);
             if (!name) continue;
 
             const studyInfo = cells[studyInfoIdx]?.textContent?.trim() || '';
@@ -148,12 +145,10 @@ export async function fetchClassmates(
         }
         const rowCount = allClassmatesFromPage.length;
 
-        console.log(`[fetchClassmates] predmet=${predmetId} page=${page} parsed=${rowCount}`);
         // If fewer rows than page size, we've reached the last page
         if (rowCount < PAGE_SIZE) break;
         page++;
     }
 
-    console.log(`[fetchClassmates] predmet=${predmetId} total=${allClassmates.length}`);
     return allClassmates;
 }

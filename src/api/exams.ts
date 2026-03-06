@@ -22,7 +22,6 @@ async function getExamListUrl(lang: string = 'cz'): Promise<string> {
     const isLang = lang;
     const params = await getUserParams();
     if (!params?.studium) {
-        console.warn('[exams] No studium available, using base URL');
         return `https://is.mendelu.cz/auth/student/terminy_seznam.pl?lang=${isLang}`;
     }
     return `https://is.mendelu.cz/auth/student/terminy_seznam.pl?studium=${params.studium};lang=${isLang}`;
@@ -42,14 +41,12 @@ function verifyRegistrationSuccess(html: string, termId: string): boolean {
                      html.includes('nelze přihlásit') ||
                      html.includes('Chyba');
     
-    console.debug('[exams] Verification:', { termId, hasUnregisterLink, hasError });
     return hasUnregisterLink && !hasError;
 }
 
 export async function fetchExamData(lang: string = 'cz'): Promise<ExamSubject[]> {
     try {
         const url = await getExamListUrl(lang);
-        console.log(`[exams] Fetching ${lang === 'en' ? 'EN' : 'CZ'} from:`, url);
         const response = await fetchWithAuth(url);
         const html = await response.text();
         const data = parseExamData(html, lang);
@@ -65,14 +62,11 @@ export async function fetchExamData(lang: string = 'cz'): Promise<ExamSubject[]>
  * Enables instant language switching in the UI.
  */
 export async function fetchDualLanguageExams(): Promise<ExamSubject[]> {
-    console.debug('[fetchDualLanguageExams] 🌐 Fetching exams in both CZ and EN...');
     try {
         const [czData, enData] = await Promise.all([
             fetchExamData('cz'),
             fetchExamData('en')
         ]);
-        console.debug(`[fetchDualLanguageExams] ✅ Fetched CZ: ${czData.length} subjects, EN: ${enData.length} subjects`);
-
         const merged: ExamSubject[] = [...czData];
 
         enData.forEach(enSubject => {
@@ -127,19 +121,15 @@ export async function registerExam(termId: string): Promise<ExamActionResult> {
     try {
         const params = await getUserParams();
         if (!params?.studium) {
-            console.error('[exams] Cannot register: no studium available');
             return { success: false, error: 'Chybí údaje o studiu. Zkuste obnovit stránku.' };
         }
         
         const url = `https://is.mendelu.cz/auth/student/terminy_seznam.pl?termin=${termId};studium=${params.studium};obdobi=${params.obdobi};prihlasit_ihned=1;lang=cz`;
-        console.log('[exams] Registering:', url);
-        
         const response = await fetchWithAuth(url);
         const html = await response.text();
         
         // Verify the registration actually worked
         if (verifyRegistrationSuccess(html, termId)) {
-            console.log('[exams] Registration verified for term:', termId);
             return { success: true };
         }
         
@@ -152,7 +142,6 @@ export async function registerExam(termId: string): Promise<ExamActionResult> {
         }
         
         // Generic failure
-        console.warn('[exams] Registration could not be verified for term:', termId);
         return { success: false, error: 'Registrace se nepodařila ověřit. Zkontrolujte v IS.' };
         
     } catch (error) {
@@ -165,17 +154,13 @@ export async function unregisterExam(termId: string): Promise<ExamActionResult> 
     try {
         const params = await getUserParams();
         if (!params?.studium) {
-            console.error('[exams] Cannot unregister: no studium available');
             return { success: false, error: 'Chybí údaje o studiu. Zkuste obnovit stránku.' };
         }
         
         const url = `https://is.mendelu.cz/auth/student/terminy_seznam.pl?termin=${termId};studium=${params.studium};obdobi=${params.obdobi};odhlasit_ihned=1;lang=cz`;
-        console.log('[exams] Unregistering:', url);
-        
         await fetchWithAuth(url);
         
         // Assume success if no HTTP error
-        console.log('[exams] Unregistration completed for term:', termId);
         return { success: true };
         
     } catch (error) {

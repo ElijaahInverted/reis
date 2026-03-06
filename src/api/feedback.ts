@@ -21,10 +21,8 @@ export async function submitFeedback(
         p_value: value,
         p_semester_code: semesterCode,
     });
-    if (error) {
-        console.error('[feedback] submitFeedback error', error);
-        return false;
-    }
+    if (error) return false;
+
     return true;
 }
 
@@ -33,7 +31,6 @@ export async function trackDailyUsage(studentId: string): Promise<void> {
     const { error } = await supabase.rpc('track_daily_usage', {
         p_student_id: hashedId,
     });
-    if (error) {
-        console.error('[feedback] trackDailyUsage error', error);
-    }
+    if (error) return;
+
 }

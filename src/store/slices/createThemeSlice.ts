@@ -15,8 +15,7 @@ export const createThemeSlice: AppSlice<ThemeSlice> = (set) => ({
             
             set({ theme, isThemeLoading: false });
             document.documentElement.setAttribute("data-theme", theme);
-        } catch (e) {
-            console.error("[ThemeSlice] Failed to load theme:", e);
+        } catch {
             set({ isThemeLoading: false });
         }
     },
@@ -33,8 +32,8 @@ export const createThemeSlice: AppSlice<ThemeSlice> = (set) => ({
             const bc = new BroadcastChannel('reis_theme_sync');
             bc.postMessage(newTheme);
             bc.close();
-        } catch (e) {
-            console.error("[ThemeSlice] Failed to set theme:", e);
+        } catch {
+            // Theme persistence failed — UI already updated
         }
     },
 });

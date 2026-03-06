@@ -105,19 +105,7 @@ export function organizeLessons(lessons: BlockLesson[]): OrganizedLessons {
         globalMaxRows = Math.max(globalMaxRows, maxLanes);
     });
 
-    // Debug log to help identify why clusters might be merging
-    console.debug('[WeeklyCalendar] Organized lessons:', {
-        clusterCount: clusters.length,
-        totalLessons: sortedLessons.length,
-        globalMaxRows,
-        clusters: clusters.map(c => ({
-            count: c.length,
-            maxColumns: c[0].maxColumns,
-            lessons: c.map(l => `${l.startTime}-${l.endTime} (${l.courseName})`)
-        }))
-    });
-
-    return { 
+    return {
         lessons: clusters.flat(), 
         totalRows: globalMaxRows 
     };

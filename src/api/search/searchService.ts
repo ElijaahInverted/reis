@@ -18,8 +18,7 @@ export async function fetchPersonProfile(studentId: string): Promise<Person | nu
         const doc = parser.parseFromString(html, 'text/html');
         const results = parseMendeluProfileResult(doc, BASE_LIDE_URL);
         return results[0] ?? null;
-    } catch (error) {
-        console.error('[searchService] fetchPersonProfile error', error);
+    } catch {
         return null;
     }
 }
@@ -41,8 +40,7 @@ export async function searchPeople(personName: string): Promise<Person[]> {
 
         const html = await response.text();
         return parseMendeluResults(html);
-    } catch (error) {
-        console.error('Error searching for person:', error);
+    } catch {
         return [];
     }
 }
@@ -69,8 +67,7 @@ export async function searchGlobal(query: string): Promise<{ people: Person[]; s
         const subjects = parseSubjectResults(html);
 
         return { people, subjects };
-    } catch (error) {
-        console.error('Error in global search, falling back to people-only:', error);
+    } catch {
         const people = await searchPeople(query);
         return { people, subjects: [] };
     }

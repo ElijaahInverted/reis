@@ -28,7 +28,6 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
 
     loadStudyJamSuggestions: () => {
         if (_loadInFlight) {
-            console.debug('[StudyJamsSlice] loadStudyJamSuggestions already in-flight, skipping duplicate call');
             return _loadInFlight;
         }
         _loadInFlight = (async () => {
@@ -48,8 +47,6 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
                         fetchMyAvailability(userParams.studentId),
                         fetchMyDismissals(userParams.studentId),
                     ]);
-                    console.debug('[StudyJamsSlice] Server data found:', { avail: serverAvail.length, dismissals: serverDismissals.length });
-                    
                     const serverCodes = new Set(serverAvail.map(a => a.course_code));
                     let changed = false;
 
@@ -107,10 +104,8 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
                                           currentMatch.otherPartyStudentId === otherPartyStudentId;
 
                         if (isSameMatch && currentMatch.resolvedName) {
-                            console.debug('[StudyJamsSlice] Match unchanged and resolved, keeping data');
+                            // Match unchanged and resolved, keep data
                         } else {
-                            console.debug('[StudyJamsSlice] Setting match payload (preserving existing resolution if same ID):', { courseCode: existingMatch.course_code, otherPartyStudentId });
-                            
                             // Merge if same ID but just hasn't finished prefetching or was partially set
                             const existingData = (currentMatch && currentMatch.otherPartyStudentId === otherPartyStudentId)
                                 ? { resolvedName: currentMatch.resolvedName, teamsHandle: currentMatch.teamsHandle }
@@ -128,14 +123,9 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
 
                             // Only prefetch if we don't have a name yet
                             if (!matchPayload.resolvedName) {
-                                console.debug('[StudyJamsSlice] Starting prefetch for:', otherPartyStudentId);
                                 fetchPersonProfile(otherPartyStudentId).then(person => {
-                                    if (!person) {
-                                        console.warn('[StudyJamsSlice] Prefetch failed (no person found) for:', otherPartyStudentId);
-                                        return;
-                                    }
+                                    if (!person) return;
                                     const teamsHandle = person.email ? person.email.split('@')[0] : undefined;
-                                    console.debug('[StudyJamsSlice] Prefetch complete:', { name: person.name, handle: teamsHandle });
                                     set(state => (state.studyJamMatch && state.studyJamMatch.otherPartyStudentId === otherPartyStudentId)
                                         ? { studyJamMatch: { ...state.studyJamMatch, resolvedName: person.name, teamsHandle } }
                                         : {}
@@ -144,7 +134,6 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
                             }
                         }
                     } else {
-                        if (get().studyJamMatch) console.debug('[StudyJamsSlice] No match found, clearing state');
                         set({ studyJamMatch: null, studyJamDismissals: dismissals });
                     }
                 }
@@ -157,17 +146,13 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
                     const isMatched = s.courseCode === matchCourseCode;
                     const isDismissed = !!dismissals[s.courseCode];
                     if (isOptedIn || isMatched || isDismissed) {
-                        console.debug(`[StudyJamsSlice] Filtering out ${s.courseCode}: isOptedIn=${isOptedIn}, isMatched=${isMatched}, isDismissed=${isDismissed}`);
                         return false;
                     }
                     return true;
                 });
                 
-                console.debug(`[StudyJamsSlice] Final UI suggestions:`, filtered);
-
                 set({ studyJamSuggestions: filtered, studyJamOptIns: optIns, studyJamDismissals: dismissals });
-            } catch (e) {
-                console.error('[StudyJamsSlice] loadStudyJamSuggestions error', e);
+            } catch {
             } finally {
                 _loadInFlight = null;
             }

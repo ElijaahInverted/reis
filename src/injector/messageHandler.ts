@@ -27,7 +27,6 @@ export async function handleMessage(event: MessageEvent) {
             await handleFetchRequest(data.id, data.url, data.options);
             break;
         case "REIS_ACTION":
-            console.log('[messageHandler] 📨 Received action:', data.action, 'with payload:', data.payload);
             await handleAction(data.id, data.action, data.payload);
             break;
     }
@@ -64,7 +63,6 @@ async function handleFetchRequest(id: string, url: string, options?: { method?: 
 }
 
 async function handleAction(id: string, action: string, payload: unknown) {
-    console.log('[handleAction] 🎯 Processing action:', action);
     try {
         let result: unknown = null;
         const p = payload as Record<string, string>;
@@ -72,9 +70,7 @@ async function handleAction(id: string, action: string, payload: unknown) {
             case "register_exam": result = { success: await registerExam(p.termId) }; break;
             case "unregister_exam": result = { success: await unregisterExam(p.termId) }; break;
             case "trigger_sync":
-                console.log('[handleAction] 🔄 Triggering sync...');
                 await syncAllData();
-                console.log('[handleAction] ✅ Sync completed');
                 result = { success: true };
                 break;
             case "open_url": {
@@ -101,8 +97,5 @@ async function handleAction(id: string, action: string, payload: unknown) {
             default: throw new Error(`Unknown action: ${action}`);
         }
         sendToIframe(Messages.actionResult(id, true, result));
-    } catch (e) { 
-        console.error('[handleAction] ❌ Action failed:', e);
-        sendToIframe(Messages.actionResult(id, false, undefined, String(e))); 
-    }
+    } catch (e) { sendToIframe(Messages.actionResult(id, false, undefined, String(e))); }
 }
