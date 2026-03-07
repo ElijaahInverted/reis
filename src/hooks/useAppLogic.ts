@@ -153,8 +153,8 @@ export function useAppLogic() {
         return () => window.removeEventListener('message', handle);
     }, []);
 
-    const handleOpenSubjectFromSearch = (courseCode: string, courseName?: string, courseId?: string, facultyCode?: string) => {
-        setSelectedSubject({ courseCode, courseName: courseName || courseCode, courseId: courseId || '', id: `search-${courseCode}`, isFromSearch: true, facultyCode });
+    const handleOpenSubjectFromSearch = (courseCode: string, courseName?: string, courseId?: string, facultyCode?: string, initialTab?: 'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates') => {
+        setSelectedSubject({ courseCode, courseName: courseName || courseCode, courseId: courseId || '', id: `search-${courseCode}`, isFromSearch: true, facultyCode, initialTab });
     };
 
     return { currentDate, setCurrentDate, currentView, setCurrentView, selectedSubject, setSelectedSubject, weekNavCount, setWeekNavCount, isFeedbackOpen, setIsFeedbackOpen, openSettingsRef, searchPrefillRef, outlookSyncEnabled, handleOpenSubjectFromSearch };

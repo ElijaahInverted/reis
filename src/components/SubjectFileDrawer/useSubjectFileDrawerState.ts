@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useSchedule, useFiles, useSyncStatus, useSyllabus, useSubjects, useClassmates } from '../../hooks/data';
 import { useDragSelection } from './useDragSelection';
 import type { BlockLesson } from '../../types/calendarTypes';
@@ -10,7 +10,13 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
     const { getSubject } = useSubjects();
     const isExam = lesson && 'isExam' in lesson ? lesson.isExam : false;
     const isEnrolled = !!(lesson?.courseCode && getSubject(lesson.courseCode)?.subjectId);
-    const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates'>(isExam ? 'stats' : (isEnrolled ? 'files' : 'syllabus'));
+    const requestedTab = lesson && 'initialTab' in lesson ? lesson.initialTab : undefined;
+    const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates'>(requestedTab ?? (isExam ? 'stats' : (isEnrolled ? 'files' : 'syllabus')));
+
+    useEffect(() => {
+      if (requestedTab) setActiveTab(requestedTab);
+    }, [requestedTab, lesson?.courseCode]);
+
     const { files, isLoading: isFilesLoading, isPriorityLoading, progressStatus, totalCount } = useFiles(isOpen ? lesson?.courseCode : undefined);
     const { isSyncing } = useSyncStatus();
 

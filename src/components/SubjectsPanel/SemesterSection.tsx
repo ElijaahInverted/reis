@@ -9,7 +9,7 @@ interface SemesterSectionProps {
   block: SemesterBlock;
   defaultOpen: boolean;
   failRates?: Record<string, number | null>;
-  onOpenSubject: (courseCode: string, courseName: string, courseId: string) => void;
+  onOpenSubject: (courseCode: string, courseName: string, courseId: string, facultyCode?: string, initialTab?: string) => void;
   onSearchSubject: (name: string) => void;
 }
 

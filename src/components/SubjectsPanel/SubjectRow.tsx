@@ -22,7 +22,7 @@ interface SubjectRowProps {
   subject: SubjectStatus;
   compact?: boolean;
   failRate?: number | null;
-  onOpenSubject: (courseCode: string, courseName: string, courseId: string) => void;
+  onOpenSubject: (courseCode: string, courseName: string, courseId: string, facultyCode?: string, initialTab?: 'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates') => void;
   onSearchSubject: (name: string) => void;
 }
 
@@ -60,7 +60,10 @@ export function SubjectRow({ subject, compact, failRate, onOpenSubject, onSearch
       <span className="badge badge-sm badge-ghost font-mono shrink-0">{subject.code}</span>
       <span className="flex-1 text-sm truncate">{subject.name}</span>
       {failRate != null && failRate >= 20 && !subject.isFulfilled && (
-        <span className={`badge badge-sm shrink-0 ${failRate >= 25 ? 'badge-error' : 'badge-warning'} badge-outline relative group/fail`}>
+        <span
+          className={`badge badge-sm shrink-0 ${failRate >= 25 ? 'badge-error' : 'badge-warning'} badge-outline relative group/fail cursor-pointer`}
+          onClick={(e) => { e.stopPropagation(); if (hasId) onOpenSubject(subject.code, subject.name, subject.id, undefined, 'stats'); }}
+        >
           <span className="group-hover/fail:hidden">{failRate}%</span>
           <span className="hidden group-hover/fail:inline">{failRate}% {t('subjects.failRateLabel')}</span>
         </span>

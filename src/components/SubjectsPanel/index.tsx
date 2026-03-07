@@ -8,7 +8,7 @@ import { SemesterSection } from './SemesterSection';
 import type { SubjectStatus } from '@/types/studyPlan';
 
 interface SubjectsPanelProps {
-  onOpenSubject: (courseCode: string, courseName: string, courseId: string) => void;
+  onOpenSubject: (courseCode: string, courseName: string, courseId: string, facultyCode?: string, initialTab?: string) => void;
   onSearchSubject: (name: string) => void;
 }
 

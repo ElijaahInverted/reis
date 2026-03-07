@@ -2,13 +2,17 @@ import type { SuccessRateSlice, AppSlice } from '../types';
 import { getStoredSuccessRates, fetchSubjectSuccessRates } from '../../api/successRate';
 import { loggers } from '../../utils/logger';
 
+const batchInFlight = new Set<string>();
+
 export const createSuccessRateSlice: AppSlice<SuccessRateSlice> = (set, get) => ({
     successRates: {},
     successRatesLoading: {},
     successRatesGlobalLoaded: false,
     fetchSuccessRateBatch: async (courseCodes) => {
-        const missing = courseCodes.filter(c => !get().successRates[c] && !get().successRatesLoading[c]);
+        const missing = courseCodes.filter(c => !get().successRates[c] && !batchInFlight.has(c));
         if (missing.length === 0) return;
+
+        for (const c of missing) batchInFlight.add(c);
 
         try {
             const stored = await getStoredSuccessRates();
@@ -27,16 +31,16 @@ export const createSuccessRateSlice: AppSlice<SuccessRateSlice> = (set, get) => 
 
             if (toFetch.length > 0) {
                 const result = await fetchSubjectSuccessRates(toFetch);
-                const fetched: Record<string, import('../../types/documents').SubjectSuccessRate> = {};
+                const updates: Record<string, import('../../types/documents').SubjectSuccessRate> = {};
                 for (const code of toFetch) {
-                    if (result.data[code]) fetched[code] = result.data[code];
+                    updates[code] = result.data[code] ?? { courseCode: code, stats: [], lastUpdated: '' };
                 }
-                if (Object.keys(fetched).length > 0) {
-                    set(state => ({ successRates: { ...state.successRates, ...fetched } }));
-                }
+                set(state => ({ successRates: { ...state.successRates, ...updates } }));
             }
         } catch (err) {
             loggers.ui.error('[SuccessRateSlice] Batch fetch failed:', err);
+        } finally {
+            for (const c of missing) batchInFlight.delete(c);
         }
     },
     fetchSuccessRate: async (courseCode) => {
@@ -47,7 +51,6 @@ export const createSuccessRateSlice: AppSlice<SuccessRateSlice> = (set, get) => 
         }));
 
         try {
-            // Try storage first
             const stored = await getStoredSuccessRates();
             if (stored) {
                 set({ successRatesGlobalLoaded: true });
@@ -61,7 +64,6 @@ export const createSuccessRateSlice: AppSlice<SuccessRateSlice> = (set, get) => 
                 return;
             }
 
-            // Not cached — fetch from API
             loggers.ui.info('[SuccessRateSlice] Fetching from API:', courseCode);
             const result = await fetchSubjectSuccessRates([courseCode]);
             set(state => ({
