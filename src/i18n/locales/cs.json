@@ -224,7 +224,10 @@
     "loading": "Načítání...",
     "fulfilled": "Splněno",
     "notFulfilled": "Nesplněno",
-    "searchToOpen": "Kliknutím vyhledáte"
+    "searchToOpen": "Kliknutím vyhledáte",
+    "semester": "semestr",
+    "wholePlan": "Celý plán",
+    "subjectCount": "předmětů"
   },
   "classmates": {
     "all": "Všichni",

@@ -1,0 +1,107 @@
+import { useState } from 'react';
+import { ChevronDown, CheckCircle2, BookOpen, Clock } from 'lucide-react';
+import type { SemesterBlock } from '@/types/studyPlan';
+import { SubjectRow } from './SubjectRow';
+
+type SemesterState = 'past' | 'current' | 'future';
+
+interface SemesterSectionProps {
+  block: SemesterBlock;
+  defaultOpen: boolean;
+  onOpenSubject: (courseCode: string, courseName: string, courseId: string) => void;
+  onSearchSubject: (name: string) => void;
+}
+
+function getSemesterState(block: SemesterBlock): SemesterState {
+  const all = block.groups.flatMap(g => g.subjects);
+  if (all.length === 0) return 'future';
+  const hasEnrolled = all.some(s => s.isEnrolled);
+  if (hasEnrolled) return 'current';
+  const allFulfilled = all.every(s => s.isFulfilled);
+  if (allFulfilled) return 'past';
+  const hasFulfilled = all.some(s => s.isFulfilled);
+  return hasFulfilled ? 'past' : 'future';
+}
+
+const stateConfig: Record<SemesterState, {
+  icon: typeof CheckCircle2;
+  border: string;
+  accent: string;
+  indicator: string;
+  badgeCls: string;
+}> = {
+  past: {
+    icon: CheckCircle2,
+    border: 'border-success/20',
+    accent: 'text-success',
+    indicator: 'bg-success',
+    badgeCls: 'badge-success badge-outline',
+  },
+  current: {
+    icon: BookOpen,
+    border: 'border-primary/30',
+    accent: 'text-primary',
+    indicator: 'bg-primary',
+    badgeCls: 'badge-primary',
+  },
+  future: {
+    icon: Clock,
+    border: 'border-base-300',
+    accent: 'text-base-content/40',
+    indicator: 'bg-base-content/20',
+    badgeCls: 'badge-ghost',
+  },
+};
+
+export function SemesterSection({ block, defaultOpen, onOpenSubject, onSearchSubject }: SemesterSectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+  const state = getSemesterState(block);
+  const cfg = stateConfig[state];
+  const Icon = cfg.icon;
+
+  const allSubjects = block.groups.flatMap(g => g.subjects);
+  const fulfilledCount = allSubjects.filter(s => s.isFulfilled).length;
+  const totalCount = allSubjects.length;
+  const isPast = state === 'past';
+
+  return (
+    <div className={`rounded-lg border ${cfg.border} overflow-hidden transition-colors`}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-base-200/50 transition-colors"
+      >
+        <div className={`w-1 h-8 rounded-full ${cfg.indicator} shrink-0`} />
+        <Icon className={`w-4 h-4 ${cfg.accent} shrink-0`} />
+        <span className="text-sm font-semibold flex-1 text-left">{block.title}</span>
+        <span className={`badge badge-sm ${cfg.badgeCls}`}>
+          {fulfilledCount}/{totalCount}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-base-content/40 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="px-2 pb-2 animate-in fade-in slide-in-from-top-1 duration-150">
+          {block.groups.map((group, gi) => (
+            <div key={gi} className={gi > 0 ? 'mt-2' : ''}>
+              {block.groups.length > 1 && (
+                <div className="text-[11px] text-base-content/40 font-medium px-3 py-1 uppercase tracking-wider">{group.name}</div>
+              )}
+              {[...group.subjects].sort((a, b) => {
+                if (a.isFulfilled === b.isFulfilled) return 0;
+                return a.isFulfilled ? 1 : -1;
+              }).map(s => (
+                <SubjectRow
+                  key={s.code}
+                  subject={s}
+                  compact={isPast}
+                  onOpenSubject={onOpenSubject}
+                  onSearchSubject={onSearchSubject}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

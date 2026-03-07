@@ -15,7 +15,7 @@ interface SidebarProps {
 export const Sidebar = ({ currentView, onViewChange, onOpenFeedback, onOpenSubject }: SidebarProps) => {
   const [hovered, setHovered] = useState<string | null>(null);
   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const menuItems = useMenuItems({ interleaveColumns: true });
+  const menuItems = useMenuItems();
 
   const handleEnter = (id: string) => { if (timeout.current) clearTimeout(timeout.current); setHovered(id); };
   const handleLeave = () => { timeout.current = setTimeout(() => setHovered(null), 300); };

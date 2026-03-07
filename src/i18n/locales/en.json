@@ -224,7 +224,10 @@
     "loading": "Loading...",
     "fulfilled": "Fulfilled",
     "notFulfilled": "Not fulfilled",
-    "searchToOpen": "Click to search"
+    "searchToOpen": "Click to search",
+    "semester": "semester",
+    "wholePlan": "Entire plan",
+    "subjectCount": "subjects"
   },
   "classmates": {
     "all": "All",
