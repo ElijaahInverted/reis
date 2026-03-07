@@ -8,6 +8,7 @@ type SemesterState = 'past' | 'current' | 'future';
 interface SemesterSectionProps {
   block: SemesterBlock;
   defaultOpen: boolean;
+  failRates?: Record<string, number | null>;
   onOpenSubject: (courseCode: string, courseName: string, courseId: string) => void;
   onSearchSubject: (name: string) => void;
 }
@@ -53,7 +54,7 @@ const stateConfig: Record<SemesterState, {
   },
 };
 
-export function SemesterSection({ block, defaultOpen, onOpenSubject, onSearchSubject }: SemesterSectionProps) {
+export function SemesterSection({ block, defaultOpen, failRates, onOpenSubject, onSearchSubject }: SemesterSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   const state = getSemesterState(block);
   const cfg = stateConfig[state];
@@ -96,6 +97,7 @@ export function SemesterSection({ block, defaultOpen, onOpenSubject, onSearchSub
                   key={s.code}
                   subject={s}
                   compact={isPast}
+                  failRate={failRates?.[s.code]}
                   onOpenSubject={onOpenSubject}
                   onSearchSubject={onSearchSubject}
                 />

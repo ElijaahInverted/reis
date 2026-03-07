@@ -102,6 +102,7 @@ export interface SuccessRateSlice {
     successRatesLoading: Record<string, boolean>;
     successRatesGlobalLoaded: boolean;
     fetchSuccessRate: (courseCode: string) => Promise<void>;
+    fetchSuccessRateBatch: (courseCodes: string[]) => Promise<void>;
 }
 
 export interface StudyJamSuggestion {

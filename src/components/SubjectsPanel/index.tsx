@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStudyPlan } from '@/hooks/useStudyPlan';
 import { useAppStore } from '@/store/useAppStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { SubjectsPanelHeader } from './SubjectsPanelHeader';
-import { SubjectRow } from './SubjectRow';
+import { SubjectRow, computeFailRate } from './SubjectRow';
 import { SemesterSection } from './SemesterSection';
 import type { SubjectStatus } from '@/types/studyPlan';
 
@@ -43,11 +43,32 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
   const plan = useStudyPlan();
   const loading = useAppStore(s => s.studyPlanLoading);
   const studyStats = useAppStore(s => s.studyStats);
+  const successRates = useAppStore(s => s.successRates);
 
   useEffect(() => {
     useAppStore.getState().fetchStudyPlan();
     useAppStore.getState().fetchStudyStats();
   }, []);
+
+  // Batch-prefetch success rates for all subjects in the plan
+  useEffect(() => {
+    if (!plan) return;
+    const codes = plan.blocks.flatMap(b => b.groups.flatMap(g => g.subjects.map(s => s.code)));
+    if (codes.length > 0) useAppStore.getState().fetchSuccessRateBatch(codes);
+  }, [plan]);
+
+  const failRates = useMemo(() => {
+    const map: Record<string, number | null> = {};
+    if (!plan) return map;
+    for (const block of plan.blocks) {
+      for (const group of block.groups) {
+        for (const s of group.subjects) {
+          map[s.code] = computeFailRate(successRates[s.code]);
+        }
+      }
+    }
+    return map;
+  }, [plan, successRates]);
 
   if (loading && !plan) {
     return (
@@ -91,14 +112,14 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
           {enrolledCore.length > 0 && (
             <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-1">
               {enrolledCore.map(s => (
-                <SubjectRow key={s.code} subject={s} onOpenSubject={onOpenSubject} onSearchSubject={onSearchSubject} />
+                <SubjectRow key={s.code} subject={s} failRate={failRates[s.code]} onOpenSubject={onOpenSubject} onSearchSubject={onSearchSubject} />
               ))}
             </div>
           )}
           {enrolledElective.length > 0 && (
             <div className="mt-1.5 rounded-lg border border-base-300/50 p-1">
               {enrolledElective.map(s => (
-                <SubjectRow key={s.code} subject={s} compact onOpenSubject={onOpenSubject} onSearchSubject={onSearchSubject} />
+                <SubjectRow key={s.code} subject={s} compact failRate={failRates[s.code]} onOpenSubject={onOpenSubject} onSearchSubject={onSearchSubject} />
               ))}
             </div>
           )}
@@ -113,6 +134,7 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
               key={bi}
               block={block}
               defaultOpen={false}
+              failRates={failRates}
               onOpenSubject={onOpenSubject}
               onSearchSubject={onSearchSubject}
             />

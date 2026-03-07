@@ -6,6 +6,39 @@ export const createSuccessRateSlice: AppSlice<SuccessRateSlice> = (set, get) => 
     successRates: {},
     successRatesLoading: {},
     successRatesGlobalLoaded: false,
+    fetchSuccessRateBatch: async (courseCodes) => {
+        const missing = courseCodes.filter(c => !get().successRates[c] && !get().successRatesLoading[c]);
+        if (missing.length === 0) return;
+
+        try {
+            const stored = await getStoredSuccessRates();
+            if (stored) set({ successRatesGlobalLoaded: true });
+
+            const fromCache: Record<string, import('../../types/documents').SubjectSuccessRate> = {};
+            const toFetch: string[] = [];
+            for (const code of missing) {
+                if (stored?.data[code]) fromCache[code] = stored.data[code];
+                else toFetch.push(code);
+            }
+
+            if (Object.keys(fromCache).length > 0) {
+                set(state => ({ successRates: { ...state.successRates, ...fromCache } }));
+            }
+
+            if (toFetch.length > 0) {
+                const result = await fetchSubjectSuccessRates(toFetch);
+                const fetched: Record<string, import('../../types/documents').SubjectSuccessRate> = {};
+                for (const code of toFetch) {
+                    if (result.data[code]) fetched[code] = result.data[code];
+                }
+                if (Object.keys(fetched).length > 0) {
+                    set(state => ({ successRates: { ...state.successRates, ...fetched } }));
+                }
+            }
+        } catch (err) {
+            loggers.ui.error('[SuccessRateSlice] Batch fetch failed:', err);
+        }
+    },
     fetchSuccessRate: async (courseCode) => {
         if (get().successRatesLoading[courseCode]) return;
 

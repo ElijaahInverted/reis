@@ -237,7 +237,8 @@
     "progressionDanger": "Hrozí nesplnění!",
     "repeatWarning": "2. zápis",
     "gpa": "Průměr",
-    "enrolledCreditsLabel": "kr. zapsáno"
+    "enrolledCreditsLabel": "kr. zapsáno",
+    "failRateLabel": "neúsp."
   },
   "classmates": {
     "all": "Všichni",

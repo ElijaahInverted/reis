@@ -237,7 +237,8 @@
     "progressionDanger": "At risk!",
     "repeatWarning": "2nd enrollment",
     "gpa": "GPA",
-    "enrolledCreditsLabel": "cr. enrolled"
+    "enrolledCreditsLabel": "cr. enrolled",
+    "failRateLabel": "fail"
   },
   "classmates": {
     "all": "All",

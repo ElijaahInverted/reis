@@ -1,15 +1,32 @@
 import { Search, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { SubjectStatus } from '@/types/studyPlan';
+import type { SubjectSuccessRate } from '@/types/documents';
 import { useTranslation } from '@/hooks/useTranslation';
+
+/** Avg fail rate over last 3 semesters using "Všechny termíny" aggregate. Returns 0-100 or null. */
+export function computeFailRate(sr: SubjectSuccessRate | undefined): number | null {
+  if (!sr?.stats?.length) return null;
+  const recent = sr.stats.slice(0, 3);
+  let totalPass = 0, totalFail = 0;
+  for (const sem of recent) {
+    const allTerms = sem.terms.find(t => t.term === 'Všechny termíny');
+    if (allTerms) { totalPass += allTerms.pass; totalFail += allTerms.fail; }
+    else { totalPass += sem.totalPass; totalFail += sem.totalFail; }
+  }
+  const total = totalPass + totalFail;
+  if (total < 10) return null; // Too few students for meaningful data
+  return Math.round((totalFail / total) * 100);
+}
 
 interface SubjectRowProps {
   subject: SubjectStatus;
   compact?: boolean;
+  failRate?: number | null;
   onOpenSubject: (courseCode: string, courseName: string, courseId: string) => void;
   onSearchSubject: (name: string) => void;
 }
 
-export function SubjectRow({ subject, compact, onOpenSubject, onSearchSubject }: SubjectRowProps) {
+export function SubjectRow({ subject, compact, failRate, onOpenSubject, onSearchSubject }: SubjectRowProps) {
   const { t } = useTranslation();
   const hasId = subject.id !== '';
 
@@ -42,6 +59,12 @@ export function SubjectRow({ subject, compact, onOpenSubject, onSearchSubject }:
     >
       <span className="badge badge-sm badge-ghost font-mono shrink-0">{subject.code}</span>
       <span className="flex-1 text-sm truncate">{subject.name}</span>
+      {failRate != null && failRate >= 20 && !subject.isFulfilled && (
+        <span className={`badge badge-sm shrink-0 ${failRate >= 25 ? 'badge-error' : 'badge-warning'} badge-outline relative group/fail`}>
+          <span className="group-hover/fail:hidden">{failRate}%</span>
+          <span className="hidden group-hover/fail:inline">{failRate}% {t('subjects.failRateLabel')}</span>
+        </span>
+      )}
       <span className="text-xs text-base-content/50 shrink-0">{subject.credits} kr.</span>
       {subject.enrollmentCount >= 2 && !subject.isFulfilled && (
         <span className="badge badge-sm badge-error gap-1" title={t('subjects.repeatWarning')}>
