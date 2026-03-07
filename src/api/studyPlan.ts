@@ -1,5 +1,5 @@
 import { fetchWithAuth, BASE_URL } from "./client";
-import type { StudyPlan, SemesterBlock, SubjectGroup, SubjectStatus } from "../types/studyPlan";
+import type { StudyPlan, SemesterBlock, SubjectGroup, SubjectStatus, DescriptionSection } from "../types/studyPlan";
 
 // The endpoint for finding a student's study plan
 const STUDY_PLAN_URL = `${BASE_URL}/auth/studijni/studijni_povinnosti.pl`;
@@ -146,8 +146,9 @@ function parseStudyPlanDOM(doc: Document): StudyPlan {
 
   // 4. Description Sections (Focus, Specialization, etc.)
   const descriptionSections: DescriptionSection[] = [];
-  const h4s = Array.from(doc.querySelectorAll('h4'));
   
+  // 4.1. Extract H4 Headers
+  const h4s = Array.from(doc.querySelectorAll('h4'));
   for (const h4 of h4s) {
       const title = (h4.textContent || '').trim();
       // Skip titles that are actually semester blocks handled above or boilerplate/useless items
@@ -170,6 +171,26 @@ function parseStudyPlanDOM(doc: Document): StudyPlan {
 
       if (contentHtml.trim()) {
           descriptionSections.push({ title, content: contentHtml });
+      }
+  }
+
+  // 4.2. Extract Hidden Comments (Hiders) - These often contain Focus subject lists
+  const hiders = Array.from(doc.querySelectorAll('.hider-nazev-skryti'));
+  for (const hider of hiders) {
+      const rawTitle = (hider.textContent || '').trim();
+      const title = rawTitle.replace(/^Skryto:\s*/i, '').trim();
+
+      // Find the corresponding content div (skryt_div_XXXX)
+      const idMatch = hider.id.match(/\d+$/);
+      if (idMatch) {
+          const contentId = `skryt_div_${idMatch[0]}`;
+          const contentDiv = doc.getElementById(contentId);
+          if (contentDiv) {
+              descriptionSections.push({ 
+                  title, 
+                  content: contentDiv.innerHTML || '' 
+              });
+          }
       }
   }
 
