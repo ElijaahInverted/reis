@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ChevronDown, CheckCircle2, BookOpen, Clock } from 'lucide-react';
 import type { SemesterBlock } from '@/types/studyPlan';
 import { SubjectRow } from './SubjectRow';
@@ -7,8 +6,10 @@ type SemesterState = 'past' | 'current' | 'future';
 
 interface SemesterSectionProps {
   block: SemesterBlock;
-  defaultOpen: boolean;
+  open: boolean;
+  dimmed?: boolean;
   failRates?: Record<string, number | null>;
+  onToggle: () => void;
   onOpenSubject: (courseCode: string, courseName: string, courseId: string, facultyCode?: string, initialTab?: string) => void;
   onSearchSubject: (name: string) => void;
 }
@@ -54,8 +55,7 @@ const stateConfig: Record<SemesterState, {
   },
 };
 
-export function SemesterSection({ block, defaultOpen, failRates, onOpenSubject, onSearchSubject }: SemesterSectionProps) {
-  const [open, setOpen] = useState(defaultOpen);
+export function SemesterSection({ block, open, dimmed, failRates, onToggle, onOpenSubject, onSearchSubject }: SemesterSectionProps) {
   const state = getSemesterState(block);
   const cfg = stateConfig[state];
   const Icon = cfg.icon;
@@ -67,10 +67,10 @@ export function SemesterSection({ block, defaultOpen, failRates, onOpenSubject, 
   const isPast = state === 'past';
 
   return (
-    <div className={`rounded-lg border ${cfg.border} overflow-hidden transition-colors`}>
+    <div className={`rounded-lg border overflow-hidden transition-all ${open ? 'border-base-content/20 bg-base-100 shadow-sm' : cfg.border} ${dimmed ? 'opacity-40' : ''}`}>
       <button
-        onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-base-200/50 transition-colors"
+        onClick={onToggle}
+        className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${open ? 'bg-base-200/30' : 'hover:bg-base-200/50'}`}
       >
         <div className={`w-1 h-8 rounded-full ${cfg.indicator} shrink-0`} />
         <Icon className={`w-4 h-4 ${cfg.accent} shrink-0`} />

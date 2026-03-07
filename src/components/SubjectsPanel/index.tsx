@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useStudyPlan } from '@/hooks/useStudyPlan';
 import { useAppStore } from '@/store/useAppStore';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -96,6 +96,7 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
     }
   }
   const hasEnrolledSubjects = enrolledCore.length > 0 || enrolledElective.length > 0;
+  const [openSemester, setOpenSemester] = useState<number | null>(null);
 
   return (
     <div className="h-full overflow-y-auto">
@@ -133,8 +134,10 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
             <SemesterSection
               key={bi}
               block={block}
-              defaultOpen={false}
+              open={openSemester === bi}
+              dimmed={openSemester !== null && openSemester !== bi}
               failRates={failRates}
+              onToggle={() => setOpenSemester(prev => prev === bi ? null : bi)}
               onOpenSubject={onOpenSubject}
               onSearchSubject={onSearchSubject}
             />
