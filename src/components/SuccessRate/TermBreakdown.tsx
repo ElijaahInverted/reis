@@ -8,13 +8,6 @@ const TERM_KEYS: Record<string, string> = {
     '2. opravný': 'successRate.retake2',
 };
 
-const GRADE_COLORS: Record<string, string> = {
-    A: 'var(--color-grade-a)', B: 'var(--color-grade-b)', C: 'var(--color-grade-c)',
-    D: 'var(--color-grade-d)', E: 'var(--color-grade-e)', F: 'var(--color-grade-f)',
-    FN: 'var(--color-grade-fn)',
-};
-const GRADE_ORDER = ['A', 'B', 'C', 'D', 'E', 'F', 'FN'];
-
 interface TermBreakdownProps {
     terms: TermStats[];
     isCredit: boolean;
@@ -28,9 +21,10 @@ function getSegments(term: TermStats, isCredit: boolean) {
             { key: 'nezap', count: nezap + (zapNedost || 0), color: 'var(--color-error)' },
         ].filter(s => s.count > 0);
     }
-    return GRADE_ORDER
-        .map(g => ({ key: g, count: (term.grades as Record<string, number>)[g] || 0, color: GRADE_COLORS[g] }))
-        .filter(s => s.count > 0);
+    return [
+        { key: 'pass', count: term.pass, color: 'var(--color-success)' },
+        { key: 'fail', count: term.fail, color: 'var(--color-error)' },
+    ].filter(s => s.count > 0);
 }
 
 export function TermBreakdown({ terms, isCredit }: TermBreakdownProps) {
