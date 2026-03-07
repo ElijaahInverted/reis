@@ -62,6 +62,7 @@ export function SemesterSection({ block, defaultOpen, onOpenSubject, onSearchSub
   const allSubjects = block.groups.flatMap(g => g.subjects);
   const fulfilledCount = allSubjects.filter(s => s.isFulfilled).length;
   const totalCount = allSubjects.length;
+  const totalCredits = allSubjects.filter(s => s.credits <= 50).reduce((a, s) => a + s.credits, 0);
   const isPast = state === 'past';
 
   return (
@@ -73,6 +74,7 @@ export function SemesterSection({ block, defaultOpen, onOpenSubject, onSearchSub
         <div className={`w-1 h-8 rounded-full ${cfg.indicator} shrink-0`} />
         <Icon className={`w-4 h-4 ${cfg.accent} shrink-0`} />
         <span className="text-sm font-semibold flex-1 text-left">{block.title}</span>
+        <span className="text-[11px] text-base-content/40 shrink-0">{totalCredits} kr.</span>
         <span className={`badge badge-sm ${cfg.badgeCls}`}>
           {fulfilledCount}/{totalCount}
         </span>

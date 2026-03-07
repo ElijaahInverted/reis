@@ -227,7 +227,17 @@
     "searchToOpen": "Click to search",
     "semester": "semester",
     "wholePlan": "Entire plan",
-    "subjectCount": "subjects"
+    "subjectCount": "subjects",
+
+    "creditsLastTwo": "Last 2 semesters",
+    "creditsLastTwoNeeded": "need 40",
+
+    "progressionSafe": "On track",
+    "progressionWarning": "Watch your progress!",
+    "progressionDanger": "At risk!",
+    "repeatWarning": "2nd enrollment",
+    "gpa": "GPA",
+    "enrolledCreditsLabel": "cr. enrolled"
   },
   "classmates": {
     "all": "All",

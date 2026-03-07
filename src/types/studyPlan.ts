@@ -6,6 +6,7 @@ export interface SubjectStatus {
   type: string;
   isEnrolled: boolean;
   isFulfilled: boolean;
+  enrollmentCount: number;
   fulfillmentDate?: string;
   rawStatusText: string;
 }
@@ -32,6 +33,27 @@ export interface StudyPlan {
 export interface DualLanguageStudyPlan {
   cz: StudyPlan;
   en: StudyPlan;
+}
+
+export interface SemesterStats {
+  enrolledCredits: number;
+  earnedCredits: number;
+  unearnedCredits: number;
+  completedSubjects: number;
+  gpa: number;
+  gpaWithFails: number;
+}
+
+export interface StudyStats {
+  currentSemester: SemesterStats;
+  previousSemester: SemesterStats | null;
+  totalEarnedCredits: number;
+  creditsLastTwoPeriods: number;
+  repeatedSubjects: number;
+  registrationVouchersInitial: number;
+  registrationVouchersCurrent: number;
+  gpaTotal: number;
+  weightedGpaTotal: number;
 }
 
 export function isDualLanguageStudyPlan(val: unknown): val is DualLanguageStudyPlan {

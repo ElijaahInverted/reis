@@ -3,7 +3,7 @@ import type { BlockLesson } from '../types/calendarTypes';
 import type { ExamSubject } from '../types/exams';
 import type { SyllabusRequirements, ParsedFile, Assessment, SubjectsData, SubjectSuccessRate } from '../types/documents';
 import type { ClassmatesData } from '../types/classmates';
-import type { DualLanguageStudyPlan } from '../types/studyPlan';
+import type { DualLanguageStudyPlan, StudyStats } from '../types/studyPlan';
 import type { SyncStatus } from '../services/sync';
 
 export type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -142,7 +142,9 @@ export interface FeedbackSlice {
 export interface StudyPlanSlice {
     studyPlanDual: DualLanguageStudyPlan | null;
     studyPlanLoading: boolean;
+    studyStats: StudyStats | null;
     fetchStudyPlan: () => Promise<void>;
+    fetchStudyStats: () => Promise<void>;
 }
 
 export interface UseThemeResult {

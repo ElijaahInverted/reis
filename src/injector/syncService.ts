@@ -5,6 +5,7 @@ import { fetchDualLanguageSubjects } from "../api/subjects";
 import { fetchFilesFromFolder } from "../api/documents";
 import { fetchAssessments } from "../api/assessments";
 import { fetchDualLanguageStudyPlan } from "../api/studyPlan";
+import { fetchStudyStats } from "../api/studyStats";
 import { fetchSyllabus } from "../api/syllabus";
 import { fetchSeminarGroupIds, fetchClassmates } from "../api/classmates";
 import type { ClassmatesData } from "../types/classmates";
@@ -47,7 +48,7 @@ export async function syncAllData() {
                 return subjects;
             });
 
-        // Phase 2a-II: Fetch study plan concurrently with early subjects
+        // Phase 2a-II: Fetch study plan + study stats concurrently with early subjects
         const studyPlanPromise = studium ? fetchDualLanguageStudyPlan(studium).then(plan => {
             if (plan) {
                 cachedData = { ...cachedData, studyPlan: plan };
@@ -56,12 +57,20 @@ export async function syncAllData() {
             return plan;
         }) : Promise.resolve(null);
 
-        // Phase 2b: Full schedule + exams in parallel (subjects/studyPlan re-uses already-started promises)
-        const [fullSchedule, exams, subjects, studyPlan] = await Promise.allSettled([
+        const studyStatsPromise = (studium && userParams?.obdobi)
+            ? fetchStudyStats(studium, userParams.obdobi).then(stats => {
+                if (stats) cachedData = { ...cachedData, studyStats: stats };
+                return stats;
+            })
+            : Promise.resolve(null);
+
+        // Phase 2b: Full schedule + exams in parallel (subjects/studyPlan/studyStats re-uses already-started promises)
+        const [fullSchedule, exams, subjects, studyPlan, studyStats] = await Promise.allSettled([
             fetchFullSemesterSchedule(),
             fetchDualLanguageExams(),
             subjectsPromise,
             studyPlanPromise,
+            studyStatsPromise,
         ]);
 
         cachedData = {
@@ -70,6 +79,7 @@ export async function syncAllData() {
             exams: exams.status === "fulfilled" ? exams.value : cachedData.exams,
             subjects: subjects.status === "fulfilled" ? subjects.value : cachedData.subjects,
             studyPlan: studyPlan.status === "fulfilled" && studyPlan.value ? studyPlan.value : cachedData.studyPlan,
+            studyStats: studyStats.status === "fulfilled" && studyStats.value ? studyStats.value : cachedData.studyStats,
             files: cachedData.files || {},
             lastSync: Date.now(),
         };

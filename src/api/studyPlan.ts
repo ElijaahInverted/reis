@@ -1,5 +1,5 @@
 import { fetchWithAuth, BASE_URL } from "./client";
-import type { StudyPlan, DualLanguageStudyPlan, SemesterBlock, SubjectGroup, SubjectStatus } from "../types/studyPlan";
+import type { StudyPlan, DualLanguageStudyPlan, SemesterBlock, SubjectGroup, SubjectStatus, StudyStats, SemesterStats } from "../types/studyPlan";
 
 const STUDY_PLAN_URL = `${BASE_URL}/auth/studijni/studijni_povinnosti.pl`;
 
@@ -168,6 +168,7 @@ function parseStudyPlanDOM(doc: Document, lang: Lang): StudyPlan {
                 const nameCell = visibleCells[1];
                 const typeCell = visibleCells[2];
                 const creditsCell = visibleCells[3];
+                const enrolledCell = visibleCells[4];
                 const statusCell = visibleCells[5];
 
                 const codeHtml = codeCell.innerHTML || '';
@@ -195,6 +196,7 @@ function parseStudyPlanDOM(doc: Document, lang: Lang): StudyPlan {
                     name: cleanName,
                     type: (typeCell.textContent || '').trim(),
                     credits: parseInt((creditsCell.textContent || '').trim(), 10) || 0,
+                    enrollmentCount: parseInt((enrolledCell.textContent || '').replace(/x/i, '').trim(), 10) || 0,
                     isEnrolled,
                     isFulfilled: subjectFulfilled,
                     rawStatusText: rawStatus,

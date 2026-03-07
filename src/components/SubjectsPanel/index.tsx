@@ -42,9 +42,11 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
   const { t } = useTranslation();
   const plan = useStudyPlan();
   const loading = useAppStore(s => s.studyPlanLoading);
+  const studyStats = useAppStore(s => s.studyStats);
 
   useEffect(() => {
     useAppStore.getState().fetchStudyPlan();
+    useAppStore.getState().fetchStudyStats();
   }, []);
 
   if (loading && !plan) {
@@ -76,11 +78,16 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
 
   return (
     <div className="h-full overflow-y-auto">
-      <SubjectsPanelHeader creditsAcquired={plan.creditsAcquired} creditsRequired={plan.creditsRequired} />
+      <SubjectsPanelHeader creditsAcquired={plan.creditsAcquired} creditsRequired={plan.creditsRequired} studyStats={studyStats} />
 
       {hasEnrolledSubjects && (
         <div className="px-4 pt-4 pb-2">
-          <h3 className="text-sm font-semibold text-primary mb-2">{t('subjects.enrolled')}</h3>
+          <h3 className="text-sm font-semibold text-primary mb-2">
+            {t('subjects.enrolled')}
+            <span className="ml-2 font-normal text-xs text-base-content/50">
+              {enrolledCore.filter(s => s.credits <= 50).reduce((a, s) => a + s.credits, 0) + enrolledElective.filter(s => s.credits <= 50).reduce((a, s) => a + s.credits, 0)} {t('subjects.enrolledCreditsLabel')}
+            </span>
+          </h3>
           {enrolledCore.length > 0 && (
             <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-1">
               {enrolledCore.map(s => (

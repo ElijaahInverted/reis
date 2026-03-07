@@ -227,7 +227,17 @@
     "searchToOpen": "Kliknutím vyhledáte",
     "semester": "semestr",
     "wholePlan": "Celý plán",
-    "subjectCount": "předmětů"
+    "subjectCount": "předmětů",
+
+    "creditsLastTwo": "Posl. 2 semestry",
+    "creditsLastTwoNeeded": "potřeba 40",
+
+    "progressionSafe": "Postup OK",
+    "progressionWarning": "Pozor na postup!",
+    "progressionDanger": "Hrozí nesplnění!",
+    "repeatWarning": "2. zápis",
+    "gpa": "Průměr",
+    "enrolledCreditsLabel": "kr. zapsáno"
   },
   "classmates": {
     "all": "Všichni",

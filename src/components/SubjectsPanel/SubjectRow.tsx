@@ -1,4 +1,4 @@
-import { Search, CheckCircle2 } from 'lucide-react';
+import { Search, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { SubjectStatus } from '@/types/studyPlan';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -43,6 +43,12 @@ export function SubjectRow({ subject, compact, onOpenSubject, onSearchSubject }:
       <span className="badge badge-sm badge-ghost font-mono shrink-0">{subject.code}</span>
       <span className="flex-1 text-sm truncate">{subject.name}</span>
       <span className="text-xs text-base-content/50 shrink-0">{subject.credits} kr.</span>
+      {subject.enrollmentCount >= 2 && !subject.isFulfilled && (
+        <span className="badge badge-sm badge-error gap-1" title={t('subjects.repeatWarning')}>
+          <AlertTriangle className="w-3 h-3" />
+          {subject.enrollmentCount}x
+        </span>
+      )}
       {subject.isFulfilled ? (
         <span className="badge badge-sm badge-success gap-1">
           <CheckCircle2 className="w-3 h-3" />

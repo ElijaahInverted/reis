@@ -21,6 +21,7 @@ interface SyncedData {
     syllabuses?: Record<string, unknown>;
     classmates?: Record<string, unknown>;
     studyPlan?: DualLanguageStudyPlan;
+    studyStats?: unknown;
     lastSync?: string;
     isSyncing?: boolean;
     isPartial?: boolean;
@@ -87,6 +88,7 @@ export function useAppLogic() {
 
 
                 if (r.studyPlan && isDualLanguageStudyPlan(r.studyPlan)) await IndexedDBService.set('study_plan', 'current', r.studyPlan);
+                if (r.studyStats) await IndexedDBService.set('meta', 'study_stats', r.studyStats);
                 if (r.exams) await IndexedDBService.set('exams', 'current', r.exams);
                 if (r.subjects?.data) {
                     const existing = await IndexedDBService.get('subjects', 'current') as { data: Record<string, { nameCs?: string; nameEn?: string }> } | null;
