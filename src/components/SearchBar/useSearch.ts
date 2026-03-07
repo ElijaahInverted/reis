@@ -17,6 +17,8 @@ export function useSearch(query: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState<SearchResult[]>([]);
   const [studiumId, setStudiumId] = useState<string | undefined>(undefined);
+  const [userFaculty, setUserFaculty] = useState<string | undefined>(undefined);
+  const [userSemester, setUserSemester] = useState<string | undefined>(undefined);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -24,6 +26,8 @@ export function useSearch(query: string) {
       try {
         const params = await getUserParams();
         if (params?.studium) setStudiumId(String(params.studium));
+        if (params?.facultyLabel) setUserFaculty(params.facultyLabel);
+        if (params?.periodLabel) setUserSemester(params.periodLabel);
       } catch (err) { console.error("Failed to load user params", err); }
     });
 
@@ -71,7 +75,7 @@ export function useSearch(query: string) {
         const subjectResults: SearchResult[] = subjects.map(s => ({
           id: `subject-${s.id}`, title: s.name, type: 'subject',
           detail: [s.code, s.semester, s.faculty].filter(p => p && p !== 'N/A').join(' · '),
-          link: s.link, subjectCode: s.code, subjectId: s.id, faculty: s.faculty
+          link: s.link, subjectCode: s.code, subjectId: s.id, faculty: s.faculty, semester: s.semester
         }));
 
         const pageResults: SearchResult[] = [];
@@ -87,10 +91,16 @@ export function useSearch(query: string) {
         const getScore = (r: SearchResult): number => {
           const titleLower = r.title.toLowerCase();
           const codeLower = r.subjectCode?.toLowerCase() ?? '';
-          const base = r.type === 'subject' ? 1000 : r.type === 'page' ? 500 : 100;
-          if (titleLower === searchQuery) return base + 100;
-          if (titleLower.startsWith(searchQuery)) return base + 90;
-          if (codeLower === searchQuery) return base + 85;
+          let base = r.type === 'subject' ? 1000 : r.type === 'page' ? 500 : 100;
+          
+          if (r.type === 'subject') {
+            if (r.faculty && userFaculty && r.faculty === userFaculty) base += 2000;
+            if (r.semester && userSemester && r.semester.includes(userSemester)) base += 1000;
+          }
+
+          if (titleLower === searchQuery) return base + 500;
+          if (titleLower.startsWith(searchQuery)) return base + 400;
+          if (codeLower === searchQuery) return base + 300;
           return base + 10;
         };
 

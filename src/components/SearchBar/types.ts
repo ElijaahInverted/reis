@@ -4,15 +4,16 @@ export interface SearchBarProps {
   onOpenSubject?: (courseCode: string, courseName?: string, courseId?: string, facultyCode?: string) => void;
 }
 
-export interface SearchResult {
-  id: string;
-  title: string;
-  type: 'person' | 'page' | 'subject';
-  detail?: string;
-  link?: string;
-  personType?: 'student' | 'teacher' | 'staff' | 'unknown';
-  category?: string;
-  subjectCode?: string;
-  subjectId?: string;
-  faculty?: string;
-}
+  export interface SearchResult {
+    id: string;
+    title: string;
+    type: 'person' | 'page' | 'subject';
+    detail?: string;
+    link?: string;
+    personType?: 'student' | 'teacher' | 'staff' | 'unknown';
+    category?: string;
+    subjectCode?: string;
+    subjectId?: string;
+    faculty?: string;
+    semester?: string;
+  }
