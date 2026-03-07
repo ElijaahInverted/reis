@@ -11,7 +11,7 @@ export default defineConfig({
   },
   manifest: {
     name: 'reIS',
-    version: '4.3.0',
+    version: '4.4.0',
     description: 'Modernizovaný reIS rozšířený pro IS Mendelu',
     icons: {
       16: 'mendelu_logo_16.png',
