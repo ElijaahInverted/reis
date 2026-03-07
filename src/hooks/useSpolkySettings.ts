@@ -51,7 +51,6 @@ export function useSpolkySettings() {
                       setSubscribedAssociations(updated);
                       await IndexedDBService.set('meta', STORAGE_KEY, updated);
                       await IndexedDBService.set('meta', 'reis_erasmus_auto_subscribed', true);
-                      console.log('[useSpolkySettings] Auto-subscribed Erasmus/foreign student to ESN');
                   }
               }
           }

@@ -43,7 +43,6 @@ export function useSubjectNote(subjectCode: string | undefined) {
 
         StorageService.sync.set(key, data)
             .then(() => {
-                console.debug('[useSubjectNote] Note saved:', { key, length: value.length });
                 hasChangesRef.current = false;
             })
             .catch((error) => {

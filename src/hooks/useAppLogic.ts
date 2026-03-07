@@ -38,7 +38,7 @@ export function useAppLogic() {
         outlookSyncService.init();
         syncGradeHistory()
             .then(() => useAppStore.getState().loadStudyJamSuggestions())
-            .catch(e => console.warn('[useAppLogic] grade history sync failed:', e));
+            .catch(() => {});
         let unsub: (() => void) | undefined;
         initializeStore().then(unsubscribe => {
             unsub = unsubscribe;
@@ -56,10 +56,7 @@ export function useAppLogic() {
 
     useEffect(() => {
         // Skip iframe data sync when using mock data
-        if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
-            console.log('[App] Mock data enabled - skipping iframe data sync');
-            return;
-        }
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true') return;
 
         if (!isInIframe()) return;
         const handle = async (e: MessageEvent) => {
@@ -128,8 +125,8 @@ export function useAppLogic() {
                 }
 
                 if (r.lastSync) await IndexedDBService.set('meta', 'last_sync', r.lastSync);
-            } catch (idbError) {
-                console.error('[useAppLogic] IDB write failed (data may be stale):', idbError);
+            } catch {
+                // IDB write failure is non-critical — store already has fresh data
             }
 
             if (typeof r.isSyncing === 'boolean') {
@@ -139,7 +136,7 @@ export function useAppLogic() {
                     useAppStore.getState().invalidateClassmates();
                     syncGradeHistory()
                         .then(() => useAppStore.getState().loadStudyJamSuggestions())
-                        .catch(e => console.warn('[useAppLogic] grade history sync failed:', e));
+                        .catch(() => {});
                 }
             }
             syncService.triggerRefresh();

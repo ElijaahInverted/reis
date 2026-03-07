@@ -41,8 +41,8 @@ export async function migrateAndCleanup(): Promise<void> {
                 const all = await chrome.storage.local.get(null);
                 const keys = Object.keys(all).filter(k => k.startsWith('reis_'));
                 for (const key of keys) await migrateKey(key, all[key]);
-            } catch (e) {
-                console.warn('[SyncMigration] Failed to read chrome.storage.local', e);
+            } catch {
+                // Chrome storage read may fail in non-extension contexts
             }
         }
 
@@ -56,11 +56,11 @@ export async function migrateAndCleanup(): Promise<void> {
                 const all = await chrome.storage.local.get(null);
                 const keys = Object.keys(all).filter(k => lsPrefixes.some(p => k.startsWith(p)));
                 if (keys.length > 0) await chrome.storage.local.remove(keys);
-            } catch (e) {
-                console.warn('[SyncMigration] Failed to clean chrome.storage.local', e);
+            } catch {
+                // Chrome storage cleanup may fail in non-extension contexts
             }
         }
-    } catch (e) { console.error('[SyncService] Migration failed:', e); }
+    } catch { /* Migration is best-effort */ }
 }
 
 async function migrateKey(key: string, value: any): Promise<void> {
@@ -85,5 +85,5 @@ async function migrateKey(key: string, value: any): Promise<void> {
         else if (key.startsWith('bonus-points-')) await IndexedDBService.set('meta', `bonus_points_${key.replace('bonus-points-', '')}`, value);
         else if (key === 'user_id') await IndexedDBService.set('meta', 'user_id', value);
         else await IndexedDBService.set('meta', key, value);
-    } catch (err) { console.warn(`[SyncService] Failed to migrate ${key}:`, err); }
+    } catch { /* Individual key migration failure is non-critical */ }
 }

@@ -89,7 +89,6 @@ export async function findSubjectId(courseCode: string, subjectName?: string): P
             }
         }
         
-        console.warn(`[findSubjectId] No subject ID found for ${courseCode}`);
         return null;
         
     } catch (error) {

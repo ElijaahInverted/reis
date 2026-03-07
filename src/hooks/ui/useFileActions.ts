@@ -58,30 +58,13 @@ export function useFileActions(): UseFileActionsResult {
     }, []);
 
     const openPdfInline = useCallback(async (link: string): Promise<string | null> => {
-        const t0 = performance.now();
         const fullUrl = normalizeFileUrl(link);
-        console.group('[PDF-DEBUG] openPdfInline');
-        console.log('[PDF-DEBUG] link:', link);
-        console.log('[PDF-DEBUG] normalizedUrl:', fullUrl);
         try {
-            console.log('[PDF-DEBUG] fetching...');
             const response = await fetch(fullUrl, { credentials: 'include' });
-            console.log('[PDF-DEBUG] response status:', response.status, 'type:', response.headers.get('content-type'));
-            if (!response.ok) {
-                console.warn('[PDF-DEBUG] fetch failed, returning null');
-                console.groupEnd();
-                return null;
-            }
+            if (!response.ok) return null;
             const blob = await response.blob();
-            console.log('[PDF-DEBUG] blob size:', blob.size, 'type:', blob.type);
-            const blobUrl = URL.createObjectURL(blob);
-            console.log('[PDF-DEBUG] blobUrl:', blobUrl);
-            console.log('[PDF-DEBUG] total time:', (performance.now() - t0).toFixed(1), 'ms');
-            console.groupEnd();
-            return blobUrl;
+            return URL.createObjectURL(blob);
         } catch (e) {
-            console.error('[PDF-DEBUG] openPdfInline error:', e);
-            console.groupEnd();
             log.error('Failed to fetch PDF inline', e);
             return null;
         }
@@ -113,7 +96,6 @@ export function useFileActions(): UseFileActionsResult {
         setIsDownloading(true);
         setDownloadProgress({ completed: 0, total: fileLinks.length });
         log.debug(`Downloading ZIP with ${fileLinks.length} files`);
-        console.log('[useFileActions] Starting ZIP download process for:', zipFileName);
 
         const zip = new JSZip();
 
@@ -122,23 +104,19 @@ export function useFileActions(): UseFileActionsResult {
                 return requestQueue.add(async () => {
                     try {
                         const fullUrl = normalizeFileUrl(link);
-                        console.log(`[useFileActions] Fetching file: ${fullUrl}`);
-                        
+
                         // Basic retry logic (1 retry)
                         let response = await fetch(fullUrl, { credentials: 'include' });
                         if (!response.ok && response.status >= 500) {
-                            console.warn(`[useFileActions] Server error ${response.status}, retrying once: ${fullUrl}`);
                             response = await fetch(fullUrl, { credentials: 'include' });
                         }
-                        
+
                         if (!response.ok) {
-                            console.warn(`[useFileActions] Failed to fetch ${fullUrl}: ${response.status}`);
                             setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
                             return;
                         }
 
                         const blob = await response.blob();
-                        console.log(`[useFileActions] Blob received for ${link}, size: ${blob.size}`);
                         
                         const cd = response.headers.get('content-disposition');
                         let filename = 'file';
@@ -158,7 +136,6 @@ export function useFileActions(): UseFileActionsResult {
                         setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
                     } catch (e) {
                         log.error(`Failed to add file ${link} to zip`, e);
-                        console.error(`[useFileActions] Error processing file ${link}:`, e);
                         setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
                     }
                 });
@@ -167,18 +144,11 @@ export function useFileActions(): UseFileActionsResult {
             await Promise.all(downloadPromises);
 
             const entries = Object.keys(zip.files);
-            if (entries.length === 0) {
-                console.error('[useFileActions] No files were successfully added to ZIP');
-                return;
-            }
+            if (entries.length === 0) return;
 
-            console.log(`[useFileActions] Generating ZIP from ${entries.length} files...`);
             const content = await zip.generateAsync({ type: 'blob' });
-            console.log(`[useFileActions] ZIP generated, size: ${content.size}. Saving as ${zipFileName}...`);
             saveAs(content, zipFileName);
-            console.log('[useFileActions] saveAs called');
         } catch (e) {
-            console.error('[useFileActions] Error generating or saving ZIP:', e);
             log.error('Failed to generate/save ZIP', e);
         } finally {
             setIsDownloading(false);

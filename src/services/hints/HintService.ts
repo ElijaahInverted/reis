@@ -17,8 +17,7 @@ export const HintService = {
         try {
             const status = await IndexedDBService.get(HINT_STORE, HINT_PREFIX + hintId);
             return !!status;
-        } catch (err) {
-            console.error(`[HintService] Failed to get hint status for ${hintId}:`, err);
+        } catch {
             return false;
         }
     },
@@ -29,8 +28,8 @@ export const HintService = {
     async markSeen(hintId: string): Promise<void> {
         try {
             await IndexedDBService.set(HINT_STORE, HINT_PREFIX + hintId, true);
-        } catch (err) {
-            console.error(`[HintService] Failed to mark hint seen for ${hintId}:`, err);
+        } catch {
+            // Best-effort persistence
         }
     },
 
@@ -40,8 +39,8 @@ export const HintService = {
     async reset(hintId: string): Promise<void> {
         try {
             await IndexedDBService.set(HINT_STORE, HINT_PREFIX + hintId, false);
-        } catch (err) {
-            console.error(`[HintService] Failed to reset hint status for ${hintId}:`, err);
+        } catch {
+            // Best-effort persistence
         }
     }
 };

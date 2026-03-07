@@ -44,7 +44,8 @@ export async function syncFiles(): Promise<void> {
             });
             
             successCount++;
-        } catch {
+        } catch (e) {
+            console.error(`[syncFiles] Failed for ${courseCode}:`, e);
             errorCount++;
         }
     }

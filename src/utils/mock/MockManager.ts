@@ -20,8 +20,6 @@ class MockManagerImpl {
    * Validates and sets a dataset as the active mock data source.
    */
   async loadDataset(dataset: SocietyDataset): Promise<void> {
-    console.log(`[MockManager] Validating and loading dataset: ${dataset.name} (${dataset.id})`);
-
     this.validate(dataset.exams, 'exams');
     this.validate(dataset.schedule, 'schedule');
     if (dataset.syllabuses) {

@@ -19,8 +19,5 @@ export function validateHtmlStructure(doc: Document): void {
         }
     }
 
-    if (warnings.length > 0) {
-        console.warn('[parseExamData] ⚠️ HTML structure validation warnings:');
-        warnings.forEach(w => console.warn(`  - ${w}`));
-    }
+    // Warnings are silently collected — structure mismatches are handled gracefully by parsers
 }

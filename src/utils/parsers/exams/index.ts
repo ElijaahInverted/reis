@@ -60,7 +60,6 @@ export function parseExamData(html: string, lang: string = 'cz'): ExamSubject[] 
 
     return Array.from(subjectsMap.values()).map(subject => {
         const result = ExamSubjectSchema.safeParse(subject);
-        if (!result.success) console.error(`[parseExamData] ❌ Validation failed for ${subject.code}:`, result.error.issues);
         return result.success ? result.data : null;
     }).filter((s) => s !== null) as ExamSubject[];
 }
