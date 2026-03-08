@@ -43,6 +43,8 @@
         "registrationTitle": "Exam Registration",
         "loading": "Loading exams...",
         "empty": "📭 No exams",
+        "emptyTitle": "No exams in sight",
+        "emptySubtitle": "Enjoy your time off, focus on your studies, or check your study plan.",
         "autoBooking": "Auto-booking active. Do not close this page!",
         "statusLabel": "Status:",
         "subjectLabel": "Subject:",

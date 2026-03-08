@@ -12,7 +12,7 @@ describe('SyllabusSchema', () => {
         ],
         courseInfo: {
             credits: '5',
-            garant: 'Jan Novák',
+            garant: { name: 'Jan Novák' },
             teachers: [
                 { name: 'Jan Novák', roles: 'Lecturer' },
                 { name: 'Petr Svoboda', roles: 'Assistant' }

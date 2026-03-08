@@ -29,7 +29,7 @@ export function SuccessRateTab({ courseCode, facultyCode }: { courseCode: string
     const grades = aggregate
         ? (isCredit && aggregate.creditGrades
             ? { zap: aggregate.creditGrades.zap, nezap: aggregate.creditGrades.nezap + (aggregate.creditGrades.zapNedost || 0) }
-            : aggregate.grades as Record<string, number>)
+            : aggregate.grades as unknown as Record<string, number>)
         : current.terms.reduce((acc: Record<string, number>, tRes) => {
             if (isCredit && tRes.creditGrades) {
                 acc.zap = (acc.zap || 0) + (tRes.creditGrades.zap || 0);

@@ -57,7 +57,7 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
 
     tables.forEach(table => {
         const indices = getColumnIndices(table);
-        if (indices.name === undefined) return;
+        if (indices.name === undefined && !table.querySelector('tr.uis-hl-table.lbn')) return;
 
         const rows = Array.from(table.querySelectorAll('tr.uis-hl-table.lbn, tbody tr')).filter(r => r.querySelectorAll('td').length >= 2);
         
@@ -116,14 +116,14 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
 
     doc.querySelectorAll('a').forEach(a => {
         const href = a.getAttribute('href');
-        if (href?.includes('slozka.pl') && !href.includes('download') && a.textContent?.trim().match(/^\d+[\-–]\d+$/)) {
+        if (href?.includes('slozka.pl') && !href.includes('download') && a.textContent?.trim().match(/^\d+[-–]\d+$/)) {
             if (!paginationLinks.includes(href)) paginationLinks.push(href);
         }
     });
 
     // Try to find total records count (e.g. "1-10 z 24")
     const bodyText = doc.body.textContent || '';
-    const totalMatch = bodyText.match(/(\d+)\s*[\-–]\s*(\d+)\s+(?:z|of)\s+(\d+)/i);
+    const totalMatch = bodyText.match(/(\d+)\s*[-–]\s*(\d+)\s+(?:z|of)\s+(\d+)/i);
     if (totalMatch) {
         totalRecords = parseInt(totalMatch[3], 10);
     }

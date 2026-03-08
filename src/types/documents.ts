@@ -77,7 +77,7 @@ export interface CourseMetadata {
     courseNameCs?: string | null;  // Czech course name
     courseNameEn?: string | null;  // English course name
     credits: string | null;
-    garant: { name: string | null; id?: string | null } | null;
+    garant?: { name: string | null; id?: string | null } | null;
     teachers: { name: string; id?: string | null; roles: string }[];
     status: string | null;
 }

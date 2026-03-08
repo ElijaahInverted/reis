@@ -20,7 +20,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
     const [activePdfUrl, setActivePdfUrl] = useState<string | null>(null);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const { t } = useTranslation();
-    const { tests } = useOsnovy(lesson?.courseName, lesson?.courseCode);
+    const { tests } = useOsnovy(lesson?.courseName);
     const { activeAssignments } = useUkoly(lesson?.courseName, lesson?.courseCode);
 
     const tabCounts = useMemo(() => ({
@@ -40,11 +40,12 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
         }
     }, [isOpen, state.files]);
 
-    // Clean up blob URL when drawer closes or PDF changes
+    // Clean up blob URL when drawer closes
     useEffect(() => {
         if (!isOpen && activePdfUrl) {
             URL.revokeObjectURL(activePdfUrl);
-            setActivePdfUrl(null);
+            // Use queueMicrotask to avoid synchronous setState in effect
+            queueMicrotask(() => setActivePdfUrl(null));
         }
     }, [isOpen, activePdfUrl]);
 

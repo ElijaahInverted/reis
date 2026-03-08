@@ -17,10 +17,8 @@ export async function fetchSyllabus(predmetId: string, lang: string = 'cz'): Pro
         const response = await fetchWithAuth(url);
         const html = await response.text();
         
-        const parsed = parseSyllabusOffline(html, lang);
-        parsed.courseId = predmetId;
-        parsed.language = lang;        
-        
+        const parsed: SyllabusRequirements = { ...parseSyllabusOffline(html, lang), courseId: predmetId, language: lang };
+
         return parsed;
     } catch (error) {
         console.error(`[fetchSyllabus] Failed for predmetId ${predmetId}:`, error);

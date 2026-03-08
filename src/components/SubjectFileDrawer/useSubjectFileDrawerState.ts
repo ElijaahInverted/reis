@@ -14,7 +14,7 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
     const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates' | 'osnovy'>(requestedTab ?? (isExam ? 'stats' : (isEnrolled ? 'files' : 'syllabus')));
 
     useEffect(() => {
-      if (requestedTab) setActiveTab(requestedTab);
+      if (requestedTab) queueMicrotask(() => setActiveTab(requestedTab));
     }, [requestedTab, lesson?.courseCode]);
 
     const { files, isLoading: isFilesLoading, isPriorityLoading, progressStatus, totalCount } = useFiles(isOpen ? lesson?.courseCode : undefined);
@@ -23,10 +23,7 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
     // Trigger pre-fetching for classmates when drawer opens
     useClassmates(isOpen ? lesson?.courseCode : undefined);
 
-    const subjectInfo = useMemo(() => {
-        if (!isOpen || !lesson?.courseCode) return null;
-        return getSubject(lesson.courseCode);
-    }, [isOpen, lesson?.courseCode, getSubject]);
+    const subjectInfo = isOpen && lesson?.courseCode ? getSubject(lesson.courseCode) : null;
 
     const resolvedCourseId = useMemo(() => {
         if (lesson?.courseId) return lesson.courseId;
@@ -41,24 +38,20 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
 
     const drag = useDragSelection({ isOpen, containerRef, contentRef, fileRefs });
 
-    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
-
-    const [prevCourseCode, setPrevCourseCode] = useState(lesson?.courseCode);
-
-    if (isOpen !== prevIsOpen) {
-        setPrevIsOpen(isOpen);
+    // Reset tab and clear file refs when drawer opens
+    useEffect(() => {
         if (isOpen && lesson) {
             const isExamNow = 'isExam' in lesson ? lesson.isExam : false;
             const isEnrolledNow = !!(lesson.courseCode && getSubject(lesson.courseCode)?.subjectId);
-            setActiveTab(isExamNow ? 'stats' : (isEnrolledNow ? 'files' : 'syllabus'));
+            queueMicrotask(() => setActiveTab(isExamNow ? 'stats' : (isEnrolledNow ? 'files' : 'syllabus')));
             fileRefs.current.clear();
         }
-    }
+    }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (lesson?.courseCode !== prevCourseCode) {
-        setPrevCourseCode(lesson?.courseCode);
+    // Clear file refs when course changes
+    useEffect(() => {
         fileRefs.current.clear();
-    }
+    }, [lesson?.courseCode]);
 
     return { activeTab, setActiveTab, files, isFilesLoading, isSyncing, isPriorityLoading, progressStatus, totalCount, resolvedCourseId, syllabusResult, subjectInfo, containerRef, contentRef, fileRefs, ...drag };
 }

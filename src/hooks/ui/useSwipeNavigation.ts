@@ -26,7 +26,7 @@ export function useSwipeNavigation(onPrev: () => void, onNext: () => void) {
         if (Math.abs(delta) >= SWIPE_THRESHOLD) {
             // Instant switch — no delay
             setDragOffset(0);
-            delta > 0 ? onPrev() : onNext();
+            if (delta > 0) onPrev(); else onNext();
         } else {
             // Spring back
             setSnappingBack(true);

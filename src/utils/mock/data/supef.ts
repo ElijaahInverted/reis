@@ -13,7 +13,7 @@ const MIKRO_SYLLABUS: SyllabusRequirements = {
   ],
   courseInfo: {
     credits: '6',
-    garant: 'Ing. Alena Melicharová, Ph.D.',
+    garant: { name: 'Ing. Alena Melicharová, Ph.D.' },
     teachers: [{ name: 'Ing. Alena Melicharová, Ph.D.', roles: 'přednášející, garant' }],
     status: 'active',
     courseNameCs: 'Mikroekonomie 1',
@@ -32,7 +32,7 @@ const PRAVO_SYLLABUS: SyllabusRequirements = {
   ],
   courseInfo: {
     credits: '5',
-    garant: 'doc. JUDr. Martin Janků, CSc.',
+    garant: { name: 'doc. JUDr. Martin Janků, CSc.' },
     teachers: [{ name: 'doc. JUDr. Martin Janků, CSc.', roles: 'přednášející, garant' }],
     status: 'active',
     courseNameCs: 'Právo',

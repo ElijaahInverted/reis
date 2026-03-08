@@ -82,6 +82,7 @@ function createMockExams(subjectOverrides: Partial<ExamSubject> = {}, sectionOve
   
   return [
     {
+      version: 1 as const,
       id: 'subj-1',
       name: 'Základy objektového návrhu',
       code: 'EBC-ZON',

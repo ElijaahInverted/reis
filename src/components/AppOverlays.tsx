@@ -8,7 +8,6 @@ interface AppOverlaysProps {
     selectedSubject: SelectedSubject | null;
     setSelectedSubject: (subject: SelectedSubject | null) => void;
     isFeedbackOpen: boolean;
-    isFeedbackOpen: boolean;
     setIsFeedbackOpen: (open: boolean) => void;
 }
 

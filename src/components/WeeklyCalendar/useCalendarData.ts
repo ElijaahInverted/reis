@@ -96,7 +96,7 @@ export function useCalendarData(initialDate: Date) {
             const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
             if (dayIndex >= 0 && dayIndex < 5) grouped[dayIndex].push(lesson);
         });
-        return grouped;
+        return [grouped[0], grouped[1], grouped[2], grouped[3], grouped[4]];
     }, [scheduleData]);
 
     const holidaysByDay = useMemo(() => {

@@ -1,5 +1,6 @@
 import { ExternalLink } from 'lucide-react';
 import type { DrawerHeaderProps } from './types';
+import type { BlockLesson } from '../../types/calendarTypes';
 import { HeaderActions } from './Header/HeaderActions';
 import { CourseMeta } from './Header/CourseMeta';
 import { HeaderTabs } from './Header/HeaderTabs';
@@ -31,7 +32,7 @@ export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, select
                 <div className="flex items-center gap-3">
                     {!isSearch ? (<>
                         {badge && <span className={`px-2 py-0.5 rounded text-xs font-bold ${badge.cls}`}>{badge.label}</span>}
-                        {lesson?.date && <span className="px-2 py-0.5 rounded text-xs font-bold bg-base-300 text-base-content/70">{formatDate(lesson.date, t)}</span>}
+                        {'date' in (lesson ?? {}) && (lesson as BlockLesson)?.date && <span className="px-2 py-0.5 rounded text-xs font-bold bg-base-300 text-base-content/70">{formatDate((lesson as BlockLesson).date, t)}</span>}
                     </>)
                     : (<div className="flex items-center gap-2">
                         {courseInfo?.status && <span className="px-2 py-0.5 rounded text-xs font-bold bg-base-300 text-base-content/70 capitalize">
@@ -72,11 +73,11 @@ export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, select
                         : <span className="text-lg sm:text-xl font-bold text-base-content">{displayName}</span>;
                 })()}
             </div>
-            <CourseMeta lesson={lesson} courseInfo={courseInfo} isSearchContext={!!isSearch} />
+            <CourseMeta lesson={lesson && 'date' in lesson ? lesson as BlockLesson : null} courseInfo={courseInfo} isSearchContext={!!isSearch} />
             <HeaderTabs
                 activeTab={activeTab}
                 onTabChange={onTabChange}
-                disabledTabs={!subjectInfo?.subjectId ? ['files', 'classmates'] : []}
+                disabledTabs={!subjectInfo?.subjectId ? ['files', 'classmates', 'osnovy'] : []}
                 counts={tabCounts}
             />
         </div>

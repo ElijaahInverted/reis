@@ -1,6 +1,6 @@
 import React from 'react';
 import ExamTimeline from './Exams/Timeline/ExamTimeline';
-import type { ExamTerm } from '../types/exams';
+import type { TimelineExam } from './Exams/Timeline/ExamTimeline';
 
 interface TimelineDemoProps {
     onViewChange?: (view: string) => void;
@@ -16,14 +16,14 @@ export const TimelineDemo: React.FC<TimelineDemoProps> = ({ onViewChange }) => {
         return `${d}.${m}.${y}`;
     };
 
-    const demoExams = [
+    const demoExams: TimelineExam[] = [
         {
             term: {
                 id: 'past-1',
                 date: formatDate(new Date(now.getTime() - 86400000 * 2)), // 2 days ago
                 time: '09:00',
                 room: 'Q21',
-            } as ExamTerm,
+            },
             subjectName: 'Matematika I',
         },
         {
@@ -32,7 +32,7 @@ export const TimelineDemo: React.FC<TimelineDemoProps> = ({ onViewChange }) => {
                 date: formatDate(new Date(now.getTime() + 86400000 * 1)), // Tomorrow
                 time: '10:00',
                 room: 'B02',
-            } as ExamTerm,
+            },
             subjectName: 'Algoritmizace',
         },
         {
@@ -41,7 +41,7 @@ export const TimelineDemo: React.FC<TimelineDemoProps> = ({ onViewChange }) => {
                 date: formatDate(new Date(now.getTime() + 86400000 * 5)), // 5 days later
                 time: '13:00',
                 room: 'C33',
-            } as ExamTerm,
+            },
             subjectName: 'Databázové systémy',
         }
     ];

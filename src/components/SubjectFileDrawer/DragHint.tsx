@@ -5,6 +5,7 @@
  */
 
 import { MousePointer2 } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface DragHintProps {
     show: boolean;

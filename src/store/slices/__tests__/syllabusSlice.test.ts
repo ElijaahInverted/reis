@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { createSyllabusSlice } from '../createSyllabusSlice';
 import { IndexedDBService } from '../../../services/storage';
 import { fetchSyllabus, findSubjectId } from '../../../api/syllabus';
-import type { SyllabusSlice } from '../types';
+import type { SyllabusSlice } from '../../types';
 import type { SyllabusRequirements } from '../../../types/documents';
 
 vi.mock('../../../services/storage', () => ({
@@ -18,8 +19,8 @@ vi.mock('../../../api/syllabus', () => ({
 }));
 
 describe('SyllabusSlice', () => {
-  let set: vi.Mock;
-  let get: vi.Mock;
+  let set: Mock;
+  let get: Mock;
   let slice: SyllabusSlice & { language: string };
 
   beforeEach(() => {
@@ -31,24 +32,24 @@ describe('SyllabusSlice', () => {
     get = vi.fn(() => slice);
     slice = {
       language: 'cz',
-      ...createSyllabusSlice(set, get, {} as SyllabusSlice),
+      ...createSyllabusSlice(set as any, get as any, {} as any),
     } as SyllabusSlice & { language: string };
   });
 
   it('should fetch from API if not in cache or DB', async () => {
     vi.mocked(IndexedDBService.get).mockResolvedValue(null);
     vi.mocked(findSubjectId).mockResolvedValue('12345');
-    vi.mocked(fetchSyllabus).mockResolvedValue({ requirementsText: 'CZ Syllabus', language: 'cz' } as SyllabusRequirements);
+    vi.mocked(fetchSyllabus).mockResolvedValue({ requirementsText: 'CZ Syllabus', requirementsTable: [], language: 'cz' } as SyllabusRequirements);
 
     await slice.fetchSyllabus('EBC-ALG');
 
     expect(fetchSyllabus).toHaveBeenCalledWith('12345', 'cz');
-    expect(slice.syllabuses.cache['EBC-ALG']).toEqual({ requirementsText: 'CZ Syllabus', language: 'cz' });
+    expect(slice.syllabuses.cache['EBC-ALG']).toEqual({ requirementsText: 'CZ Syllabus', requirementsTable: [], language: 'cz' });
     expect(IndexedDBService.set).toHaveBeenCalled();
   });
 
   it('should use cache if language matches', async () => {
-    slice.syllabuses.cache['EBC-ALG'] = { requirementsText: 'CZ Syllabus', language: 'cz' };
+    slice.syllabuses.cache['EBC-ALG'] = { requirementsText: 'CZ Syllabus', requirementsTable: [], language: 'cz' };
     
     await slice.fetchSyllabus('EBC-ALG');
 
@@ -57,29 +58,29 @@ describe('SyllabusSlice', () => {
   });
 
   it('should re-fetch if cache language mismatches', async () => {
-    slice.syllabuses.cache['EBC-ALG'] = { requirementsText: 'CZ Syllabus', language: 'cz' };
+    slice.syllabuses.cache['EBC-ALG'] = { requirementsText: 'CZ Syllabus', requirementsTable: [], language: 'cz' };
     slice.language = 'en'; // Switch language
     
-    vi.mocked(IndexedDBService.get).mockResolvedValue({ requirementsText: 'CZ Syllabus', language: 'cz' });
+    vi.mocked(IndexedDBService.get).mockResolvedValue({ requirementsText: 'CZ Syllabus', requirementsTable: [], language: 'cz' });
     vi.mocked(findSubjectId).mockResolvedValue('12345');
-    vi.mocked(fetchSyllabus).mockResolvedValue({ requirementsText: 'EN Syllabus', language: 'en' } as SyllabusRequirements);
+    vi.mocked(fetchSyllabus).mockResolvedValue({ requirementsText: 'EN Syllabus', requirementsTable: [], language: 'en' } as SyllabusRequirements);
 
     await slice.fetchSyllabus('EBC-ALG');
 
     expect(fetchSyllabus).toHaveBeenCalledWith('12345', 'en');
-    expect(slice.syllabuses.cache['EBC-ALG']).toEqual({ requirementsText: 'EN Syllabus', language: 'en' });
+    expect(slice.syllabuses.cache['EBC-ALG']).toEqual({ requirementsText: 'EN Syllabus', requirementsTable: [], language: 'en' });
   });
 
   it('should re-fetch if DB language mismatches', async () => {
-    vi.mocked(IndexedDBService.get).mockResolvedValue({ requirementsText: 'CZ Syllabus', language: 'cz' });
+    vi.mocked(IndexedDBService.get).mockResolvedValue({ requirementsText: 'CZ Syllabus', requirementsTable: [], language: 'cz' });
     slice.language = 'en';
     
     vi.mocked(findSubjectId).mockResolvedValue('12345');
-    vi.mocked(fetchSyllabus).mockResolvedValue({ requirementsText: 'EN Syllabus', language: 'en' } as SyllabusRequirements);
+    vi.mocked(fetchSyllabus).mockResolvedValue({ requirementsText: 'EN Syllabus', requirementsTable: [], language: 'en' } as SyllabusRequirements);
 
     await slice.fetchSyllabus('EBC-ALG');
 
     expect(fetchSyllabus).toHaveBeenCalledWith('12345', 'en');
-    expect(slice.syllabuses.cache['EBC-ALG']).toEqual({ requirementsText: 'EN Syllabus', language: 'en' });
+    expect(slice.syllabuses.cache['EBC-ALG']).toEqual({ requirementsText: 'EN Syllabus', requirementsTable: [], language: 'en' });
   });
 });

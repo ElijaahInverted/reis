@@ -11,7 +11,7 @@ interface DatePickerPopupProps {
     onClose: () => void;
     onConfirm: (id: string) => void;
     terms: ExamTerm[];
-    anchorRef: React.RefObject<HTMLElement>;
+    anchorRef: React.RefObject<HTMLElement | null>;
     allExams?: ExamSubject[];
 }
 

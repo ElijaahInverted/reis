@@ -6,10 +6,10 @@ import { parseCourseMetadata } from './syllabus/metadataParser';
 import type { SyllabusRequirements } from '../../schemas/syllabusSchema';
 
 export function parseSyllabusOffline(html: string, lang: string = 'cz'): SyllabusRequirements {
-    if (!html || typeof html !== 'string') return { requirementsText: 'Error: Section not found', requirementsTable: [] };
+    if (!html || typeof html !== 'string') return { version: 1 as const, requirementsText: 'Error: Section not found', requirementsTable: [] };
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const res = {
-        version: 2,
+        version: 2 as const,
         requirementsText: parseRequirementsText(doc),
         requirementsTable: parseRequirementsTable(doc),
         courseInfo: parseCourseMetadata(doc, lang),

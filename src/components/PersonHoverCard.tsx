@@ -21,7 +21,7 @@ interface CardPosition {
 
 const PHOTO_BASE = 'https://is.mendelu.cz/auth/lide/foto.pl';
 const PROFILE_BASE = 'https://is.mendelu.cz/auth/lide/clovek.pl';
-const HOVER_DELAY_MS = 200;
+const HOVER_DELAY_MS = 450;
 const CARD_WIDTH = 360;
 
 /** Returns the photo URL for any IS person by their numeric ID */
@@ -146,6 +146,7 @@ export function PersonHoverCard({ personId, children, className }: PersonHoverCa
                                     <img
                                         src={photoUrl(photoId)}
                                         alt=""
+                                        className="w-full h-full object-cover scale-[1.05]"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
                                             (e.target as HTMLImageElement).parentElement!.innerHTML =

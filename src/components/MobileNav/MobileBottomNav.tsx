@@ -27,29 +27,7 @@ export function MobileBottomNav({ currentView, onViewChange, onOpenFeedback, onO
   const menuItems = useMenuItems();
   const { t } = useTranslation();
 
-  const viceItem: MenuItem = {
-    id: 'vice',
-    label: 'Více',
-    icon: <Settings className="w-5 h-5" />, // placeholder, will use MoreHorizontal if imported, but Settings is fine for now if no MoreHorizontal
-    children: [
-      {
-        id: 'portal-studenta',
-        label: t('sidebar.portal'),
-        href: 'https://is.mendelu.cz/auth/student/moje_studium.pl?lang=cz', // Should idealy use the one from menuItems, but we can hardcode for now or fetch from menuItems
-      },
-      {
-        id: 'testy',
-        label: t('sidebar.tests'),
-        href: 'https://is.mendelu.cz/auth/elis/ot/psani_testu.pl?_m=205;lang=cz',
-      },
-      {
-        id: 'profile-action',
-        label: t('sidebar.profile'),
-        isFeature: true, // to avoid external link icon
-        // onClick is custom, we'll handle it in MobileNavSheet by passing profileOpen or handling it here
-      }
-    ]
-  }
+  // "More" menu item — reserved for future mobile nav expansion
 
   // Find the exact menu items so we have correct links
   const portalItem = menuItems.find(m => m.id === 'portal-studenta');
@@ -113,6 +91,10 @@ export function MobileBottomNav({ currentView, onViewChange, onOpenFeedback, onO
     return false;
   };
 
+  const getBadge = (tabId: string) => {
+    return menuItems.find(m => m.id === tabId)?.badge;
+  };
+
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-base-200 border-t border-base-300">
@@ -127,7 +109,14 @@ export function MobileBottomNav({ currentView, onViewChange, onOpenFeedback, onO
                   : 'text-base-content/50 active:text-base-content'
               }`}
             >
-              {tab.icon}
+              <div className="relative flex items-center justify-center z-10">
+                {tab.icon}
+                {getBadge(tab.id) !== undefined && (
+                  <span className="absolute -top-2 -right-3 bg-base-content/10 text-base-content/50 font-medium px-1 rounded text-[9px] leading-[14px]">
+                    {getBadge(tab.id)}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
             </button>
           ))}

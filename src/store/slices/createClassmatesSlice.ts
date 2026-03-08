@@ -1,7 +1,6 @@
 import type { ClassmatesSlice, AppSlice } from '../types';
-import { IndexedDBService } from '../../services/storage';
 
-export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
+export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set) => ({
     classmates: {},
     classmatesAllLoading: {},
     classmatesAllProgress: {},

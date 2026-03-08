@@ -17,26 +17,12 @@ interface CalendarEventCardProps {
 }
 
 // Helper function to get localized course name
-function getLocalizedCourseName(lesson: BlockLesson, lang: string): string {
-    if (lang === 'en' && lesson.courseNameEn) {
-        return lesson.courseNameEn;
-    }
-    if (lang === 'cz' && lesson.courseNameCs) {
-        return lesson.courseNameCs;
-    }
-    // Fallback to original courseName
+function getLocalizedCourseName(lesson: BlockLesson): string {
     return lesson.courseName;
 }
 
 // Helper function to get localized room name
-function getLocalizedRoom(lesson: BlockLesson, lang: string): string {
-    if (lang === 'en' && lesson.roomEn) {
-        return lesson.roomEn;
-    }
-    if (lang === 'cz' && lesson.roomCs) {
-        return lesson.roomCs;
-    }
-    // Fallback to original room
+function getLocalizedRoom(lesson: BlockLesson): string {
     return lesson.room;
 }
 
@@ -58,13 +44,13 @@ function getExamSectionName(courseName: string): string {
     return courseName;
 }
 
-export function CalendarEventCard({ lesson, onClick, language = 'cz' }: CalendarEventCardProps) {
+export function CalendarEventCard({ lesson, onClick }: CalendarEventCardProps) {
     const duration = calculateDuration(lesson.startTime, lesson.endTime);
     const isLongEnough = duration >= 60; // Only show location if event is 1 hour+
 
     // Get localized names
-    const courseName = getLocalizedCourseName(lesson, language);
-    const room = getLocalizedRoom(lesson, language);
+    const courseName = getLocalizedCourseName(lesson);
+    const room = getLocalizedRoom(lesson);
 
     // Determine event type and colors using workspace tokens
     const getEventStyles = () => {

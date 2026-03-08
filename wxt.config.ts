@@ -11,7 +11,7 @@ export default defineConfig({
   },
   manifest: {
     name: 'reIS',
-    version: '4.4.0',
+    version: '4.5.0',
     description: 'Modernizovaný reIS rozšířený pro IS Mendelu',
     icons: {
       16: 'mendelu_logo_16.png',
@@ -31,6 +31,7 @@ export default defineConfig({
       gecko: {
         id: 'reis@mendelu.cz',
         strict_min_version: '140.0',
+        // @ts-expect-error Firefox AMO requires data_collection_permissions
         data_collection_permissions: {
           required: ['none'],
           optional: [],

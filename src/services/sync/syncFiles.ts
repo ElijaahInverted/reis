@@ -19,9 +19,6 @@ export async function syncFiles(): Promise<void> {
 
     const subjects = Object.entries(subjectsData.data);
 
-    let successCount = 0;
-    let errorCount = 0;
-
     for (const [courseCode, subject] of subjects) {
         try {
             const folderId = getIdFromUrl(subject.folderUrl);
@@ -30,7 +27,7 @@ export async function syncFiles(): Promise<void> {
             }
 
             const folderUrl = `https://is.mendelu.cz/auth/dok_server/slozka.pl?id=${folderId}`;
-            
+
             // Fetch both languages in parallel
             const [czFiles, enFiles] = await Promise.all([
                 fetchFilesFromFolder(folderUrl, 'cz'),
@@ -38,15 +35,12 @@ export async function syncFiles(): Promise<void> {
             ]);
 
             // Store in a dual-language structure
-            await IndexedDBService.set('files', courseCode, { 
-                cz: Array.isArray(czFiles) ? czFiles : [], 
-                en: Array.isArray(enFiles) ? enFiles : [] 
+            await IndexedDBService.set('files', courseCode, {
+                cz: Array.isArray(czFiles) ? czFiles : [],
+                en: Array.isArray(enFiles) ? enFiles : []
             });
-            
-            successCount++;
         } catch (e) {
             console.error(`[syncFiles] Failed for ${courseCode}:`, e);
-            errorCount++;
         }
     }
 

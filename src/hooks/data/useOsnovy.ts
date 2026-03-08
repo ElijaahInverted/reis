@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import type { AppState } from '../../store/types';
 
-export function useOsnovy(courseName?: string, courseCode?: string) {
+export function useOsnovy(courseName?: string) {
     const globalTests = useAppStore((state: AppState) => state.osnovy);
     const status = useAppStore((state: AppState) => state.osnovyStatus);
 

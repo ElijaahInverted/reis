@@ -15,7 +15,7 @@ interface ReisDB extends DBSchema {
     };
     assessments: {
         key: string;
-        value: Assessment[]; // Key is courseCode
+        value: Assessment[] | { cz: Assessment[]; en: Assessment[] }; // Key is courseCode
     };
     syllabuses: {
         key: string;

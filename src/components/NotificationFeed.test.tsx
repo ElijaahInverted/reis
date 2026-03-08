@@ -81,6 +81,7 @@ describe('NotificationFeed', () => {
       expiresAt: new Date(Date.now() + 86400000).toISOString(),
       priority: 'normal',
       associationId: 'test-assoc',
+      link: 'https://example.com'
     },
     {
       id: '2',

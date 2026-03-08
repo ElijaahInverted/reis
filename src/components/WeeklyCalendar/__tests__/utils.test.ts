@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { organizeLessons } from '../utils';
-import { BlockLesson } from '../../../types/calendarTypes';
+import type { BlockLesson } from '../../../types/calendarTypes';
 
 describe('organizeLessons', () => {
     const createLesson = (id: string, startTime: string, endTime: string): BlockLesson => ({

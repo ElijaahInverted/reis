@@ -17,7 +17,7 @@ export function useAutoScroll(
         if (delay.current) { clearTimeout(delay.current); delay.current = null; }
     }, []);
 
-    const handle = useCallback((clientX: number, clientY: number, isDragging: boolean) => {
+    const handle = useCallback((_clientX: number, clientY: number, isDragging: boolean) => {
         if (!containerRef.current || !isDragging) return;
         const { top, bottom } = containerRef.current.getBoundingClientRect();
         const startScroll = (dir: number) => {

@@ -465,11 +465,11 @@ describe('syllabusParser', () => {
         const result = parseSyllabusOffline(ENGLISH_SYLLABUS_HTML);
 
         // Verify metadata
-        expect(result.courseInfo.credits).toBe('Exam');
-        expect(result.courseInfo.garant).toEqual({ name: 'John Doe', id: '12345' });
-        
-        expect(result.courseInfo.teachers).toHaveLength(2);
-        expect(result.courseInfo.teachers[0]).toEqual({ name: 'Jane Doe', id: '22222', roles: 'lecturer' });
-        expect(result.courseInfo.teachers[1]).toEqual({ name: 'Bob Smith', id: '33333', roles: 'tutor' });
+        expect(result.courseInfo!.credits).toBe('Exam');
+        expect(result.courseInfo!.garant).toEqual({ name: 'John Doe', id: '12345' });
+
+        expect(result.courseInfo!.teachers).toHaveLength(2);
+        expect(result.courseInfo!.teachers[0]).toEqual({ name: 'Jane Doe', id: '22222', roles: 'lecturer' });
+        expect(result.courseInfo!.teachers[1]).toEqual({ name: 'Bob Smith', id: '33333', roles: 'tutor' });
     });
 });

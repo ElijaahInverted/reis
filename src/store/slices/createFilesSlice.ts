@@ -207,7 +207,6 @@ export const createFilesSlice: AppSlice<FilesSlice> = (set, get) => ({
                 }
             });
             set({ files: filesMap });
-        } catch {
-        }
+        } catch { /* no-op */ }
     },
 });

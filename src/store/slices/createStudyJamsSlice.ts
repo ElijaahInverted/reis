@@ -152,8 +152,7 @@ export const createStudyJamsSlice: AppSlice<StudyJamsSlice> = (set, get) => ({
                 });
                 
                 set({ studyJamSuggestions: filtered, studyJamOptIns: optIns, studyJamDismissals: dismissals });
-            } catch {
-            } finally {
+            } catch { /* no-op */ } finally {
                 _loadInFlight = null;
             }
         })();

@@ -24,7 +24,10 @@ export async function getStoredSubject(courseCode: string): Promise<StoredSubjec
 
 export async function getFilesForSubject(courseCode: string): Promise<FileObject[] | null> {
     const files = await IndexedDBService.get('files', courseCode);
-    return files || null;
+    if (!files) return null;
+    // If dual-language, return cz by default; if array, return as-is
+    if (Array.isArray(files)) return files as unknown as FileObject[];
+    return (files.cz || []) as unknown as FileObject[];
 }
 
 /**
@@ -46,6 +49,7 @@ export async function getFilesFromId(folderId: string | null): Promise<FileObjec
 }
 
 export async function getAssessmentsForSubject(courseCode: string): Promise<Assessment[] | null> {
-    const assessments = await IndexedDBService.get('assessments', courseCode);
-    return assessments || null;
+    const raw = await IndexedDBService.get('assessments', courseCode);
+    if (!raw) return null;
+    return Array.isArray(raw) ? raw : raw.cz || [];
 }

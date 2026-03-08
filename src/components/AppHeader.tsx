@@ -6,6 +6,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { NotificationFeed } from './NotificationFeed';
 import { useAppStore } from '../store/useAppStore';
 import { getCommandActions } from './SearchBar/actions';
+import type { AppView } from '../types/app';
 
 interface AppHeaderProps {
   currentView: string;
@@ -15,7 +16,7 @@ interface AppHeaderProps {
   onToday: () => void;
   onOpenSubject?: (courseCode: string, courseName?: string, courseId?: string) => void;
   searchPrefillRef?: React.MutableRefObject<((query: string) => void) | null>;
-  setCurrentView?: (view: 'calendar' | 'exams' | 'subjects') => void;
+  setCurrentView?: (view: AppView) => void;
   openFeedback?: () => void;
 }
 

@@ -7,7 +7,7 @@ import type { ExamSubject, ExamSection } from '../../types/exams';
 interface ExamSubjectItemProps {
     subject: ExamSubject;
     processingId: string | null;
-    onOpenPicker: (sec: ExamSection, b: HTMLButtonElement) => void;
+    onOpenPicker: (sec: ExamSection, b: HTMLElement) => void;
 }
 
 export function ExamSubjectItem({ subject, processingId, onOpenPicker }: ExamSubjectItemProps) {

@@ -59,7 +59,7 @@ export async function checkOutlookSyncStatus(): Promise<boolean> {
  * @returns true if successful, false otherwise
  */
 export async function setOutlookSyncStatus(enabled: boolean): Promise<boolean> {
-    const action = enabled ? 'ENABLING' : 'DISABLING';
+    void (enabled ? 'ENABLING' : 'DISABLING');
 
     try {
         const results = await Promise.all(

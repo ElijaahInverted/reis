@@ -43,7 +43,7 @@ export function SubjectFileDrawerContent({
     groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, onViewPdf, resolvedCourseId, syllabusResult, folderUrl
 }: SubjectFileDrawerContentProps) {
     const { t, language } = useTranslation();
-    const { tests, status: osnovyStatus } = useOsnovy(lesson?.courseName, lesson?.courseCode);
+    const { tests, status: osnovyStatus } = useOsnovy(lesson?.courseName);
     const { activeAssignments, closedAssignments, status: ukolyStatus } = useUkoly(lesson?.courseName, lesson?.courseCode);
 
     if (activeTab === 'files') {
@@ -101,6 +101,7 @@ export function SubjectFileDrawerContent({
 
     if (activeTab === 'assessments') return <AssessmentTab courseCode={lesson?.courseCode || ''} />;
     if (activeTab === 'syllabus') return <SyllabusTab courseCode={lesson?.courseCode || ''} courseId={resolvedCourseId} courseName={lesson?.courseName ?? ''} prefetchedResult={syllabusResult} />;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (activeTab === 'classmates') return <ClassmatesTab courseCode={lesson?.courseCode || ''} skupinaId={lesson && 'skupinaId' in lesson ? (lesson as any).skupinaId : undefined} />;
     
     if (activeTab === 'osnovy') {
@@ -193,7 +194,8 @@ export function SubjectFileDrawerContent({
                                     const Row = assignment.actionUrl ? 'a' : 'div';
                                     const linkProps = assignment.actionUrl ? { href: assignment.actionUrl, target: '_blank', rel: 'noopener noreferrer' } : {};
                                     return (
-                                        <Row key={assignment.name + assignment.deadline} {...linkProps as any}
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic element props
+                                        <Row key={assignment.name + assignment.deadline} {...(linkProps as any)}
                                             className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 transition-colors cursor-pointer">
                                             <div className="flex flex-col min-w-0">
                                                 <span className="font-medium text-base-content/80 text-sm truncate">

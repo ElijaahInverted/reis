@@ -70,6 +70,8 @@
     "registrationTitle": "Zápisy na zkoušky",
     "loading": "Načítání zkoušek...",
     "empty": "📭 Žádné zkoušky",
+    "emptyTitle": "Žádné zkoušky v dohledu",
+    "emptySubtitle": "Užij si volno!",
     "autoBooking": "Auto-rezervace aktivní. Nezavírejte tuto stránku!",
     "statusLabel": "Status:",
     "subjectLabel": "Předmět:",

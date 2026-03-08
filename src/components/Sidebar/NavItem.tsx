@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import type { MenuItem } from '../menuConfig';
-import type { AppView } from '../Sidebar';
+import type { AppView } from '../../types/app';
 
 
 interface NavItemProps {
@@ -33,7 +33,14 @@ export function NavItem({ item, isActive, isHovered, onMouseEnter, onMouseLeave,
         {item.href && !item.expandable && item.id !== 'dashboard' && (
           <ExternalLink className="absolute top-1 right-1 w-2.5 h-2.5 text-base-content/30" />
         )}
-        {item.icon}
+        <div className="relative flex items-center justify-center">
+          {item.icon}
+          {item.badge !== undefined && (
+            <span className="absolute -top-2 -right-3 bg-base-content/10 text-base-content/50 font-medium px-1 rounded text-[9px] leading-[14px]">
+              {item.badge}
+            </span>
+          )}
+        </div>
         <span className="text-[10px] mt-1 font-medium w-full text-center px-1 leading-tight">
           {item.label}
         </span>

@@ -1,22 +1,6 @@
 import { Search, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { SubjectStatus } from '@/types/studyPlan';
-import type { SubjectSuccessRate } from '@/types/documents';
 import { useTranslation } from '@/hooks/useTranslation';
-
-/** Avg fail rate over last 3 semesters using "Všechny termíny" aggregate. Returns 0-100 or null. */
-export function computeFailRate(sr: SubjectSuccessRate | undefined): number | null {
-  if (!sr?.stats?.length) return null;
-  const recent = sr.stats.slice(0, 3);
-  let totalPass = 0, totalFail = 0;
-  for (const sem of recent) {
-    const allTerms = sem.terms.find(t => t.term === 'Všechny termíny');
-    if (allTerms) { totalPass += allTerms.pass; totalFail += allTerms.fail; }
-    else { totalPass += sem.totalPass; totalFail += sem.totalFail; }
-  }
-  const total = totalPass + totalFail;
-  if (total < 10) return null; // Too few students for meaningful data
-  return Math.round((totalFail / total) * 100);
-}
 
 interface SubjectRowProps {
   subject: SubjectStatus;
@@ -65,7 +49,7 @@ export function SubjectRow({ subject, compact, failRate, hideStatus, onOpenSubje
               ? 'bg-error/10 text-error hover:bg-error/15' 
               : 'bg-warning/15 text-warning-content hover:bg-warning/20'
           }`}
-          onClick={(e) => { e.stopPropagation(); hasId ? onOpenSubject(subject.code, subject.name, subject.id, undefined, 'stats') : onSearchSubject(subject.name); }}
+          onClick={(e) => { e.stopPropagation(); if (hasId) onOpenSubject(subject.code, subject.name, subject.id, undefined, 'stats'); else onSearchSubject(subject.name); }}
         >
           <span className="group-hover/fail:hidden">{failRate}%</span>
           <span className="hidden group-hover/fail:inline">{failRate}% {t('subjects.failRateLabel')}</span>

@@ -12,7 +12,7 @@ export function parseAvailableTerms(doc: Document, getOrCreateSubject: (c: strin
 
         let dateIndex = -1;
         for (let i = 0; i < cols.length; i++) {
-            if (cols[i].textContent?.match(/\d{2}[\./]\d{2}[\./]\d{4}/)) {
+            if (cols[i].textContent?.match(/\d{2}[./]\d{2}[./]\d{4}/)) {
                 dateIndex = i;
                 break;
             }
@@ -42,8 +42,8 @@ export function parseAvailableTerms(doc: Document, getOrCreateSubject: (c: strin
         for (let i = 0; i < cols.length; i++) {
             if (cols[i].innerHTML.includes('<br>')) {
                 const parts = cols[i].innerHTML.split(/<br\s*\/?>/i).map(p => p.replace(/<[^>]*>/g, '').trim());
-                if (parts[0] !== '--' && parts[0].match(/\d{2}[\./]\d{2}[\./]\d{4}/)) registrationStart = normalizeDateString(parts[0], isEn);
-                if (parts[1] !== '--' && parts[1].match(/\d{2}[\./]\d{2}[\./]\d{4}/)) registrationEnd = normalizeDateString(parts[1], isEn);
+                if (parts[0] !== '--' && parts[0].match(/\d{2}[./]\d{2}[./]\d{4}/)) registrationStart = normalizeDateString(parts[0], isEn);
+                if (parts[1] !== '--' && parts[1].match(/\d{2}[./]\d{2}[./]\d{4}/)) registrationEnd = normalizeDateString(parts[1], isEn);
                 break;
             }
         }

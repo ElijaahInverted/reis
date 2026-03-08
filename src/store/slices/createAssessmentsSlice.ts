@@ -10,9 +10,10 @@ export const createAssessmentsSlice: AppSlice<AssessmentsSlice> = (set) => ({
         }));
 
         try {
-            const data = await IndexedDBService.get('assessments', courseCode);
+            const raw = await IndexedDBService.get('assessments', courseCode);
+            const data = raw ? (Array.isArray(raw) ? raw : raw.cz || []) : [];
             set((state) => ({
-                assessments: { ...state.assessments, [courseCode]: data || [] },
+                assessments: { ...state.assessments, [courseCode]: data },
                 assessmentsLoading: { ...state.assessmentsLoading, [courseCode]: false }
             }));
         } catch {

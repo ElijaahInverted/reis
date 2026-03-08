@@ -136,7 +136,7 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject, prefillRef, ac
     let globalIdx = 0;
     return sections.map(section => {
       const sectionStartIdx = globalIdx;
-      const items = section.results.map((result, _i) => {
+      const items = section.results.map((result) => {
         const idx = globalIdx++;
         return (
           <SearchResultItem key={result.id} result={result} isRecent={false} isSelected={selectedIndex === idx}

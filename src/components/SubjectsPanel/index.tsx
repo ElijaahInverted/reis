@@ -3,26 +3,14 @@ import { useStudyPlan } from '@/hooks/useStudyPlan';
 import { useAppStore } from '@/store/useAppStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { SubjectsPanelHeader } from './SubjectsPanelHeader';
-import { SubjectRow, computeFailRate } from './SubjectRow';
+import { SubjectRow } from './SubjectRow';
+import { computeFailRate } from './computeFailRate';
 import { SemesterSection } from './SemesterSection';
 import type { SubjectStatus } from '@/types/studyPlan';
 
 interface SubjectsPanelProps {
   onOpenSubject: (courseCode: string, courseName: string, courseId: string, facultyCode?: string, initialTab?: string) => void;
   onSearchSubject: (name: string) => void;
-}
-
-function hasEnrolled(block: { groups: { subjects: { isEnrolled: boolean }[] }[] }) {
-  return block.groups.some(g => g.subjects.some(s => s.isEnrolled));
-}
-
-function allFulfilled(block: { groups: { subjects: { isFulfilled: boolean }[] }[] }) {
-  const all = block.groups.flatMap(g => g.subjects);
-  return all.length > 0 && all.every(s => s.isFulfilled);
-}
-
-function isElectiveBlock(block: { title: string; groups: { name: string }[] }): boolean {
-  return block.groups.every(g => isElectiveGroup(g.name, block.title));
 }
 
 /** Pure elective = group says "volitelných" but NOT "povinně volitelných" */
@@ -56,6 +44,8 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
     const codes = plan.blocks.flatMap(b => b.groups.flatMap(g => g.subjects.map(s => s.code)));
     if (codes.length > 0) useAppStore.getState().fetchSuccessRateBatch(codes);
   }, [plan]);
+
+  const [openSemester, setOpenSemester] = useState<number | null>(null);
 
   const failRates = useMemo(() => {
     const map: Record<string, number | null> = {};
@@ -99,7 +89,6 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
   enrolledCore.sort(sortByFailRate);
   enrolledElective.sort(sortByFailRate);
   const hasEnrolledSubjects = enrolledCore.length > 0 || enrolledElective.length > 0;
-  const [openSemester, setOpenSemester] = useState<number | null>(null);
 
   return (
     <div className="h-full overflow-y-auto">

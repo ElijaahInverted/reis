@@ -5,7 +5,7 @@ export const createOsnovySlice: AppSlice<OsnovySlice> = (set) => ({
   osnovy: [],
   osnovyStatus: 'idle',
   fetchOsnovy: async () => {
-    set((state) => ({ osnovyStatus: 'loading' }));
+    set(() => ({ osnovyStatus: 'loading' }));
     try {
       // Get studium from user params in meta
       const userParams = await IndexedDBService.get('meta', 'reis_user_params');

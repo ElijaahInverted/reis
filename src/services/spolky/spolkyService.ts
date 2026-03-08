@@ -19,8 +19,9 @@ export async function trackNotificationsViewed(notificationIds: string[]): Promi
         supabase.rpc('increment_notification_view', { row_id: id })
       )
     );
-  } catch {
-    // Fail silently if analytics fail (privacy-first, loose coupling)
+  } catch (error) {
+    // Fail silently but log error
+    console.error(error);
   }
 }
 
@@ -34,8 +35,9 @@ export async function trackNotificationClick(notificationId: string): Promise<vo
   try {
     // Call Supabase RPC to increment click count
     await supabase.rpc('increment_notification_click', { row_id: notificationId });
-  } catch {
+  } catch (error) {
     // Fail silently
+    console.error(error);
   }
 }
 

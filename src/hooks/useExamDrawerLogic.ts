@@ -9,8 +9,8 @@ export function useExamDrawerLogic(isOpen: boolean) {
     const fetchExams = useAppStore(state => state.fetchExams);
     const [expandedSubjectId, setExpandedSubjectId] = useState("");
     const [popupSection, setPopupSection] = useState<ExamSection | null>(null);
-    const [popupAnchor, setPopupAnchor] = useState<HTMLButtonElement | null>(null);
-    const popupAnchorRef = useRef<HTMLButtonElement | null>(null);
+    const [popupAnchor, setPopupAnchor] = useState<HTMLElement | null>(null);
+    const popupAnchorRef = useRef<HTMLElement | null>(null);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [autoBookingId, setAutoBookingId] = useState<string | null>(null);
 

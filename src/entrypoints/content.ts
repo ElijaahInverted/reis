@@ -1,3 +1,4 @@
+import { defineContentScript } from 'wxt/utils/define-content-script';
 import { startInjection } from "@/injector/sniper";
 import { handleMessage } from "@/injector/messageHandler";
 import { stopSyncService } from "@/injector/syncService";

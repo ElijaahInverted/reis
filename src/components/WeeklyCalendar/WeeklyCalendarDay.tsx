@@ -28,7 +28,7 @@ export function WeeklyCalendarDay({
 
     useEffect(() => {
         if (!isSelectingTime) {
-            setIsResizing(false);
+            queueMicrotask(() => setIsResizing(false));
         }
     }, [isSelectingTime]);
 

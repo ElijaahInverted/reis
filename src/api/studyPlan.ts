@@ -1,5 +1,5 @@
 import { fetchWithAuth, BASE_URL } from "./client";
-import type { StudyPlan, DualLanguageStudyPlan, SemesterBlock, SubjectGroup, SubjectStatus, StudyStats, SemesterStats } from "../types/studyPlan";
+import type { StudyPlan, DualLanguageStudyPlan, SemesterBlock, SubjectGroup, SubjectStatus } from "../types/studyPlan";
 
 const STUDY_PLAN_URL = `${BASE_URL}/auth/studijni/studijni_povinnosti.pl`;
 

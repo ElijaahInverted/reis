@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from 'react';
 import { getSmartWeekRange } from '../utils/calendar';
 import { IndexedDBService } from '../services/storage';
@@ -12,13 +13,16 @@ import { isContentMessage } from '../types/messages';
 import type { ClassmatesData } from '../types/classmates';
 import { isDualLanguageStudyPlan } from '../types/studyPlan';
 import type { DualLanguageStudyPlan } from '../types/studyPlan';
+import type { BlockLesson } from '../types/calendarTypes';
+import type { ExamSubject } from '../types/exams';
+import type { SubjectsData, ParsedFile, SyllabusRequirements } from '../types/documents';
 
 interface SyncedData {
-    schedule?: unknown;
-    exams?: unknown;
-    subjects?: { data: Record<string, { nameCs?: string; nameEn?: string }> };
-    files?: Record<string, unknown>;
-    syllabuses?: Record<string, unknown>;
+    schedule?: BlockLesson[];
+    exams?: ExamSubject[];
+    subjects?: SubjectsData;
+    files?: Record<string, ParsedFile[] | { cz: ParsedFile[]; en: ParsedFile[] }>;
+    syllabuses?: Record<string, SyllabusRequirements | { cz: SyllabusRequirements; en: SyllabusRequirements }>;
     classmates?: Record<string, unknown>;
     studyPlan?: DualLanguageStudyPlan;
     studyStats?: unknown;
@@ -40,7 +44,7 @@ export function useAppLogic() {
     const openSettingsRef = useRef<(() => void) | null>(null);
     const searchPrefillRef = useRef<((query: string) => void) | null>(null);
     const { isEnabled: outlookSyncEnabled } = useOutlookSync();
-    const { subscribedAssociations } = useSpolkySettings();
+    useSpolkySettings();
 
     useEffect(() => {
         outlookSyncService.init();
@@ -73,7 +77,7 @@ export function useAppLogic() {
             if (!isContentMessage(d)) return;
             if (d.type === 'REIS_POPUP_STATE') return;
 
-            const r = d.type === 'REIS_SYNC_UPDATE' ? (d.data as SyncedData) : d.dataType === 'all' ? (d.data as SyncedData) : null;
+            const r = d.type === 'REIS_SYNC_UPDATE' ? (d.data as unknown as SyncedData) : (d.type === 'REIS_DATA' && d.dataType === 'all') ? (d.data as unknown as SyncedData) : null;
             if (!r) return;
 
             // Instantly update store for reactivity, then persist to IDB in background

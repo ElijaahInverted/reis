@@ -14,7 +14,7 @@ interface CardPosition {
     flip: boolean;
 }
 
-const HOVER_DELAY_MS = 250; // Slightly longer for heavy iframe
+const HOVER_DELAY_MS = 450; // Slightly longer to match standard hover intent
 const CARD_WIDTH = 420;
 const CARD_HEIGHT = 320;
 

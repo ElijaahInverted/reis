@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Info, Calendar, ExternalLink } from 'lucide-react';
+import { Check, Info } from 'lucide-react';
 import { MENDELU_LOGO_PATH } from '../../constants/icons';
 import { IndexedDBService } from '../../services/storage';
 import { useTranslation } from '../../hooks/useTranslation';

@@ -1,14 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { parseCourseMetadata } from '../metadataParser';
-import { JSDOM } from 'jsdom';
-
 describe('metadataParser', () => {
-    let dom: JSDOM;
-    let document: Document;
-
     beforeEach(() => {
-        dom = new JSDOM();
-        document = dom.window.document as unknown as Document;
+        document.body.innerHTML = '';
     });
 
     it('should parse Czech metadata correctly', () => {
@@ -29,7 +23,7 @@ describe('metadataParser', () => {
 
         expect(result.courseName).toBe('Algoritmizace');
         expect(result.credits).toBe('Zkouška');
-        expect(result.garant).toBe('doc. Ing. Oldřich Trenz, Ph.D.');
+        expect(result.garant?.name).toBe('doc. Ing. Oldřich Trenz, Ph.D.');
         expect(result.teachers).toHaveLength(1);
         expect(result.teachers[0].name).toBe('Ing. Pavel Turčínek, Ph.D.');
         expect(result.teachers[0].roles).toBe('cvičící');
@@ -55,7 +49,7 @@ describe('metadataParser', () => {
 
         expect(result.courseName).toBe('Computer Architecture');
         expect(result.credits).toBe('Exam');
-        expect(result.garant).toBe('prof. RNDr. Tomáš Pitner, Ph.D.');
+        expect(result.garant?.name).toBe('prof. RNDr. Tomáš Pitner, Ph.D.');
         expect(result.status).toBe('required');
     });
 

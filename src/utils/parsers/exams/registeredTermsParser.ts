@@ -12,7 +12,7 @@ export function parseRegisteredTerms(doc: Document, getOrCreateSubject: (c: stri
 
         let dateIndex = -1;
         for (let i = 0; i < cols.length; i++) {
-            if (cols[i].textContent?.match(/\d{2}[\./]\d{2}[\./]\d{4}/)) {
+            if (cols[i].textContent?.match(/\d{2}[./]\d{2}[./]\d{4}/)) {
                 dateIndex = i;
                 break;
             }
@@ -39,7 +39,7 @@ export function parseRegisteredTerms(doc: Document, getOrCreateSubject: (c: stri
             const parts = cols[i].innerHTML.split(/<br\s*\/?>/i);
             if (parts.length >= 3) {
                 const deadlineRaw = parts[2].replace(/<[^>]*>/g, '').trim();
-                if (deadlineRaw !== '--' && deadlineRaw.match(/\d{2}[\./]\d{2}[\./]\d{4}/)) {
+                if (deadlineRaw !== '--' && deadlineRaw.match(/\d{2}[./]\d{2}[./]\d{4}/)) {
                     deregistrationDeadline = normalizeDateString(deadlineRaw, isEn);
                     break;
                 }

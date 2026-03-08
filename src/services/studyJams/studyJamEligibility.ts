@@ -48,8 +48,6 @@ export async function checkStudyJamEligibility(
     // --- Tutee check: enrolled in killer course, studySemester <= 2 ---
     if ((userParams.studySemester ?? 99) <= 2) {
         const subjectsData = await IndexedDBService.get('subjects', 'current') as SubjectsData | null;
-        const enrolledCodes = subjectsData?.data ? Object.keys(subjectsData.data) : [];
-        const enrolledKillerCourses = enrolledCodes.filter(c => killerMap.has(c));
         if (subjectsData?.data) {
             for (const code of Object.keys(subjectsData.data)) {
                 const courseName = killerMap.get(code);
