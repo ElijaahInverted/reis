@@ -107,34 +107,32 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
 
       {hasEnrolledSubjects && (
         <div className="px-4 pt-4 pb-2">
-          <h3 className="text-sm font-semibold text-base-content/60 mb-2 uppercase tracking-wider">
-            {t('subjects.enrolled')}
-            <span className="ml-2 font-normal text-xs text-base-content/40 lowercase tracking-normal">
+          <div className="flex items-baseline justify-between mb-2">
+            <h3 className="text-sm font-semibold text-base-content/50">{t('subjects.enrolled')}</h3>
+            <span className="text-[11px] text-base-content/40">
               {enrolledCore.filter(s => s.credits <= 50).reduce((a, s) => a + s.credits, 0) + enrolledElective.filter(s => s.credits <= 50).reduce((a, s) => a + s.credits, 0)} {t('subjects.enrolledCreditsLabel')}
             </span>
-          </h3>
-          {enrolledCore.length > 0 && (
-            <div>
-              {enrolledElective.length > 0 && (
-                <div className="text-[10px] text-base-content/40 font-semibold px-3 py-1 mb-1 uppercase tracking-widest">{t('subjects.compulsory')}</div>
-              )}
-              <div className="flex flex-col gap-0.5">
+          </div>
+          <div className="rounded-lg border border-base-300 overflow-hidden">
+            {enrolledCore.length > 0 && (
+              <div className="p-1.5">
+                {enrolledElective.length > 0 && (
+                  <div className="text-[10px] text-base-content/40 font-semibold px-2 py-1 uppercase tracking-widest">{t('subjects.compulsory')}</div>
+                )}
                 {enrolledCore.map(s => (
                   <SubjectRow key={s.code} subject={s} failRate={failRates[s.code]} hideStatus={true} onOpenSubject={onOpenSubject} onSearchSubject={onSearchSubject} />
                 ))}
               </div>
-            </div>
-          )}
-          {enrolledElective.length > 0 && (
-            <div className="mt-4">
-              <div className="text-[10px] text-base-content/40 font-semibold px-3 py-1 mb-1 uppercase tracking-widest">{t('subjects.elective')}</div>
-              <div className="flex flex-col gap-0.5">
+            )}
+            {enrolledElective.length > 0 && (
+              <div className={`p-1.5 ${enrolledCore.length > 0 ? 'border-t border-base-300' : ''}`}>
+                <div className="text-[10px] text-base-content/40 font-semibold px-2 py-1 uppercase tracking-widest">{t('subjects.elective')}</div>
                 {enrolledElective.map(s => (
                   <SubjectRow key={s.code} subject={s} failRate={failRates[s.code]} hideStatus={true} onOpenSubject={onOpenSubject} onSearchSubject={onSearchSubject} />
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
