@@ -44,7 +44,9 @@
     "cancel": "Zrušit",
     "confirm": "Potvrdit",
     "save": "Uložit",
-    "start": "Spustit"
+    "start": "Spustit",
+    "upload": "Odevzdat",
+    "view": "Zobrazit"
   },
 
   "search": {
@@ -128,7 +130,14 @@
       "successRate": "Úspěšnost",
       "assessment": "Klasifikace",
       "classmates": "Spolužáci",
-      "osnovy": "Úkoly a testy"
+      "osnovy": "Testy / Odevzdávárna"
+    },
+    "osnovy": {
+      "tests": "Cvičné testy",
+      "assignments": "Odevzdávárny",
+      "assignmentsDone": "Odevzdané / Uzavřené",
+      "noTests": "Žádné testy k dispozici.",
+      "noAssignments": "Žádné odevzdávárny k dispozici."
     },
 
     "footer": {

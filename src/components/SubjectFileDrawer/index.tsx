@@ -10,6 +10,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '../ui/resi
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { ParsedFile } from '../../types/documents';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useOsnovy, useUkoly } from '../../hooks/data';
 import type { SelectedSubject } from '../../types/app';
 
 export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLesson | SelectedSubject | null; isOpen: boolean; onClose: () => void }) {
@@ -19,6 +20,13 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
     const [activePdfUrl, setActivePdfUrl] = useState<string | null>(null);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const { t } = useTranslation();
+    const { tests } = useOsnovy(lesson?.courseName, lesson?.courseCode);
+    const { activeAssignments } = useUkoly(lesson?.courseName, lesson?.courseCode);
+
+    const tabCounts = useMemo(() => ({
+        files: state.files?.length || 0,
+        osnovy: tests.length + activeAssignments.length,
+    }), [state.files, tests, activeAssignments]);
 
     useEffect(() => {
         if (isOpen && state.files?.length) {
@@ -104,7 +112,7 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
         <>
             <DrawerHeader lesson={lesson} courseId={resolvedCourseId || syllabusResult.syllabus?.courseId || ''}
                 courseInfo={syllabusResult.syllabus?.courseInfo} subjectInfo={state.subjectInfo} selectedCount={selectedIds.length}
-                isDownloading={isDownloading} downloadProgress={downloadProgress} activeTab={activeTab} onTabChange={setActiveTab}
+                isDownloading={isDownloading} downloadProgress={downloadProgress} activeTab={activeTab} tabCounts={tabCounts} onTabChange={setActiveTab}
                 onClose={handleClose} onDownload={() => selectedIds.length === 1 ? downloadSingle(selectedIds[0]) : downloadZip(selectedIds, `${lesson?.courseCode}_files.zip`)} />
             <div ref={containerRef} className="flex-1 overflow-y-auto relative select-none"
                 onMouseDown={activeTab === 'files' ? handleMouseDown : undefined}

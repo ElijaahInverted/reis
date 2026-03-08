@@ -16,10 +16,11 @@ export interface DrawerHeaderProps {
     selectedCount: number;
     isDownloading: boolean;
     downloadProgress?: { completed: number; total: number } | null;
-    activeTab: 'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates';
+    activeTab: 'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates' | 'osnovy';
+    tabCounts?: Record<string, number>;
     onClose: () => void;
     onDownload: () => void;
-    onTabChange: (tab: 'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates') => void;
+    onTabChange: (tab: 'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates' | 'osnovy') => void;
 }
 
 export interface FileGroup {

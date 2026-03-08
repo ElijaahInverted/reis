@@ -8,6 +8,7 @@ import { fetchDualLanguageStudyPlan } from "../api/studyPlan";
 import { fetchStudyStats } from "../api/studyStats";
 import { fetchSyllabus } from "../api/syllabus";
 import { fetchOsnovy } from "../api/osnovy";
+import { fetchUkoly } from "../api/ukoly";
 
 import { getUserParams } from "../utils/userParams";
 import { fetchScheduleBite, fetchFullSemesterSchedule } from "./dataFetchers";
@@ -74,14 +75,23 @@ export async function syncAllData() {
             return osnovy;
         }) : Promise.resolve(null);
 
+        const ukolyPromise = studium ? fetchUkoly(studium).then(ukoly => {
+            if (ukoly) {
+                cachedData = { ...cachedData, ukoly: ukoly.assignments };
+                IndexedDBService.set('ukoly', studium, ukoly.assignments).catch(() => {});
+            }
+            return ukoly;
+        }) : Promise.resolve(null);
+
         // Phase 2b: Full schedule + exams in parallel (subjects/studyPlan/studyStats re-uses already-started promises)
-        const [fullSchedule, exams, subjects, studyPlan, studyStats, osnovy] = await Promise.allSettled([
+        const [fullSchedule, exams, subjects, studyPlan, studyStats, osnovy, ukoly] = await Promise.allSettled([
             fetchFullSemesterSchedule(),
             fetchDualLanguageExams(),
             subjectsPromise,
             studyPlanPromise,
             studyStatsPromise,
             osnovyPromise,
+            ukolyPromise,
         ]);
 
         cachedData = {
@@ -92,6 +102,7 @@ export async function syncAllData() {
             studyPlan: studyPlan.status === "fulfilled" && studyPlan.value ? studyPlan.value : cachedData.studyPlan,
             studyStats: studyStats.status === "fulfilled" && studyStats.value ? studyStats.value : cachedData.studyStats,
             osnovy: osnovy.status === "fulfilled" && osnovy.value ? osnovy.value.tests : cachedData.osnovy,
+            ukoly: ukoly.status === "fulfilled" && ukoly.value ? ukoly.value.assignments : cachedData.ukoly,
             files: cachedData.files || {},
             lastSync: Date.now(),
         };

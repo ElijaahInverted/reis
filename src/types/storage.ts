@@ -5,6 +5,7 @@ import type { BlockLesson } from '../types/calendarTypes';
 import type { ClassmatesData } from '../types/classmates';
 import type { StudyPlan, DualLanguageStudyPlan } from '../types/studyPlan';
 import type { OsnovaTest } from '../api/osnovy';
+import type { Assignment } from '../api/ukoly';
 
 // --- Base Types using Zod ---
 
@@ -78,6 +79,7 @@ export const StoreSchemas = {
     grade_history: GradeHistorySchema,
     study_plan: StudyPlanSchema,
     osnovy: z.array(z.custom<OsnovaTest>()),
+    ukoly: z.array(z.custom<Assignment>()),
 };
 
 export type StoreName = keyof typeof StoreSchemas;

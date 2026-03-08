@@ -5,9 +5,10 @@ import { SyllabusTab } from './SyllabusTab';
 import { ClassmatesTab } from './ClassmatesTab';
 import { SuccessRateTab } from '../SuccessRateTab';
 import { SelectionBox, DragHint } from './DragHint';
-import { useOsnovy } from '../../hooks/data';
+import { useOsnovy, useUkoly } from '../../hooks/data';
 import type { FileGroup } from './types';
 import type { SyllabusRequirements, ParsedFile } from '../../types/documents';
+import type { Assignment } from '../../api/ukoly';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { SelectedSubject } from '../../types/app';
@@ -42,7 +43,8 @@ export function SubjectFileDrawerContent({
     groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, onViewPdf, resolvedCourseId, syllabusResult, folderUrl
 }: SubjectFileDrawerContentProps) {
     const { t, language } = useTranslation();
-    const { tests } = useOsnovy(lesson?.courseName);
+    const { tests, status: osnovyStatus } = useOsnovy(lesson?.courseName, lesson?.courseCode);
+    const { activeAssignments, closedAssignments, status: ukolyStatus } = useUkoly(lesson?.courseName, lesson?.courseCode);
 
     if (activeTab === 'files') {
         const isEmpty = !files || files.length === 0;
@@ -102,38 +104,113 @@ export function SubjectFileDrawerContent({
     if (activeTab === 'classmates') return <ClassmatesTab courseCode={lesson?.courseCode || ''} skupinaId={lesson && 'skupinaId' in lesson ? (lesson as any).skupinaId : undefined} />;
     
     if (activeTab === 'osnovy') {
-        const isEmpty = tests.length === 0;
+        const isLoading = osnovyStatus === 'loading' || ukolyStatus === 'loading';
+        const hasTests = tests.length > 0;
+        const hasActiveAssignments = activeAssignments.length > 0;
+        const hasClosedAssignments = closedAssignments.length > 0;
+        const isEmpty = !hasTests && !hasActiveAssignments && !hasClosedAssignments;
+
+        if (isLoading && isEmpty) {
+            return (
+                <div className="flex flex-col gap-3 p-4">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 rounded-xl">
+                            <div className="skeleton h-4 w-2/3" />
+                            <div className="skeleton h-8 w-20 rounded-xl" />
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        if (isEmpty) {
+            return (
+                <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                    <FileText className="w-12 h-12 text-base-content/20 mb-3" />
+                    <p className="text-sm text-base-content/60">
+                        {t('syllabus.noData') || 'Žádné úkoly ani testy nejsou k dispozici.'}
+                    </p>
+                </div>
+            );
+        }
+
         return (
-            <div className="flex flex-col h-full bg-base-100">
-                {isEmpty ? (
-                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                        <FileText className="w-12 h-12 text-base-content/20 mb-3" />
-                        <p className="text-sm text-base-content/60">
-                            {t('syllabus.noData') || 'Žádné úkoly ani testy nejsou k dispozici.'}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-1 p-4">
-                        {tests.map(test => (
-                            <div key={test.url} className="flex items-center justify-between gap-4 p-3 rounded-xl hover:bg-base-200 transition-colors animate-in fade-in slide-in-from-left-2 duration-300">
-                                <span className="font-semibold text-base-content/80 text-sm">
-                                    {test.name}
-                                </span>
-                                <div className="flex items-center gap-3 shrink-0">
-                                    <div className="h-px w-6 bg-base-300" />
-                                    <a 
-                                        href={test.url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="px-4 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold uppercase text-[10px] tracking-wider transition-all hover:bg-primary/20 active:scale-95 flex items-center justify-center h-8"
-                                    >
-                                        {t('common.start') || 'Spustit'}
+            <div className="flex flex-col h-full bg-base-100 overflow-y-auto">
+                <div className="flex flex-col gap-6 p-4">
+                    {/* Tests Section */}
+                    {hasTests && (
+                        <div className="flex flex-col gap-2">
+                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 px-3">
+                                {t('course.osnovy.tests') || 'Testy'}
+                            </h3>
+                            <div className="flex flex-col gap-1">
+                                {tests.map(test => (
+                                    <a key={test.url} href={test.url} target="_blank" rel="noopener noreferrer"
+                                        className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 active:scale-[0.99] transition-all animate-in fade-in slide-in-from-left-2 duration-300 cursor-pointer">
+                                        <span className="font-semibold text-base-content/80 text-sm truncate min-w-0">
+                                            {test.name}
+                                        </span>
+                                        <ExternalLink size={14} className="text-base-content/30 shrink-0" />
                                     </a>
-                                </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                )}
+                        </div>
+                    )}
+
+                    {/* Active Assignments Section */}
+                    {hasActiveAssignments && (
+                        <div className="flex flex-col gap-2">
+                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 px-3">
+                                {t('course.osnovy.assignments') || 'Odevzdávárny'}
+                            </h3>
+                            <div className="flex flex-col gap-1">
+                                {activeAssignments.map((assignment: Assignment) => (
+                                    <a key={assignment.name + assignment.deadline} href={assignment.actionUrl || '#'} target="_blank" rel="noopener noreferrer"
+                                        className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 active:scale-[0.99] transition-all animate-in fade-in slide-in-from-left-2 duration-300 cursor-pointer">
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="font-semibold text-base-content/80 text-sm truncate">
+                                                {assignment.name}
+                                            </span>
+                                            <span className="text-[10px] text-base-content/50">
+                                                {assignment.deadline}
+                                            </span>
+                                        </div>
+                                        <ExternalLink size={14} className="text-base-content/30 shrink-0" />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Closed/Past Assignments Section */}
+                    {hasClosedAssignments && (
+                        <div className="flex flex-col gap-2">
+                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 px-3">
+                                {t('course.osnovy.assignmentsDone') || 'Odevzdané / Uzavřené'}
+                            </h3>
+                            <div className="flex flex-col gap-1 opacity-60">
+                                {closedAssignments.map((assignment: Assignment) => {
+                                    const Row = assignment.actionUrl ? 'a' : 'div';
+                                    const linkProps = assignment.actionUrl ? { href: assignment.actionUrl, target: '_blank', rel: 'noopener noreferrer' } : {};
+                                    return (
+                                        <Row key={assignment.name + assignment.deadline} {...linkProps as any}
+                                            className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 transition-colors cursor-pointer">
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="font-medium text-base-content/80 text-sm truncate">
+                                                    {assignment.name}
+                                                </span>
+                                                <span className="text-[10px] text-base-content/40">
+                                                    {assignment.deadline}
+                                                </span>
+                                            </div>
+                                            {assignment.actionUrl && <ExternalLink size={14} className="text-base-content/20 shrink-0" />}
+                                        </Row>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         );
     }

@@ -23,6 +23,7 @@ interface SyncedData {
     studyPlan?: DualLanguageStudyPlan;
     studyStats?: unknown;
     osnovy?: any[];
+    ukoly?: any[];
     lastSync?: string;
     isSyncing?: boolean;
     isPartial?: boolean;
@@ -96,6 +97,13 @@ export function useAppLogic() {
                     if (userParams?.studium) {
                         await IndexedDBService.set('osnovy', userParams.studium, r.osnovy);
                         useAppStore.getState().setOsnovy(r.osnovy);
+                    }
+                }
+                if (r.ukoly) {
+                    const userParams = await IndexedDBService.get('meta', 'reis_user_params');
+                    if (userParams?.studium) {
+                        await IndexedDBService.set('ukoly', userParams.studium, r.ukoly as any);
+                        useAppStore.getState().setUkoly(r.ukoly as any);
                     }
                 }
                 if (r.exams) await IndexedDBService.set('exams', 'current', r.exams);

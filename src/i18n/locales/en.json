@@ -99,7 +99,9 @@
         "cancel": "Cancel",
         "confirm": "Confirm",
         "save": "Save",
-        "start": "Start"
+        "start": "Start",
+        "upload": "Upload",
+        "view": "View"
     },
 
     "search": {
@@ -128,7 +130,14 @@
             "successRate": "Success Rate",
             "assessment": "Assessment",
             "classmates": "Classmates",
-            "osnovy": "Tasks"
+            "osnovy": "Tests / Assignments"
+        },
+        "osnovy": {
+            "tests": "Practice Tests",
+            "assignments": "Assignments",
+            "assignmentsDone": "Submitted / Closed",
+            "noTests": "No tests available.",
+            "noAssignments": "No assignments available."
         },
 
         "footer": {

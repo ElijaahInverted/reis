@@ -21,12 +21,12 @@ function getBadge(l: { isExam?: boolean; courseName?: string; sectionName?: stri
     return l.isSeminar === 'true' ? { label: t('course.badge.seminar'), cls: 'bg-info/10 text-info' } : { label: t('course.badge.lecture'), cls: 'bg-primary/10 text-primary' };
 }
 
-export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, selectedCount, isDownloading, downloadProgress, activeTab, onClose, onDownload, onTabChange }: DrawerHeaderProps) {
+export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, selectedCount, isDownloading, downloadProgress, activeTab, tabCounts, onClose, onDownload, onTabChange }: DrawerHeaderProps) {
     const { t, language } = useTranslation();
     const badge = getBadge(lesson, t), isSearch = lesson?.isFromSearch;
 
     return (
-        <div className="px-6 py-4 border-b border-base-300 bg-base-100 z-20">
+        <div className="px-4 sm:px-6 py-4 border-b border-base-300 bg-base-100 z-20">
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                     {!isSearch ? (<>
@@ -65,18 +65,19 @@ export function DrawerHeader({ lesson, courseId, courseInfo, subjectInfo, select
                     const displayName = storeName || syllabusName || storeDisplayName || lesson?.courseName;
                     
                     return courseId ? 
-                        <a href={`https://is.mendelu.cz/auth/katalog/syllabus.pl?predmet=${courseId};lang=${language === 'cz' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link text-xl font-bold flex items-center gap-1">
+                        <a href={`https://is.mendelu.cz/auth/katalog/syllabus.pl?predmet=${courseId};lang=${language === 'cz' ? 'cz' : 'en'}`} target="_blank" rel="noopener noreferrer" className="clickable-link text-lg sm:text-xl font-bold flex items-center gap-1">
                             <span>{displayName}</span>
-                            <ExternalLink size={14} className="opacity-50" />
+                            <ExternalLink size={14} className="opacity-50 shrink-0" />
                         </a>
-                        : <span className="text-xl font-bold text-base-content">{displayName}</span>;
+                        : <span className="text-lg sm:text-xl font-bold text-base-content">{displayName}</span>;
                 })()}
             </div>
             <CourseMeta lesson={lesson} courseInfo={courseInfo} isSearchContext={!!isSearch} />
-            <HeaderTabs 
-                activeTab={activeTab} 
-                onTabChange={onTabChange} 
+            <HeaderTabs
+                activeTab={activeTab}
+                onTabChange={onTabChange}
                 disabledTabs={!subjectInfo?.subjectId ? ['files', 'classmates'] : []}
+                counts={tabCounts}
             />
         </div>
     );

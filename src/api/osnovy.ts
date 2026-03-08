@@ -1,6 +1,5 @@
-
-
 export interface OsnovaTest {
+    courseId: string;
     courseName: string;
     name: string;
     url: string;
@@ -41,6 +40,11 @@ export async function fetchOsnovy(studium: string): Promise<OsnovyResult | null>
 
             const courseLink = cols[offset + 0].getElementsByTagName('a')[0];
             const courseName = courseLink ? courseLink.textContent?.trim() || "" : cols[offset + 0].textContent?.trim() || "";
+
+            // Extract course code from syllabus link: syllabus.pl?predmet=XXXXX
+            const syllabusHref = courseLink?.getAttribute('href') || "";
+            const predmetMatch = syllabusHref.match(/predmet=(\d+)/);
+            const courseId = predmetMatch ? predmetMatch[1] : "";
             
             const osnovaName = cols[offset + 1].textContent?.trim() || "";
             
@@ -57,6 +61,7 @@ export async function fetchOsnovy(studium: string): Promise<OsnovyResult | null>
 
             if (courseName && osnovaName && href) {
                 tests.push({
+                    courseId,
                     courseName,
                     name: osnovaName,
                     url: href,

@@ -4,38 +4,47 @@ interface HeaderTabsProps {
     activeTab: string;
     onTabChange: (id: any) => void;
     disabledTabs?: string[];
+    counts?: Record<string, number>;
 }
 
-export function HeaderTabs({ activeTab, onTabChange, disabledTabs = [] }: HeaderTabsProps) {
+export function HeaderTabs({ activeTab, onTabChange, disabledTabs = [], counts }: HeaderTabsProps) {
     const { t } = useTranslation();
-    // const label = t('course.tabs.classmates');
-    // const displayLabel = label === 'course.tabs.classmates' ? 'Spolužáci' : label;
 
     const tabs = [
-        { id: 'files', label: t('course.tabs.files') }, 
+        { id: 'files', label: t('course.tabs.files') },
         { id: 'osnovy', label: t('course.tabs.osnovy') },
-        { id: 'syllabus', label: t('course.tabs.requirements') }, 
+        { id: 'syllabus', label: t('course.tabs.requirements') },
         { id: 'stats', label: t('course.tabs.successRate') },
     ];
 
     return (
-        <div className="flex items-center gap-8 mt-4">
+        <div className="flex items-center gap-4 sm:gap-8 mt-4 overflow-x-auto scrollbar-none">
             {tabs.map(tab => {
                 const isDisabled = disabledTabs.includes(tab.id);
+                const count = counts?.[tab.id];
                 return (
-                    <button 
-                        key={tab.id} 
+                    <button
+                        key={tab.id}
                         onClick={() => !isDisabled && onTabChange(tab.id)}
                         disabled={isDisabled}
-                        className={`text-sm font-bold pb-2 border-b-2 transition-all px-1 ${
-                            isDisabled 
-                                ? 'border-transparent text-base-content/20 cursor-not-allowed' 
-                                : activeTab === tab.id 
-                                    ? 'border-primary text-primary' 
+                        className={`text-xs sm:text-sm font-bold pb-2 border-b-2 transition-all px-1 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+                            isDisabled
+                                ? 'border-transparent text-base-content/20 cursor-not-allowed'
+                                : activeTab === tab.id
+                                    ? 'border-primary text-primary'
                                     : 'border-transparent text-base-content/40 hover:text-base-content/60'
                         }`}
                     >
                         {tab.label}
+                        {count !== undefined && count > 0 && (
+                            <span className={`text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 ${
+                                activeTab === tab.id
+                                    ? 'bg-primary/15 text-primary'
+                                    : 'bg-base-300 text-base-content/50'
+                            }`}>
+                                {count}
+                            </span>
+                        )}
                     </button>
                 );
             })}
