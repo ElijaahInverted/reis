@@ -52,6 +52,15 @@ Store uses the **slice pattern**: `src/store/slices/create*Slice.ts` composed in
 - Internal code uses `'cs'`/`'en'`; IS Mendelu API uses `'cz'`/`'en'` — mapping applied in API layer
 - UI strings via `useTranslation()` hook reading from `src/i18n/locales/{cs,en}.json`
 
+## Parser Rules
+
+IS Mendelu HTML parsers (`src/api/documents/parser.ts`, `src/api/ukoly.ts`, `src/api/osnovy.ts`, `src/utils/parsers/`) are **extremely brittle** and must almost never be altered.
+
+- **Never modify a parser to fix a lint or vitest error.** If a lint rule flags parser code, suppress the rule with a comment. If a vitest test fails because the parser was changed, revert the parser and fix the test fixture instead.
+- When a test fixture uses a headerless table (`<table>` with no `<thead>`), add proper headers to the fixture — do not relax the parser guard to accept headerless tables.
+- Any parser change requires a real IS Mendelu HTML sample as evidence that the change is correct. Without it, revert.
+- Column index constants in parsers are load-bearing — a one-off change silently breaks production data.
+
 ## Iron Rules (from `.agent/rules/charlie-munger.md`)
 
 These are enforced by linting and project convention:
