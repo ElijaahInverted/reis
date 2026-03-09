@@ -9,4 +9,3 @@ export * from './useSyllabus';
 export * from './useExams';
 export * from './useClassmates';
 export * from './useOsnovy';
-export * from './useUkoly';

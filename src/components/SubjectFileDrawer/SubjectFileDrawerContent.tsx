@@ -5,11 +5,10 @@ import { SyllabusTab } from './SyllabusTab';
 import { ClassmatesTab } from './ClassmatesTab';
 import { SuccessRateTab } from '../SuccessRateTab';
 import { SelectionBox, DragHint } from './DragHint';
-import { useOsnovy, useUkoly } from '../../hooks/data';
+import { useOsnovy } from '../../hooks/data';
 import { useUserParams } from '../../hooks/useUserParams';
 import type { FileGroup } from './types';
 import type { SyllabusRequirements, ParsedFile } from '../../types/documents';
-import type { Assignment } from '../../api/ukoly';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { SelectedSubject } from '../../types/app';
@@ -45,7 +44,6 @@ export function SubjectFileDrawerContent({
 }: SubjectFileDrawerContentProps) {
     const { t, language } = useTranslation();
     const { tests, status: osnovyStatus } = useOsnovy(lesson?.courseName);
-    const { activeAssignments, status: ukolyStatus } = useUkoly(lesson?.courseName, lesson?.courseCode);
     const { params } = useUserParams();
     const lang = language === 'cz' ? 'cz' : 'en';
     const studium = params?.studium;
@@ -109,10 +107,9 @@ export function SubjectFileDrawerContent({
     if (activeTab === 'classmates') return <ClassmatesTab courseCode={lesson?.courseCode || ''} skupinaId={lesson && 'skupinaId' in lesson ? (lesson as any).skupinaId : undefined} />;
     
     if (activeTab === 'osnovy') {
-        const isLoading = osnovyStatus === 'loading' || ukolyStatus === 'loading';
+        const isLoading = osnovyStatus === 'loading';
         const hasTests = tests.length > 0;
-        const hasActiveAssignments = activeAssignments.length > 0;
-        const isEmpty = !hasTests && !hasActiveAssignments;
+        const isEmpty = !hasTests;
 
         if (isLoading && isEmpty) {
             return (
@@ -132,7 +129,7 @@ export function SubjectFileDrawerContent({
                 <div className="flex flex-col items-center justify-center h-full p-6 text-center">
                     <FileText className="w-12 h-12 text-base-content/20 mb-3" />
                     <p className="text-sm text-base-content/60">
-                        {t('syllabus.noData') || 'Žádné úkoly ani testy nejsou k dispozici.'}
+                        {t('syllabus.noData') || 'Žádné testy nejsou k dispozici.'}
                     </p>
                 </div>
             );
@@ -161,42 +158,12 @@ export function SubjectFileDrawerContent({
                         </div>
                     )}
 
-                    {/* Active Assignments Section */}
-                    {hasActiveAssignments && (
-                        <div className="flex flex-col gap-2">
-                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 px-3">
-                                {t('course.osnovy.assignments') || 'Odevzdávárny'}
-                            </h3>
-                            <div className="flex flex-col gap-1">
-                                {activeAssignments.map((assignment: Assignment) => (
-                                    <a key={assignment.name + assignment.deadline} href={assignment.actionUrl || '#'} target="_blank" rel="noopener noreferrer"
-                                        className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 active:scale-[0.99] transition-all animate-in fade-in slide-in-from-left-2 duration-300 cursor-pointer">
-                                        <div className="flex flex-col min-w-0">
-                                            <span className="font-semibold text-base-content/80 text-sm truncate">
-                                                {assignment.name}
-                                            </span>
-                                            <span className="text-[10px] text-base-content/50">
-                                                {assignment.deadline}
-                                            </span>
-                                        </div>
-                                        <ExternalLink size={14} className="text-base-content/30 shrink-0" />
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                 </div>
                 {studium && (
                     <div className="flex items-center justify-center gap-3 py-3 border-t border-base-200">
                         <a href={`https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl?studium=${studium};lang=${lang}`} target="_blank" rel="noopener noreferrer"
                             className="btn btn-ghost btn-xs gap-1 text-base-content/50 hover:text-primary normal-case">
                             {t('course.osnovy.tests') || 'Testy'}
-                            <ExternalLink size={12} />
-                        </a>
-                        <a href={`https://is.mendelu.cz/auth/student/odevzdavarny.pl?studium=${studium};lang=${lang}`} target="_blank" rel="noopener noreferrer"
-                            className="btn btn-ghost btn-xs gap-1 text-base-content/50 hover:text-primary normal-case">
-                            {t('course.osnovy.assignments') || 'Odevzdávárny'}
                             <ExternalLink size={12} />
                         </a>
                     </div>

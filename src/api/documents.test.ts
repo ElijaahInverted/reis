@@ -8,6 +8,18 @@ describe('parseServerFiles', () => {
     it('should parse a standard document folder table correctly', () => {
         const html = `
             <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Ozn.</th>
+                        <th>Název</th>
+                        <th>Komentář</th>
+                        <th>Vložil</th>
+                        <th>Datum dokumentu</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
                 <tr class="uis-hl-table lbn">
                     <td class="UISTMNumberCell">1</td>
                     <td class="odsazena">ZS 2024/2025</td>

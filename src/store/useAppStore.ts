@@ -15,7 +15,6 @@ import { createStudyJamsSlice } from './slices/createStudyJamsSlice';
 import { createFeedbackSlice } from './slices/createFeedbackSlice';
 import { createStudyPlanSlice } from './slices/createStudyPlanSlice';
 import { createOsnovySlice } from './slices/createOsnovySlice';
-import { createUkolySlice } from './slices/createUkolySlice';
 import { syncService } from '../services/sync';
 import { initMockData } from '../utils/initMockData';
 
@@ -35,7 +34,6 @@ export const useAppStore = create<AppState>()((...a) => ({
   ...createFeedbackSlice(...a),
   ...createStudyPlanSlice(...a),
   ...createOsnovySlice(...a),
-  ...createUkolySlice(...a),
 }));
 
 // Initialize store and subscribe to sync updates
@@ -52,7 +50,6 @@ export const initializeStore = async () => {
     useAppStore.getState().fetchSubjects();
     useAppStore.getState().fetchStudyPlan();
     useAppStore.getState().fetchOsnovy();
-    useAppStore.getState().fetchUkoly();
     useAppStore.getState().fetchAllFiles();
     useAppStore.getState().loadTheme();
     useAppStore.getState().loadLanguage();
@@ -72,7 +69,6 @@ export const initializeStore = async () => {
         useAppStore.getState().fetchSubjects();
         useAppStore.getState().fetchStudyPlan();
         useAppStore.getState().fetchOsnovy();
-        useAppStore.getState().fetchUkoly();
         useAppStore.getState().fetchAllFiles();
 
         if (type === 'THEME_UPDATE') {

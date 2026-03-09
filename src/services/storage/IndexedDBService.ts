@@ -5,7 +5,6 @@ import type { ExamSubject } from '../../types/exams';
 import type { ClassmatesData } from '../../types/classmates';
 import type { StudyPlan, DualLanguageStudyPlan } from '../../types/studyPlan';
 import type { OsnovaTest } from '../../api/osnovy';
-import type { Assignment } from '../../api/ukoly';
 import { StoreSchemas, type StoreName } from '../../types/storage';
 
 interface ReisDB extends DBSchema {
@@ -59,10 +58,6 @@ interface ReisDB extends DBSchema {
         key: string;
         value: OsnovaTest[];
     };
-    ukoly: {
-        key: string;
-        value: Assignment[];
-    };
 }
 
 const DB_NAME = 'reis_db';
@@ -77,7 +72,7 @@ class IndexedDBServiceImpl {
                 const requiredStores: (keyof ReisDB)[] = [
                     'files', 'assessments', 'syllabuses', 'classmates',
                     'exams', 'schedule', 'subjects', 'success_rates', 'meta',
-                    'grade_history', 'study_plan', 'osnovy', 'ukoly'
+                    'grade_history', 'study_plan', 'osnovy'
                 ];
                 
                 requiredStores.forEach(store => {
