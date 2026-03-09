@@ -124,22 +124,17 @@ export function SubjectFileDrawerContent({
             );
         }
 
-        if (isEmpty) {
-            return (
-                <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <FileText className="w-12 h-12 text-base-content/20 mb-3" />
-                    <p className="text-sm text-base-content/60">
-                        {t('syllabus.noData') || 'Žádné testy nejsou k dispozici.'}
-                    </p>
-                </div>
-            );
-        }
-
         return (
-            <div className="flex flex-col h-full bg-base-100 overflow-y-auto">
-                <div className="flex flex-col gap-6 p-4">
-                    {/* Tests Section */}
-                    {hasTests && (
+            <div className="flex flex-col h-full bg-base-100 overflow-y-auto w-full">
+                <div className="flex flex-col gap-6 p-4 flex-1">
+                    {isEmpty ? (
+                        <div className="flex flex-col items-center justify-center p-6 text-center mt-4">
+                            <FileText className="w-12 h-12 text-base-content/20 mb-3" />
+                            <p className="text-sm text-base-content/60">
+                                {t('course.osnovy.noTests') || 'Žádné testy k dispozici.'}
+                            </p>
+                        </div>
+                    ) : (
                         <div className="flex flex-col gap-2">
                             <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 px-3">
                                 {t('course.osnovy.tests') || 'Testy'}
@@ -157,14 +152,13 @@ export function SubjectFileDrawerContent({
                             </div>
                         </div>
                     )}
-
                 </div>
                 {studium && (
-                    <div className="flex items-center justify-center gap-3 py-3 border-t border-base-200">
+                    <div className="flex items-center justify-center gap-3 py-3 mt-0">
                         <a href={`https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl?studium=${studium};lang=${lang}`} target="_blank" rel="noopener noreferrer"
-                            className="btn btn-ghost btn-xs gap-1 text-base-content/50 hover:text-primary normal-case">
-                            {t('course.osnovy.tests') || 'Testy'}
-                            <ExternalLink size={12} />
+                            className="btn btn-ghost btn-sm gap-2 text-base-content/70 hover:text-primary normal-case font-bold">
+                            <span>IS MENDELU</span>
+                            <ExternalLink size={16} />
                         </a>
                     </div>
                 )}
