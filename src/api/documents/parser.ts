@@ -57,7 +57,7 @@ export function parseServerFiles(html: string): { files: ParsedFile[], paginatio
 
     tables.forEach(table => {
         const indices = getColumnIndices(table);
-        if (indices.name === undefined && !table.querySelector('tr.uis-hl-table.lbn')) return;
+        if (indices.name === undefined) return;
 
         const rows = Array.from(table.querySelectorAll('tr.uis-hl-table.lbn, tbody tr')).filter(r => r.querySelectorAll('td').length >= 2);
         

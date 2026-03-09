@@ -5,6 +5,16 @@ describe('parseServerFiles - Link Filtering', () => {
     it('should ignore teacher profile and document info links, resolving only download links', () => {
         const html = `
             <table id="tmtab_1">
+                <thead>
+                    <tr class="zahlavi">
+                        <th></th>
+                        <th>Ozn.</th>
+                        <th>Název</th>
+                        <th>Vložil</th>
+                        <th>Datum dokumentu</th>
+                        <th></th>
+                    </tr>
+                </thead>
                 <tr class="uis-hl-table lbn">
                     <td class="UISTMNumberCell">1</td>
                     <td>
@@ -29,12 +39,12 @@ describe('parseServerFiles - Link Filtering', () => {
                          <a href="/auth/dok_server/dokumenty_ct.pl?id=1728;lang=cz">
                             <img sysid="mime-prohlizeni-info" src="info.gif">
                          </a>
-                         
+
                          <!-- Another unwanted info link with just type implied -->
                          <a href="/auth/dok_server/dokumenty_ct.pl?id=9999;lang=cz">
                             <img sysid="mime-prohlizeni-info" src="info2.gif">
                          </a>
-                         
+
                          <!-- WANTED download link -->
                          <a href="/auth/dok_server/slozka.pl?download=350247;id=150953;z=1;lang=cz">
                             <img sysid="mime-pdf" src="pdf.gif">
@@ -71,6 +81,16 @@ describe('parseServerFiles - Link Filtering', () => {
                 </tr>
             </table>
             <table id="tmtab_1">
+                <thead>
+                    <tr class="zahlavi">
+                        <th></th>
+                        <th>Ozn.</th>
+                        <th>Název</th>
+                        <th>Vložil</th>
+                        <th>Datum dokumentu</th>
+                        <th></th>
+                    </tr>
+                </thead>
                 <tr class="uis-hl-table lbn">
                     <td class="UISTMNumberCell">1</td>
                     <td>Folder</td>
