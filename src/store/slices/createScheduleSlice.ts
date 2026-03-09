@@ -14,14 +14,14 @@ export const createScheduleSlice: AppSlice<ScheduleSlice> = (set) => ({
       const weekStartStr = await IndexedDBService.get('meta', 'schedule_week_start');
       const isPartial = await IndexedDBService.get('meta', 'schedule_is_partial');
       
-      set({
+      set((state) => ({
         schedule: {
           data: data || [],
           status: 'success',
           weekStart: weekStartStr ? new Date(weekStartStr) : null,
-          isPartial: !!isPartial
+          isPartial: state.schedule.isPartial === false ? false : !!isPartial
         },
-      });
+      }));
 
     } catch {
       set((state) => ({ schedule: { ...state.schedule, status: 'error' } }));
