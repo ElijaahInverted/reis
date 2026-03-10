@@ -11,7 +11,8 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
     const isExam = lesson && 'isExam' in lesson ? lesson.isExam : false;
     const isEnrolled = !!(lesson?.courseCode && getSubject(lesson.courseCode)?.subjectId);
     const requestedTab = lesson && 'initialTab' in lesson ? lesson.initialTab : undefined;
-    const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates' | 'osnovy'>(requestedTab ?? (isExam ? 'stats' : (isEnrolled ? 'files' : 'syllabus')));
+    const isFromSearch = lesson && 'isFromSearch' in lesson ? lesson.isFromSearch : false;
+    const [activeTab, setActiveTab] = useState<'files' | 'stats' | 'assessments' | 'syllabus' | 'classmates' | 'osnovy'>(requestedTab ?? (isExam || !isEnrolled ? 'stats' : 'files'));
 
     useEffect(() => {
       if (requestedTab) queueMicrotask(() => setActiveTab(requestedTab));
@@ -45,7 +46,7 @@ export function useSubjectFileDrawerState(lesson: BlockLesson | SelectedSubject 
             if (!requested) {
                 const isExamNow = 'isExam' in lesson ? lesson.isExam : false;
                 const isEnrolledNow = !!(lesson.courseCode && getSubject(lesson.courseCode)?.subjectId);
-                queueMicrotask(() => setActiveTab(isExamNow ? 'stats' : (isEnrolledNow ? 'files' : 'syllabus')));
+                queueMicrotask(() => setActiveTab(isExamNow || !isEnrolledNow ? 'stats' : 'files'));
             }
             fileRefs.current.clear();
         }
