@@ -6,6 +6,7 @@ import { SearchResultItem } from './SearchResultItem';
 import { SearchFooter } from './SearchFooter';
 import type { SearchResult } from './types';
 import { useTranslation } from '../../hooks/useTranslation';
+import { getModifierKey } from '../../utils/platform';
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -107,7 +108,11 @@ export function MobileSearchOverlay({ isOpen, onClose, onOpenSubject, actions = 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t('search.placeholder')}
+            placeholder={(() => {
+              const modifier = getModifierKey();
+              const p = t('search.placeholder', { shortcut: modifier });
+              return modifier ? p : p.replace(/\s*\(.*\)$/, '');
+            })()}
             className="w-full bg-transparent text-sm text-base-content placeholder-base-content/50 focus:outline-none"
           />
           {query && (

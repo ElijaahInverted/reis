@@ -7,6 +7,7 @@ import { SearchResultItem } from './SearchResultItem';
 import { SearchFooter } from './SearchFooter';
 import type { SearchResult } from './types';
 import { useTranslation } from '../../hooks/useTranslation';
+import { getModifierKey } from '../../utils/platform';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -18,8 +19,9 @@ interface SearchBarProps {
 
 export function SearchBar({ placeholder, onSearch, onOpenSubject, prefillRef, actions = [] }: SearchBarProps) {
   const { t } = useTranslation();
-  const defaultPlaceholder = t('search.placeholder');
-  const finalPlaceholder = placeholder || defaultPlaceholder;
+  const modifier = getModifierKey();
+  const defaultPlaceholder = t('search.placeholder', { shortcut: modifier });
+  const finalPlaceholder = placeholder || (modifier ? defaultPlaceholder : defaultPlaceholder.replace(/\s*\(.*\)$/, ''));
   const [query, setQuery] = useState('');
   const { isOpen, setIsOpen, selectedIndex, setSelectedIndex, sections, filteredResults, isLoading, recentSearches, studiumId, saveToHistory } = useSearch(query, actions);
   const inputWrapRef = useRef<HTMLDivElement>(null);
@@ -225,9 +227,11 @@ export function SearchBar({ placeholder, onSearch, onOpenSubject, prefillRef, ac
               {query ? (
                 <button onClick={() => { setQuery(''); inputRef.current?.focus(); }} className="p-1 hover:bg-base-200 rounded-full"><X className="w-4 h-4 text-base-content/50" /></button>
               ) : (
-                <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-base-content/40 bg-base-200 border border-base-300 rounded">
-                  <span className="text-xs">⌘</span>K
-                </kbd>
+                modifier && (
+                  <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-base-content/40 bg-base-200 border border-base-300 rounded">
+                    <span className={modifier === '⌘' ? 'text-xs' : 'text-[10px]'}>{modifier}</span>K
+                  </kbd>
+                )
               )}
             </div>
           </div>

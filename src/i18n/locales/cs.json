@@ -50,7 +50,7 @@
   },
 
   "search": {
-    "placeholder": "Hledej předměty, lidi, stránky... (⌘K)",
+    "placeholder": "Hledej předměty, lidi, stránky... ({shortcut}K)",
     "results": "Výsledky",
     "recent": "Nedávná vyhledávání",
     "loading": "Načítání výsledků...",

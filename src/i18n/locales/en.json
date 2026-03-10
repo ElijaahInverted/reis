@@ -110,7 +110,7 @@
   },
 
   "search": {
-    "placeholder": "Search subjects, people, pages... (⌘K)",
+    "placeholder": "Search subjects, people, pages... ({shortcut}K)",
     "results": "Results",
     "recent": "Recent searches",
     "loading": "Loading results...",
