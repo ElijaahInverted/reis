@@ -19,7 +19,8 @@ export function SuccessRateTab({ courseCode, facultyCode }: { courseCode: string
 
     const allStats = sortSemesters(data.stats);
     const filtered = facultyCode ? allStats.filter(s => s.semesterName.split(' - ').at(-1) === facultyCode) : allStats;
-    const stats = (filtered.length > 0 ? filtered : allStats).slice(0, 5), sIdx = Math.min(idx, stats.length - 1), current = stats[sIdx];
+    if (filtered.length === 0) return <div className="flex flex-col items-center justify-center h-full"><AlertTriangle className="w-8 h-8 opacity-40 mb-3" /><p className="text-sm opacity-60">{t('successRate.noData')}</p></div>;
+    const stats = filtered.slice(0, 5), sIdx = Math.min(idx, stats.length - 1), current = stats[sIdx];
     const isCredit = current.type === 'credit', total = current.totalPass + current.totalFail;
     const order = isCredit ? ['zap', 'nezap'] : ['A', 'B', 'C', 'D', 'E', 'F', 'FN'];
     const colors = isCredit ? { zap: 'var(--color-success)', nezap: 'var(--color-error)' } : COLORS;
