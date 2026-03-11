@@ -5,43 +5,26 @@ import type { Classmate } from '../../types/classmates';
 export interface UseClassmatesResult {
     classmates: Classmate[];
     isLoading: boolean;
-    progressStatus: string;
 }
 
 /**
- * useClassmates - Hook to access classmates data from store.
+ * useClassmates - Returns seminar (Cvičení) classmates for a course.
  *
- * Triggers fetchClassmatesAll and fetchClassmatesSeminar in parallel on mount.
- * Each fetch is independently deduped and reads from IDB cache first.
- * Loading state is scoped to the active filter tab.
+ * Triggers fetchClassmates on mount (deduped in the slice).
+ * skupinaId is forwarded to the fetch so the API can filter by seminar group.
  */
-export function useClassmates(courseCode: string | undefined, filter: 'all' | 'seminar' = 'all'): UseClassmatesResult {
-    const classmatesData = useAppStore(state => courseCode ? state.classmates[courseCode] : undefined);
-    const isAllLoading = useAppStore(state => courseCode ? !!state.classmatesAllLoading[courseCode] : false);
-    const isSeminarLoading = useAppStore(state => courseCode ? !!state.classmatesSeminarLoading[courseCode] : false);
-    const allProgress = useAppStore(state => courseCode ? state.classmatesAllProgress[courseCode] || '' : '');
-    const seminarProgress = useAppStore(state => courseCode ? state.classmatesSeminarProgress[courseCode] || '' : '');
-    const lastSync = useAppStore(state => state.syncStatus.lastSync);
+export function useClassmates(courseCode: string | undefined, skupinaId?: string): UseClassmatesResult {
+    const classmates = useAppStore(state => courseCode ? state.classmates[courseCode] : undefined);
+    const isLoading = useAppStore(state => courseCode ? !!state.classmatesLoading[courseCode] : false);
 
     useEffect(() => {
         if (courseCode) {
-            const state = useAppStore.getState();
-            state.fetchClassmatesAll(courseCode);
-            state.fetchClassmatesSeminar(courseCode);
+            useAppStore.getState().fetchClassmates(courseCode, skupinaId);
         }
-    }, [courseCode, lastSync]);
-
-    // Show skeleton until data arrives for the active filter.
-    // classmatesData undefined means neither fetch has completed yet.
-    const isLoading = filter === 'all'
-        ? (isAllLoading || classmatesData === undefined)
-        : (isSeminarLoading || classmatesData === undefined);
-
-    const progressStatus = filter === 'all' ? allProgress : seminarProgress;
+    }, [courseCode, skupinaId]);
 
     return {
-        classmates: classmatesData?.[filter] || [],
-        isLoading,
-        progressStatus,
+        classmates: classmates ?? [],
+        isLoading: isLoading || classmates === undefined,
     };
 }

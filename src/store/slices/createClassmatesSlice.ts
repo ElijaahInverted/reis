@@ -2,28 +2,25 @@ import type { ClassmatesSlice, AppSlice } from '../types';
 
 export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set) => ({
     classmates: {},
-    classmatesAllLoading: {},
-    classmatesAllProgress: {},
-    classmatesSeminarLoading: {},
-    classmatesSeminarProgress: {},
+    classmatesLoading: {},
 
-    fetchClassmatesAll: async (courseCode) => {
-        set((state) => ({
-            classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), all: [] } },
-            classmatesAllLoading: { ...state.classmatesAllLoading, [courseCode]: false },
-            classmatesAllProgress: { ...state.classmatesAllProgress, [courseCode]: 'success' },
-        }));
+    fetchClassmates: async (courseCode, _skupinaId) => {
+        // Guard: don't re-fetch if already loading or data exists
+        const state = (await import('../useAppStore')).useAppStore.getState();
+        if (state.classmatesLoading[courseCode] || state.classmates[courseCode] !== undefined) return;
+
+        set((s) => ({ classmatesLoading: { ...s.classmatesLoading, [courseCode]: true } }));
+        try {
+            // TODO: call API with skupinaId and write to IDB
+            // For now resolve to empty — UI will show "no classmates" state
+            set((s) => ({
+                classmates: { ...s.classmates, [courseCode]: [] },
+                classmatesLoading: { ...s.classmatesLoading, [courseCode]: false },
+            }));
+        } catch {
+            set((s) => ({ classmatesLoading: { ...s.classmatesLoading, [courseCode]: false } }));
+        }
     },
 
-    fetchClassmatesSeminar: async (courseCode) => {
-        set((state) => ({
-            classmates: { ...state.classmates, [courseCode]: { ...(state.classmates[courseCode] ?? {}), seminar: [] } },
-            classmatesSeminarLoading: { ...state.classmatesSeminarLoading, [courseCode]: false },
-            classmatesSeminarProgress: { ...state.classmatesSeminarProgress, [courseCode]: 'success' },
-        }));
-    },
-
-    invalidateClassmates: () => {
-        set({ classmates: {}, classmatesAllLoading: {}, classmatesAllProgress: {}, classmatesSeminarLoading: {}, classmatesSeminarProgress: {} });
-    },
+    invalidateClassmates: () => set({ classmates: {}, classmatesLoading: {} }),
 });

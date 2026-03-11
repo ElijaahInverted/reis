@@ -61,13 +61,10 @@ export interface AssessmentsSlice {
 }
 
 export interface ClassmatesSlice {
-    classmates: Record<string, ClassmatesData>;
-    classmatesAllLoading: Record<string, boolean>;
-    classmatesAllProgress: Record<string, string>;
-    classmatesSeminarLoading: Record<string, boolean>;
-    classmatesSeminarProgress: Record<string, string>;
-    fetchClassmatesAll: (courseCode: string) => Promise<void>;
-    fetchClassmatesSeminar: (courseCode: string) => Promise<void>;
+    /** courseCode → flat list of seminar classmates */
+    classmates: Record<string, Classmate[]>;
+    classmatesLoading: Record<string, boolean>;
+    fetchClassmates: (courseCode: string, skupinaId?: string) => Promise<void>;
     invalidateClassmates: () => void;
 }
 

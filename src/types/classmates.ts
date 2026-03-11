@@ -6,7 +6,5 @@ export interface Classmate {
     messageUrl?: string;
 }
 
-export interface ClassmatesData {
-    all?: Classmate[];
-    seminar?: Classmate[];
-}
+/** Flat list of seminar (Cvičení) classmates for a course */
+export type ClassmatesData = Classmate[];

@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Search, Mail, User, Users, UserRound } from 'lucide-react';
+import { Search, Mail, User, Users } from 'lucide-react';
 import { useClassmates } from '../../hooks/data/useClassmates';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useAppStore } from '../../store/useAppStore';
 import { ClassmatesListSkeleton } from './ClassmatesListSkeleton';
 
 interface ClassmatesTabProps {
@@ -10,24 +9,10 @@ interface ClassmatesTabProps {
     skupinaId?: string;
 }
 
-export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: ClassmatesTabProps) {
+export function ClassmatesTab({ courseCode, skupinaId }: ClassmatesTabProps) {
     const { t } = useTranslation();
-    
-    // Try to get skupinaId from props first, then fall back to subjects store
-    const subjectInfo = useAppStore(state => state.subjects?.data?.[courseCode]);
-    const skupinaId = propsSkupinaId || subjectInfo?.skupinaId;
-    
-    // Derive default filter reactively so it updates when skupinaId loads asynchronously.
-    // Once the user manually clicks a tab, their choice takes precedence.
-    // Wait for Cvičení fetch to complete before auto-switching to avoid showing
-    // Všichni data briefly while Cvičení is still in flight.
-    const isSeminarReady = useAppStore(state =>
-        !!skupinaId && state.classmatesSeminarProgress[courseCode] === 'success'
-    );
-    const [userFilter, setUserFilter] = useState<'all' | 'seminar' | null>(null);
-    const filter = userFilter ?? (isSeminarReady ? 'seminar' : 'all');
     const [searchQuery, setSearchQuery] = useState('');
-    const { classmates, isLoading } = useClassmates(courseCode, filter);
+    const { classmates, isLoading } = useClassmates(courseCode, skupinaId);
 
     const translate = (key: string, fallback: string) => {
         const result = t(key);
@@ -42,58 +27,26 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
             c.personId.toString().includes(q)
         );
     }, [classmates, searchQuery]);
-    
-    // Keep skeleton visible during loading
-    const showSkeleton = isLoading;
-    
-    // Create progress message for skeleton
-    const getProgressMessage = () => {
-        const filterText = filter === 'seminar' ? 
-            translate('classmates.loadingSeminar', 'Loading seminar classmates...') :
-            translate('classmates.loadingAll', 'Loading classmates...');
-        return filterText;
-    };
 
     return (
         <div className="flex flex-col h-full bg-base-100">
-            {/* Controls Header */}
-            <div className="flex flex-col gap-4 p-6 border-b border-base-300">
-                <div className="flex items-center justify-between gap-4">
-                    {/* Filter Toggle */}
-                    <div className="join bg-base-200 p-1 rounded-lg h-10 flex">
-                        <button
-                            className={`join-item btn btn-xs sm:btn-sm border-none h-full ${filter === 'all' ? 'bg-base-100 shadow-sm text-primary' : 'bg-transparent text-base-content/60 hover:text-base-content/80'}`}
-                            onClick={() => setUserFilter('all')}
-                        >
-                            <Users size={16} className="mr-2" />
-                            {translate('classmates.all', 'Všichni')}
-                        </button>
-                        <button
-                            className={`join-item btn btn-xs sm:btn-sm border-none h-full ${filter === 'seminar' ? 'bg-base-100 shadow-sm text-primary' : 'bg-transparent text-base-content/60 hover:text-base-content/80'}`}
-                            onClick={() => setUserFilter('seminar')}
-                        >
-                            <UserRound size={16} className="mr-2" />
-                            {translate('classmates.seminar', 'Cvičení')}
-                        </button>
-                    </div>
-
-                    {/* Search Bar */}
-                    <div className="relative flex-1 max-w-[240px]">
-                        <input
-                            type="text"
-                            placeholder={translate('classmates.search', 'Vyhledat...')}
-                            className="input input-sm input-bordered w-full h-10 pl-9 rounded-lg bg-base-100 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 pointer-events-none z-10" />
-                    </div>
+            {/* Search header */}
+            <div className="flex items-center gap-4 px-6 py-4 border-b border-base-300">
+                <div className="relative flex-1">
+                    <input
+                        type="text"
+                        placeholder={translate('classmates.search', 'Vyhledat...')}
+                        className="input input-sm input-bordered w-full h-10 pl-9 rounded-lg bg-base-100 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 pointer-events-none z-10" />
                 </div>
             </div>
 
-            {/* List Content */}
-            {showSkeleton ? (
-                <ClassmatesListSkeleton message={getProgressMessage()} />
+            {/* List */}
+            {isLoading ? (
+                <ClassmatesListSkeleton message={translate('classmates.loadingSeminar', 'Načítám spolužáky z cvičení...')} />
             ) : (
                 <div className="flex-1 overflow-y-auto p-4">
                     {filteredClassmates.length === 0 ? (
@@ -102,69 +55,67 @@ export function ClassmatesTab({ courseCode, skupinaId: propsSkupinaId }: Classma
                             <p>{translate('classmates.noneFound', 'Žádní spolužáci nenalezeni')}</p>
                         </div>
                     ) : (
-                    <div className="grid grid-cols-1 gap-3">
-                        {filteredClassmates.map((student) => (
-                            <div key={student.personId} className="flex items-center justify-between p-3 rounded-xl border border-base-200 bg-base-100 hover:border-primary/20 hover:shadow-sm transition-all group">
-                                <a 
-                                    href={`https://is.mendelu.cz/auth/lide/clovek.pl?id=${student.personId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-4 group/profile flex-1"
-                                >
-                                    {/* Avatar */}
-                                    <div className="avatar">
-                                        <div className="w-14 h-14 rounded-full ring-1 ring-base-200 ring-offset-base-100 ring-offset-2 group-hover/profile:ring-primary/40 transition-all">
-                                            {student.photoUrl ? (
-                                                <img src={student.photoUrl.startsWith('http') ? student.photoUrl : `https://is.mendelu.cz${student.photoUrl}`} alt={student.name} className="w-full h-full object-cover scale-[1.05]" />
-                                            ) : (
-                                                <div className="bg-neutral text-neutral-content w-full h-full flex items-center justify-center">
-                                                    <User size={24} strokeWidth={1.5} />
-                                                </div>
-                                            )}
+                        <div className="grid grid-cols-1 gap-3">
+                            {filteredClassmates.map((student) => (
+                                <div key={student.personId} className="flex items-center justify-between p-3 rounded-xl border border-base-200 bg-base-100 hover:border-primary/20 hover:shadow-sm transition-all group">
+                                    <a
+                                        href={`https://is.mendelu.cz/auth/lide/clovek.pl?id=${student.personId}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-4 group/profile flex-1"
+                                    >
+                                        {/* Avatar */}
+                                        <div className="avatar">
+                                            <div className="w-14 h-14 rounded-full ring-1 ring-base-200 ring-offset-base-100 ring-offset-2 group-hover/profile:ring-primary/40 transition-all">
+                                                {student.photoUrl ? (
+                                                    <img src={student.photoUrl.startsWith('http') ? student.photoUrl : `https://is.mendelu.cz${student.photoUrl}`} alt={student.name} className="w-full h-full object-cover scale-[1.05]" />
+                                                ) : (
+                                                    <div className="bg-neutral text-neutral-content w-full h-full flex items-center justify-center">
+                                                        <User size={24} strokeWidth={1.5} />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Info */}
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-base-content leading-tight">
-                                                {student.name}
+                                        {/* Info */}
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-base-content leading-tight">{student.name}</span>
+                                                {student.studyInfo && (
+                                                    <>
+                                                        <span className="text-base-content/20">•</span>
+                                                        <span className="text-xs text-base-content/60 line-clamp-1 max-w-[150px] md:max-w-[250px] mt-0.5" title={student.studyInfo}>
+                                                            {student.studyInfo}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </a>
+
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-2">
+                                        {student.messageUrl ? (
+                                            <a
+                                                href={`https://is.mendelu.cz${student.messageUrl}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="btn btn-circle btn-sm btn-ghost text-base-content/40 hover:text-primary hover:bg-primary/10"
+                                                title={student.name}
+                                            >
+                                                <Mail size={24} strokeWidth={1.5} />
+                                            </a>
+                                        ) : (
+                                            <span className="btn btn-circle btn-sm btn-ghost text-base-content/20 cursor-not-allowed">
+                                                <Mail size={24} strokeWidth={1.5} />
                                             </span>
-                                            {student.studyInfo && (
-                                                <>
-                                                    <span className="text-base-content/20">•</span>
-                                                    <span className="text-xs text-base-content/60 line-clamp-1 max-w-[150px] md:max-w-[250px] mt-0.5" title={student.studyInfo}>
-                                                        {student.studyInfo}
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
-                                </a>
-
-                                {/* Actions */}
-                                <div className="flex items-center gap-2">
-                                    {student.messageUrl ? (
-                                        <a
-                                            href={`https://is.mendelu.cz${student.messageUrl}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-circle btn-sm btn-ghost text-base-content/40 hover:text-primary hover:bg-primary/10"
-                                            title={student.name}
-                                        >
-                                            <Mail size={24} strokeWidth={1.5} />
-                                        </a>
-                                    ) : (
-                                        <span className="btn btn-circle btn-sm btn-ghost text-base-content/20 cursor-not-allowed">
-                                            <Mail size={24} strokeWidth={1.5} />
-                                        </span>
-                                    )}
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             )}
         </div>
     );
