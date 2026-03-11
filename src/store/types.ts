@@ -144,6 +144,8 @@ export interface FeedbackSlice {
 export interface StudyPlanSlice {
     studyPlanDual: DualLanguageStudyPlan | null;
     studyPlanLoading: boolean;
+    /** true once the first fetchStudyPlan() call has fully resolved */
+    studyPlanLoaded: boolean;
     studyStats: StudyStats | null;
     fetchStudyPlan: () => Promise<void>;
     fetchStudyStats: () => Promise<void>;

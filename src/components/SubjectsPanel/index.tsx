@@ -6,6 +6,7 @@ import { SubjectsPanelHeader } from './SubjectsPanelHeader';
 import { SubjectRow } from './SubjectRow';
 import { computeFailRate } from './computeFailRate';
 import { SemesterSection } from './SemesterSection';
+import { SubjectsPanelSkeleton } from './SubjectsPanelSkeleton';
 import type { SubjectStatus } from '@/types/studyPlan';
 
 interface SubjectsPanelProps {
@@ -30,6 +31,8 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
   const { t } = useTranslation();
   const plan = useStudyPlan();
   const loading = useAppStore(s => s.studyPlanLoading);
+  const loaded = useAppStore(s => s.studyPlanLoaded);
+  const isSyncing = useAppStore(s => s.isSyncing);
   const studyStats = useAppStore(s => s.studyStats);
   const successRates = useAppStore(s => s.successRates);
 
@@ -60,14 +63,8 @@ export function SubjectsPanel({ onOpenSubject, onSearchSubject }: SubjectsPanelP
     return map;
   }, [plan, successRates]);
 
-  if (loading && !plan) {
-    return (
-      <div className="flex items-center justify-center h-full text-base-content/50">
-        <span className="loading loading-spinner mr-2" />
-        {t('subjects.loading')}
-      </div>
-    );
-  }
+  // Skeleton while: initial load, any active fetch, or sync in progress with no data yet
+  if (loading || !loaded || (isSyncing && !plan)) return <SubjectsPanelSkeleton />;
 
   if (!plan) {
     return <div className="flex items-center justify-center h-full text-base-content/50">{t('subjects.noData')}</div>;
