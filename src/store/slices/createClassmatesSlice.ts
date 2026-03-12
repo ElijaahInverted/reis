@@ -7,13 +7,12 @@ import { IndexedDBService } from '../../services/storage';
  * Data is written to the extension-origin IDB by useAppLogic's syncUpdate handler.
  * This slice only reads from IDB to hydrate the store.
  */
-export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set) => ({
+export const createClassmatesSlice: AppSlice<ClassmatesSlice> = (set, get) => ({
     classmates: {},
     classmatesLoading: {},
-
     fetchClassmates: async (courseCode) => {
-        const state = (await import('../useAppStore')).useAppStore.getState();
-        if (state.classmatesLoading[courseCode] || state.classmates[courseCode] !== undefined) {
+        const { classmates, classmatesLoading } = get();
+        if (classmatesLoading[courseCode] || classmates[courseCode] !== undefined) {
             return;
         }
 

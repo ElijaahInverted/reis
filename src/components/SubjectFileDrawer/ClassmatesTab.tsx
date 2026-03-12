@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, Mail, User, Users } from 'lucide-react';
 import { useClassmates } from '../../hooks/data/useClassmates';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useAppStore } from '../../store/useAppStore';
 import { ClassmatesListSkeleton } from './ClassmatesListSkeleton';
 
 interface ClassmatesTabProps {
@@ -11,7 +12,9 @@ interface ClassmatesTabProps {
 export function ClassmatesTab({ courseCode }: ClassmatesTabProps) {
     const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
-    const { classmates, isLoading } = useClassmates(courseCode);
+    const { classmates, isLoading: isIDBLoading } = useClassmates(courseCode);
+    const isSyncing = useAppStore(state => state.isSyncing);
+    const isLoading = isIDBLoading || (isSyncing && classmates.length === 0);
 
 
     const translate = (key: string, fallback: string) => {
