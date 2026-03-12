@@ -131,11 +131,11 @@
     "showLess": "Zobrazit méně",
     "tabs": {
       "files": "Soubory",
-      "requirements": "Požadavky",
+      "requirements": "Sylabus",
       "successRate": "Úspěšnost",
       "assessment": "Klasifikace",
       "classmates": "Spolužáci",
-      "osnovy": "Cvičné testy"
+      "osnovy": "Cv. testy"
     },
     "osnovy": {
       "tests": "Cvičné testy",

@@ -131,11 +131,11 @@
     "showLess": "Show less",
     "tabs": {
       "files": "Files",
-      "requirements": "Requirements",
-      "successRate": "Success Rate",
-      "assessment": "Assessment",
+      "requirements": "Syllabus",
+      "successRate": "Success",
+      "assessment": "Grades",
       "classmates": "Classmates",
-      "osnovy": "Practice Tests"
+      "osnovy": "Tests"
     },
     "osnovy": {
       "tests": "Practice Tests",
