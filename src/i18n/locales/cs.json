@@ -312,7 +312,8 @@
     "sortNewest": "Nejnovější",
     "sortOldest": "Nejstarší",
     "sortRating": "Hodnocení",
-    "sortCheapest": "Nejlevnější"
+    "sortCheapest": "Nejlevnější",
+    "openInIS": "Otevřít v ISu"
   },
   "classmates": {
     "all": "Všichni",

@@ -312,7 +312,8 @@
     "sortNewest": "Newest",
     "sortOldest": "Oldest",
     "sortRating": "Best rated",
-    "sortCheapest": "Cheapest"
+    "sortCheapest": "Cheapest",
+    "openInIS": "Open in IS"
   },
   "classmates": {
     "all": "All",

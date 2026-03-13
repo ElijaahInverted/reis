@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { ErasmusReport } from '@/types/erasmus';
 
@@ -98,6 +98,17 @@ export function ErasmusReportCard({ report }: Props) {
               <p className="text-xs text-base-content/70">{report.accommodation.foodNotes}</p>
             </div>
           )}
+
+          {/* External link */}
+          <a
+            href={`https://is.mendelu.cz/auth/int/zavzpr.pl?akce=1;zobrazit=${report.reportId};lang=cz`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-focus transition-colors"
+          >
+            {t('erasmus.openInIS')}
+            <ExternalLink size={14} />
+          </a>
         </div>
       )}
     </div>
