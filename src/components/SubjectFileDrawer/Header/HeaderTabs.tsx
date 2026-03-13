@@ -44,7 +44,7 @@ export function HeaderTabs({ activeTab, onTabChange, disabledTabs = [], counts }
                     >
                         <div className="relative">
                             <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
-                            {count !== undefined && count > 0 && (
+                            {count !== undefined && (count > 0 || tab.id === 'cvicneTests') && (
                                 <span className={`absolute -top-1.5 -right-2 text-[9px] font-bold min-w-[14px] h-[14px] flex items-center justify-center rounded-full px-0.5 ${
                                     isActive
                                         ? 'bg-primary text-primary-content'

@@ -143,7 +143,7 @@
       "tests": "Cvičné testy",
       "assignments": "Odevzdávárny",
       "assignmentsDone": "Odevzdané / Uzavřené",
-      "noTests": "Žádné testy k dispozici.",
+      "noTests": "Žádné úkoly ani cv. testy k dispozici.",
       "noAssignments": "Žádné odevzdávárny k dispozici."
     },
 

@@ -143,7 +143,7 @@
       "tests": "Practice Tests",
       "assignments": "Assignments",
       "assignmentsDone": "Submitted / Closed",
-      "noTests": "No tests available.",
+      "noTests": "No assignments or practice tests available.",
       "noAssignments": "No assignments available."
     },
 
