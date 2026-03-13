@@ -5,6 +5,7 @@ import type { ExamSubject } from '../../types/exams';
 import type { ClassmatesData } from '../../types/classmates';
 import type { StudyPlan, DualLanguageStudyPlan } from '../../types/studyPlan';
 import type { CvicnyTest } from '../../api/cvicneTests';
+import type { Odevzdavarna } from '../../api/odevzdavarny';
 import { StoreSchemas, type StoreName } from '../../types/storage';
 
 interface ReisDB extends DBSchema {
@@ -58,10 +59,14 @@ interface ReisDB extends DBSchema {
         key: string;
         value: CvicnyTest[];
     };
+    odevzdavarny: {
+        key: string;
+        value: Odevzdavarna[];
+    };
 }
 
 const DB_NAME = 'reis_db';
-const DB_VERSION = 11;
+const DB_VERSION = 12;
 
 class IndexedDBServiceImpl {
     private dbPromise: Promise<IDBPDatabase<ReisDB>>;
@@ -72,7 +77,7 @@ class IndexedDBServiceImpl {
                 const requiredStores: (keyof ReisDB)[] = [
                     'files', 'assessments', 'syllabuses', 'classmates',
                     'exams', 'schedule', 'subjects', 'success_rates', 'meta',
-                    'grade_history', 'study_plan', 'cvicne_tests'
+                    'grade_history', 'study_plan', 'cvicne_tests', 'odevzdavarny'
                 ];
                 
                 requiredStores.forEach(store => {

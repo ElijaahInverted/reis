@@ -54,7 +54,7 @@ export function HeaderTabs({ activeTab, onTabChange, disabledTabs = [], counts }
                                 </span>
                             )}
                         </div>
-                        <span className="text-[10px] sm:text-[11px] font-bold leading-tight text-center">
+                        <span className="text-[10px] sm:text-[11px] font-bold leading-tight text-center whitespace-nowrap">
                             {tab.label}
                         </span>
                     </button>

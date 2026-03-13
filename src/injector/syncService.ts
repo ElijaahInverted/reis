@@ -8,6 +8,7 @@ import { fetchDualLanguageStudyPlan } from "../api/studyPlan";
 import { fetchStudyStats } from "../api/studyStats";
 import { fetchSyllabus } from "../api/syllabus";
 import { syncCvicneTests } from "../services/sync/syncCvicneTests";
+import { syncOdevzdavarny } from "../services/sync/syncOdevzdavarny";
 import { fetchSeminarGroupIds, fetchClassmates } from "../api/classmates";
 
 import { getUserParams } from "../utils/userParams";
@@ -74,15 +75,25 @@ export async function syncAllData() {
             return result;
         }) : Promise.resolve(null);
 
+        const odevzdavarnyPromise = (studium && userParams?.obdobi)
+            ? syncOdevzdavarny(studium, userParams.obdobi).then(result => {
+                console.log('[syncService] odevzdavarny result:', { count: result?.assignments.length, result });
+                if (result) {
+                    cachedData = { ...cachedData, odevzdavarny: result.assignments };
+                }
+                return result;
+            })
+            : Promise.resolve(null);
 
         // Phase 2b: Full schedule + exams in parallel (subjects/studyPlan/studyStats re-uses already-started promises)
-        const [fullSchedule, exams, subjects, studyPlan, studyStats, cvicneTests] = await Promise.allSettled([
+        const [fullSchedule, exams, subjects, studyPlan, studyStats, cvicneTests, odevzdavarnyResult] = await Promise.allSettled([
             fetchFullSemesterSchedule(),
             fetchDualLanguageExams(),
             subjectsPromise,
             studyPlanPromise,
             studyStatsPromise,
             cvicneTestsPromise,
+            odevzdavarnyPromise,
         ]);
 
         cachedData = {
@@ -93,6 +104,7 @@ export async function syncAllData() {
             studyPlan: studyPlan.status === "fulfilled" && studyPlan.value ? studyPlan.value : cachedData.studyPlan,
             studyStats: studyStats.status === "fulfilled" && studyStats.value ? studyStats.value : cachedData.studyStats,
             cvicneTests: cvicneTests.status === "fulfilled" && cvicneTests.value ? cvicneTests.value.tests : cachedData.cvicneTests,
+            odevzdavarny: odevzdavarnyResult.status === "fulfilled" && odevzdavarnyResult.value ? odevzdavarnyResult.value.assignments : cachedData.odevzdavarny,
             files: cachedData.files || {},
             lastSync: Date.now(),
         };

@@ -50,6 +50,7 @@ export const initializeStore = async () => {
     useAppStore.getState().fetchSubjects();
     useAppStore.getState().fetchStudyPlan();
     useAppStore.getState().fetchCvicneTests();
+    useAppStore.getState().fetchOdevzdavarny();
     useAppStore.getState().fetchAllFiles();
     useAppStore.getState().loadTheme();
     useAppStore.getState().loadLanguage();
@@ -69,6 +70,7 @@ export const initializeStore = async () => {
         useAppStore.getState().fetchSubjects();
         useAppStore.getState().fetchStudyPlan();
         useAppStore.getState().fetchCvicneTests();
+        useAppStore.getState().fetchOdevzdavarny();
         useAppStore.getState().fetchAllFiles();
 
         if (type === 'THEME_UPDATE') {

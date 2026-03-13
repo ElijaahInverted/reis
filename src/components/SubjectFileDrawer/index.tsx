@@ -10,7 +10,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '../ui/resi
 import type { BlockLesson } from '../../types/calendarTypes';
 import type { ParsedFile } from '../../types/documents';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useCvicneTests } from '../../hooks/data';
+import { useCvicneTests, useOdevzdavarny } from '../../hooks/data';
 import type { SelectedSubject } from '../../types/app';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -22,13 +22,14 @@ export function SubjectFileDrawer({ lesson, isOpen, onClose }: { lesson: BlockLe
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const { t } = useTranslation();
     const { tests } = useCvicneTests(lesson?.courseName);
+    const { assignments } = useOdevzdavarny(lesson?.courseName);
     const classmatesCount = useAppStore(s => lesson?.courseCode ? s.classmates[lesson.courseCode]?.length : undefined);
 
     const tabCounts = useMemo(() => ({
         files: state.files?.reduce((acc, f) => acc + f.files.length, 0) || 0,
-        cvicneTests: tests.length,
+        cvicneTests: tests.length + assignments.length,
         classmates: classmatesCount,
-    }), [state.files, tests, classmatesCount]);
+    }), [state.files, tests, assignments, classmatesCount]);
 
     useEffect(() => {
         if (isOpen && state.files?.length) {

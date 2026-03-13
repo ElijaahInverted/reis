@@ -9,3 +9,4 @@ export * from './useSyllabus';
 export * from './useExams';
 export * from './useClassmates';
 export * from './useCvicneTests';
+export * from './useOdevzdavarny';

@@ -12,7 +12,6 @@ export const createCvicneTestsSlice: AppSlice<CvicneTestsSlice> = (set) => ({
 
       if (studium) {
         const data = await IndexedDBService.get('cvicne_tests', studium);
-        console.log('[cvicneTests] fetchCvicneTests from IDB:', { studium, count: data?.length, data });
         set({
           cvicneTests: data || [],
           cvicneTestsStatus: 'success',
@@ -25,7 +24,33 @@ export const createCvicneTestsSlice: AppSlice<CvicneTestsSlice> = (set) => ({
     }
   },
   setCvicneTests: (tests) => {
-    console.log('[cvicneTests] setCvicneTests called:', { count: tests?.length, tests });
     set({ cvicneTests: tests || [] });
+  },
+  odevzdavarny: [],
+  odevzdavarnyStatus: 'idle',
+  fetchOdevzdavarny: async () => {
+    set(() => ({ odevzdavarnyStatus: 'loading' }));
+    try {
+      const userParams = await IndexedDBService.get('meta', 'reis_user_params');
+      const studium = userParams?.studium;
+      const obdobi = userParams?.obdobi;
+
+      if (studium && obdobi) {
+        const data = await IndexedDBService.get('odevzdavarny', `${studium}_${obdobi}`);
+        console.log('[odevzdavarny] fetchOdevzdavarny from IDB:', { studium, obdobi, count: data?.length, data });
+        set({
+          odevzdavarny: data || [],
+          odevzdavarnyStatus: 'success',
+        });
+      } else {
+        set({ odevzdavarnyStatus: 'success', odevzdavarny: [] });
+      }
+    } catch {
+      set({ odevzdavarnyStatus: 'error' });
+    }
+  },
+  setOdevzdavarny: (assignments) => {
+    console.log('[odevzdavarny] setOdevzdavarny called:', { count: assignments?.length, assignments });
+    set({ odevzdavarny: assignments || [] });
   },
 });

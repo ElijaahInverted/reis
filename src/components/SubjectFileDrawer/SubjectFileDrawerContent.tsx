@@ -5,8 +5,7 @@ import { SyllabusTab } from './SyllabusTab';
 import { ClassmatesTab } from './ClassmatesTab';
 import { SuccessRateTab } from '../SuccessRateTab';
 import { SelectionBox, DragHint } from './DragHint';
-import { useCvicneTests } from '../../hooks/data';
-import { useUserParams } from '../../hooks/useUserParams';
+import { CvicneTestsTab } from './CvicneTestsTab';
 import type { FileGroup } from './types';
 import type { SyllabusRequirements, ParsedFile } from '../../types/documents';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -43,10 +42,6 @@ export function SubjectFileDrawerContent({
     groupedFiles, selectedIds, fileRefs, ignoreClickRef, toggleSelect, openFile, onViewPdf, resolvedCourseId, syllabusResult, folderUrl
 }: SubjectFileDrawerContentProps) {
     const { t, language } = useTranslation();
-    const { tests, status: cvicneTestsStatus } = useCvicneTests(lesson?.courseName);
-    const { params } = useUserParams();
-    const lang = language === 'cz' ? 'cz' : 'en';
-    const studium = params?.studium;
 
     if (activeTab === 'files') {
         const isEmpty = !files || files.length === 0;
@@ -107,63 +102,7 @@ export function SubjectFileDrawerContent({
     if (activeTab === 'classmates') return <ClassmatesTab courseCode={lesson?.courseCode || ''} />;
     
     if (activeTab === 'cvicneTests') {
-        const isLoading = cvicneTestsStatus === 'loading';
-        const hasTests = tests.length > 0;
-        const isEmpty = !hasTests;
-
-        if (isLoading && isEmpty) {
-            return (
-                <div className="flex flex-col gap-3 p-4">
-                    {[...Array(3)].map((_, i) => (
-                        <div key={i} className="flex items-center justify-between p-3 rounded-xl">
-                            <div className="skeleton h-4 w-2/3" />
-                            <div className="skeleton h-8 w-20 rounded-xl" />
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-
-        return (
-            <div className="flex flex-col h-full bg-base-100 overflow-y-auto w-full">
-                <div className="flex flex-col gap-6 p-4 flex-1">
-                    {isEmpty ? (
-                        <div className="flex flex-col items-center justify-center p-6 text-center mt-4">
-                            <FileText className="w-12 h-12 text-base-content/20 mb-3" />
-                            <p className="text-sm text-base-content/60">
-                                {t('course.cvicneTests.noTests') || 'Žádné testy k dispozici.'}
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 px-3">
-                                {t('course.cvicneTests.tests') || 'Testy'}
-                            </h3>
-                            <div className="flex flex-col gap-1">
-                                {tests.map(test => (
-                                    <a key={test.url} href={test.url} target="_blank" rel="noopener noreferrer"
-                                        className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 active:scale-[0.99] transition-all animate-in fade-in slide-in-from-left-2 duration-300 cursor-pointer">
-                                        <span className="font-semibold text-base-content/80 text-sm truncate min-w-0">
-                                            {test.name}
-                                        </span>
-                                        <ExternalLink size={14} className="text-base-content/30 shrink-0" />
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-                {studium && (
-                    <div className="flex items-center justify-center gap-3 py-3 mt-0">
-                        <a href={`https://is.mendelu.cz/auth/elis/student/seznam_osnov.pl?studium=${studium};lang=${lang}`} target="_blank" rel="noopener noreferrer"
-                            className="btn btn-ghost btn-sm gap-2 text-base-content/70 hover:text-primary normal-case font-bold">
-                            <span>IS MENDELU</span>
-                            <ExternalLink size={16} />
-                        </a>
-                    </div>
-                )}
-            </div>
-        );
+        return <CvicneTestsTab lesson={lesson} />;
     }
 
     return <SuccessRateTab courseCode={lesson?.courseCode || ''} facultyCode={(lesson as { facultyCode?: string } | null)?.facultyCode} />;

@@ -5,6 +5,7 @@ import type { SyllabusRequirements, ParsedFile, Assessment, SubjectsData, Subjec
 import type { ClassmatesData } from '../types/classmates';
 import type { DualLanguageStudyPlan, StudyStats } from '../types/studyPlan';
 import type { CvicnyTest } from '../api/cvicneTests';
+import type { Odevzdavarna } from '../api/odevzdavarny';
 import type { SyncStatus } from '../services/sync';
 
 export type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -153,6 +154,10 @@ export interface CvicneTestsSlice {
     cvicneTestsStatus: Status;
     fetchCvicneTests: () => Promise<void>;
     setCvicneTests: (tests: CvicnyTest[]) => void;
+    odevzdavarny: Odevzdavarna[];
+    odevzdavarnyStatus: Status;
+    fetchOdevzdavarny: () => Promise<void>;
+    setOdevzdavarny: (assignments: Odevzdavarna[]) => void;
 }
 
 
