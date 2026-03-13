@@ -40,12 +40,12 @@ export function CvicneTestsTab({ lesson }: CvicneTestsTabProps) {
 
     return (
         <div className="flex flex-col h-full bg-base-100 overflow-y-auto w-full">
-            <div className="flex flex-col gap-4 p-4 flex-1">
+            <div className="p-6 space-y-6 flex-1">
                 {isEmpty ? (
                     <div className="flex flex-col items-center justify-center p-6 text-center mt-4">
                         <FileText className="w-12 h-12 text-base-content/20 mb-3" />
                         <p className="text-sm text-base-content/60">
-                            {t('course.cvicneTests.noTests') || 'Žádné testy k dispozici.'}
+                            {t('course.cvicneTests.noTests') || 'Žádné úkoly ani cv. testy k dispozici.'}
                         </p>
                     </div>
                 ) : (
@@ -60,17 +60,17 @@ export function CvicneTestsTab({ lesson }: CvicneTestsTabProps) {
                         >
                             {tests.length === 0 ? (
                                 <p className="text-xs text-base-content/40 px-3 py-2">
-                                    {t('course.cvicneTests.noTests') || 'Žádné testy k dispozici.'}
+                                    {t('course.cvicneTests.noTests') || 'Žádné úkoly ani cv. testy k dispozici.'}
                                 </p>
                             ) : (
                                 <div className="flex flex-col gap-1">
                                     {tests.map(test => (
                                         <a key={test.url} href={test.url} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 active:scale-[0.99] transition-all animate-in fade-in slide-in-from-left-2 duration-300 cursor-pointer">
-                                            <span className="font-semibold text-base-content/80 text-sm truncate min-w-0">
+                                            className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 active:scale-[0.99] transition-all animate-in fade-in slide-in-from-left-2 duration-300 cursor-pointer group">
+                                            <span className="font-medium text-base-content/80 text-sm truncate min-w-0">
                                                 {test.name}
                                             </span>
-                                            <ExternalLink size={14} className="text-base-content/30 shrink-0" />
+                                            <ExternalLink size={16} className="text-base-content/30 group-hover:text-primary shrink-0 transition-colors" />
                                         </a>
                                     ))}
                                 </div>
@@ -93,9 +93,9 @@ export function CvicneTestsTab({ lesson }: CvicneTestsTabProps) {
                                 <div className="flex flex-col gap-1">
                                     {assignments.map(a => (
                                         <a key={a.odevzdavarnaId || a.name} href={a.uploadUrl} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 active:scale-[0.99] transition-all animate-in fade-in slide-in-from-left-2 duration-300 cursor-pointer">
+                                            className="flex items-center justify-between gap-2 p-3 rounded-xl hover:bg-base-200 active:scale-[0.99] transition-all animate-in fade-in slide-in-from-left-2 duration-300 cursor-pointer group">
                                             <div className="flex flex-col min-w-0 flex-1">
-                                                <span className="font-semibold text-base-content/80 text-sm truncate">
+                                                <span className="font-medium text-base-content/80 text-sm truncate">
                                                     {a.name}
                                                 </span>
                                                 <div className="flex items-center gap-2 mt-0.5">
@@ -107,7 +107,7 @@ export function CvicneTestsTab({ lesson }: CvicneTestsTabProps) {
                                                     </span>
                                                 </div>
                                             </div>
-                                            <ExternalLink size={14} className="text-base-content/30 shrink-0" />
+                                            <ExternalLink size={16} className="text-base-content/30 group-hover:text-primary shrink-0 transition-colors" />
                                         </a>
                                     ))}
                                 </div>
@@ -125,17 +125,17 @@ function Section({ title, count, isOpen, onToggle, externalUrl, children }: {
     externalUrl?: string; children: React.ReactNode;
 }) {
     return (
-        <div className="flex flex-col gap-1">
+        <div className="space-y-3">
             <div className="flex items-center justify-between px-3">
                 <button onClick={onToggle} className="flex items-center gap-1.5 cursor-pointer">
-                    <ChevronDown size={12} className={`text-base-content/40 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
-                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-base-content/40">
+                    <ChevronDown size={14} className={`text-base-content/30 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-base-content/40">
                         {title} ({count})
                     </h3>
                 </button>
                 {externalUrl && (
-                    <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="text-base-content/30 hover:text-primary transition-colors">
-                        <ExternalLink size={12} />
+                    <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="text-base-content/20 hover:text-primary transition-colors">
+                        <ExternalLink size={14} />
                     </a>
                 )}
             </div>
