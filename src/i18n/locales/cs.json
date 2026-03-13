@@ -17,10 +17,12 @@
   },
   "sidebar": {
     "profile": "Profil",
+    "is": "IS",
     "calendar": "Kalendář",
     "exams": "Zkoušky",
     "dashboard": "Domů",
     "subjects": "Předměty",
+    "notebooks": "List záznamníku",
     "student": "Student",
     "study": "Studium",
     "portal": "Portál studenta",
@@ -135,9 +137,9 @@
       "successRate": "Úspěšnost",
       "assessment": "Klasifikace",
       "classmates": "Spolužáci",
-      "osnovy": "Cv. testy"
+      "cvicneTests": "Cv. testy"
     },
-    "osnovy": {
+    "cvicneTests": {
       "tests": "Cvičné testy",
       "assignments": "Odevzdávárny",
       "assignmentsDone": "Odevzdané / Uzavřené",

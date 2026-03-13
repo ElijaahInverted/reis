@@ -17,10 +17,12 @@
   },
   "sidebar": {
     "profile": "Profile",
+    "is": "IS",
     "calendar": "Calendar",
     "exams": "Exams",
     "dashboard": "Home",
     "subjects": "Subjects",
+    "notebooks": "Record List",
     "student": "Student",
     "study": "Study",
     "portal": "Student Portal",
@@ -135,9 +137,9 @@
       "successRate": "Success",
       "assessment": "Grades",
       "classmates": "Classmates",
-      "osnovy": "Tests"
+      "cvicneTests": "Tests"
     },
-    "osnovy": {
+    "cvicneTests": {
       "tests": "Practice Tests",
       "assignments": "Assignments",
       "assignmentsDone": "Submitted / Closed",
